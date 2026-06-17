@@ -1,0 +1,40 @@
+{
+  "paintings": [
+    {
+      "file": "507827ldsdl.jpg",
+      "width": 1800,
+      "height": 1069,
+      "title": "San Michele am Gardasee",
+      "years": "1852-1926",
+      "artist": "Karl Hofmann",
+      "nationality": "Austrian"
+    },
+    {
+      "file": "530207ldsdl.jpg",
+      "width": 1800,
+      "height": 1128,
+      "title": "Part of the Bay of Gibraltar, the Spanish Lines",
+      "years": "1844",
+      "artist": "George Lothian Hall",
+      "nationality": "English"
+    },
+    {
+      "file": "547441ldsdl.jpg",
+      "width": 1800,
+      "height": 1121,
+      "title": "Paysage avec une mare et quelques vallons",
+      "years": "1857",
+      "artist": "Henri-Joseph Harpignies",
+      "nationality": "French"
+    },
+    {
+      "file": "504657ldsdl.jpg",
+      "width": 1800,
+      "height": 1154,
+      "title": "Udsigt over skærgården ved Elleholm i Blekinge",
+      "years": "1854",
+      "artist": "Godtfred Rump",
+      "nationality": "Danish"
+    }
+  ]
+}

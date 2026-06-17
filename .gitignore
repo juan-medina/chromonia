@@ -1,0 +1,19 @@
+# Godot
+*.uid
+/android/
+
+# Build output
+bin/
+obj/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Other
+.*/

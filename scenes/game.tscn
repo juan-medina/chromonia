@@ -1,0 +1,35 @@
+[gd_scene format=3 uid="uid://bgcd70qm8pk3t"]
+
+[ext_resource type="Script" uid="uid://d0xga6khg0hq6" path="res://scenes/Game.cs" id="1_uwrxv"]
+[ext_resource type="Shader" uid="uid://bbsil6a6ejpo2" path="res://shaders/reveal.gdshader" id="2_lnu2h"]
+[ext_resource type="Texture2D" uid="uid://bf0srr2tucx2o" path="res://paitings/504657ldsdl.jpg" id="2_yqjtg"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_lbhrr"]
+shader = ExtResource("2_lnu2h")
+
+[node name="Game" type="Node2D" unique_id=1676047802]
+script = ExtResource("1_uwrxv")
+
+[node name="Painting" type="Sprite2D" parent="." unique_id=1516573035]
+material = SubResource("ShaderMaterial_lbhrr")
+texture = ExtResource("2_yqjtg")
+
+[node name="Title" type="Label" parent="Painting" unique_id=437484050]
+visible = false
+offset_right = 40.0
+offset_bottom = 23.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 7
+theme_override_font_sizes/font_size = 18
+text = "This is the painting title"
+
+[node name="Artist" type="Label" parent="Painting" unique_id=1175574297]
+visible = false
+offset_top = 23.0
+offset_right = 172.0
+offset_bottom = 46.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+text = "This is the artist name"
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=178768570]
