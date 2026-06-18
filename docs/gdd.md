@@ -299,8 +299,11 @@ The game uses a **vector-based approach**, consistent with the original Qix rath
 
 - The player's active line is stored as a `PackedVector2Array` of **waypoints**. A new point is recorded only when the player changes direction or closes the shape — not continuously during movement. Each segment between consecutive waypoints is guaranteed to travel in one of 8 directions (horizontal, vertical, or 45° diagonal).
 - On completion the line is closed into a polygon. Area is calculated using the **Shoelace formula**. The smaller area is always claimed.
-- Claimed areas are rendered as `Polygon2D` nodes. Each polygon samples the painting texture using UV coordinates mapped to playfield bounds (`vertex_position / playfield_size`).
-- A shader on the painting base layer handles desaturation of unclaimed areas. Claimed `Polygon2D` nodes sit above and show the full-colour texture with matching UVs.
+- The painting `Sprite2D` carries a `ShaderMaterial` using `reveal.gdshader`. The shader reads the painting texture and a `mask_texture` uniform — a greyscale-encoded state map produced by a `SubViewport` (same resolution as the painting).
+- The mask encodes zone state by RGB channel: black `(0,0,0)` = free (rendered greyscale), white `(1,1,1)` = claimed (full colour), red `(1,0,0)` = claimed with red tint, blue `(0,0,1)` = claimed with blue tint.
+- When an area is claimed, a `Polygon2D` of the appropriate mask colour is added to the SubViewport's `MaskRoot` node. The viewport texture is passed to the shader via `SetShaderParameter("mask_texture", ...)`. Because SubViewport renders one frame later, the parameter update is deferred with `await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame)`.
+- A border is drawn into the mask at load time as four thin white rectangles along the painting edges. This border serves as the player's starting safe ground and as a positional reference for game elements.
+- The active drawing line is also a node inside the SubViewport (`Line2D` added to `MaskRoot`), coloured red `(1,0,0)` or blue `(0,0,1)` to match the player's current draw colour. The shader blends it with the painting in real time. On cancellation the node is removed; on successful completion it is removed and replaced with a `Polygon2D` of the same colour.
 - Enemy-inside check at claim time uses a standard **point-in-polygon test** for each enemy.
 - Polygon subtraction (removing the newly claimed polygon from the remaining free space) is the most complex geometric operation. Evaluate **Clipper2** (C# port) vs. a bespoke solution.
 
@@ -365,7 +368,7 @@ Velopack handles automatic updates on Windows. On launch, the app checks for a n
 | `res://music/` | OGG classical tracks from Musopen |
 | `res://sfx/paint/` | Brush, drip, sweep sound effects |
 | `res://sfx/music/` | Piano keys, string plucks, chords, glissandos |
-| `res://shaders/reveal.gdshader` | Desaturation shader for unclaimed area base layer |
+| `res://shaders/reveal.gdshader` | Desaturation shader — blends full-colour painting with greyscale based on mask_texture state |
 
 ---
 
