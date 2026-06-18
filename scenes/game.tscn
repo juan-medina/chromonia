@@ -6,6 +6,9 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_lbhrr"]
 shader = ExtResource("2_lnu2h")
+shader_parameter/tint_strength = 0.4
+shader_parameter/ZONE_FREE = Vector3(0, 0, 0)
+shader_parameter/ZONE_CLAIMED = Vector3(1, 1, 1)
 
 [node name="Game" type="Node2D" unique_id=1676047802]
 script = ExtResource("1_uwrxv")
@@ -33,3 +36,9 @@ theme_override_constants/outline_size = 5
 text = "This is the artist name"
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=178768570]
+
+[node name="SubViewport" type="SubViewport" parent="." unique_id=2038524390]
+handle_input_locally = false
+render_target_update_mode = 4
+
+[node name="MaskRoot" type="Node2D" parent="SubViewport" unique_id=197539567]
