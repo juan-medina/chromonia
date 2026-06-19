@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: MIT
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using Godot;
 using Chromonia.Scripts;
 
@@ -14,6 +13,9 @@ public partial class Game : Node2D
     private const float ViewportHeight = 1080f;
 
     private const float LabelPadding = 10f;
+
+    private static readonly Color BorderColor = new(1, 0, 1);
+    private const float BorderThickness = 9f;
 
     private Sprite2D? _painting;
     private SubViewport? _maskViewport;
@@ -63,12 +65,13 @@ public partial class Game : Node2D
         _library = GetNodeOrNull<PaintingLibrary>("/root/PaintingLibrary");
         if (_library is null)
         {
-            GD.PrintErr("Game: PaintingLibrary autoload not found — is it registered in Project Settings?");
+            GD.PrintErr("Game: PaintingLibrary autoload not found");
             return;
         }
 
         LoadCurrentPainting();
     }
+
 
     private void LoadPainting(PaintingEntry painting)
     {
@@ -91,14 +94,22 @@ public partial class Game : Node2D
             return;
         }
 
+        var paintingWidth = texture.GetWidth();
+        var paintingHeight = texture.GetHeight();
+        if (paintingWidth <= 0 || paintingHeight <= 0)
+        {
+            GD.PrintErr($"Game: invalid painting dimensions: {paintingWidth}x{paintingHeight}");
+            return;
+        }
+
         _painting.Texture = texture;
 
-        float scale = Math.Min(ViewportWidth / painting.Width, ViewportHeight / painting.Height);
+        float scale = Math.Min(ViewportWidth / paintingWidth, ViewportHeight / paintingHeight);
         _painting.Scale = new Vector2(scale, scale);
         _painting.Position = Vector2.Zero;
 
-        // position labels at the top-left corner of the image in Sprite2D local space
-        var topLeft = new Vector2(-painting.Width / 2f + LabelPadding, -painting.Height / 2f + LabelPadding);
+        // position labels in the top-left corner of the image in Sprite2D local space
+        var topLeft = new Vector2(-paintingWidth / 2f + LabelPadding, -paintingHeight / 2f + LabelPadding);
         _title.Position = topLeft;
         _title.Text = $"{painting.Title} ({painting.Years})";
 
@@ -106,40 +117,42 @@ public partial class Game : Node2D
         _artist.Text = $"{painting.Artist} ({painting.Nationality})";
 
         // at the end of LoadPainting, after setting scale/position:
-        _maskViewport.Size = new Vector2I((int)painting.Width, (int)painting.Height);
+        _maskViewport.Size = new Vector2I(paintingWidth, paintingHeight);
 
         var material = (ShaderMaterial)_painting.Material;
         material.SetShaderParameter("mask_texture", _maskViewport.GetTexture());
 
-        DrawMaskBorder(painting.Width, painting.Height);
+        // create a border with a giving color and thickness
+        CreateBorder(paintingWidth, paintingHeight, BorderColor, BorderThickness);
     }
 
-    private const float BorderThickness = 9f;
-    private static readonly Color BorderColor = new(1, 0, 1);
-
-    [SuppressMessage("ReSharper", "ArrangeObjectCreationWhenTypeNotEvident")]
-    private void DrawMaskBorder(float width, float height)
+    private void CreateBorder(float width, float height, Color color, float size)
     {
         if (_maskRoot is null)
             return;
 
+        var verticalGap = new Vector2(0, size);
+        var horizontalGap = new Vector2(size, 0);
+
+        var topLeft = new Vector2(0, 0);
+        var topRight = new Vector2(width, 0);
+        var bottomLeft = new Vector2(0, height);
+        var bottomRight = new Vector2(width, height);
 
         // top, bottom, left, right strips
-        (Vector2[] quad, Color color)[] strips =
-        [
-            ([new(0, 0), new(width, 0), new(width, BorderThickness), new(0, BorderThickness)], BorderColor),
-            ([new(0, height - BorderThickness), new(width, height - BorderThickness), new(width, height), new(0, height)],
-                BorderColor),
-            ([new(0, 0), new(BorderThickness, 0), new(BorderThickness, height), new(0, height)], BorderColor),
-            ([new(width - BorderThickness, 0), new(width, 0), new(width, height), new(width - BorderThickness, height)],
-                BorderColor),
-        ];
-
-        foreach (var (quad, color) in strips)
+        _maskRoot.AddChild(new Polygon2D
+            { Polygon = [topLeft, topRight, topRight + verticalGap, topLeft + verticalGap], Color = color });
+        _maskRoot.AddChild(
+            new Polygon2D
+            {
+                Polygon = [bottomLeft, bottomRight, bottomRight - verticalGap, bottomLeft - verticalGap], Color = color
+            });
+        _maskRoot.AddChild(new Polygon2D
+            { Polygon = [topLeft, topLeft + horizontalGap, bottomLeft + horizontalGap, bottomLeft], Color = color });
+        _maskRoot.AddChild(new Polygon2D
         {
-            var poly = new Polygon2D { Color = color, Polygon = quad };
-            _maskRoot.AddChild(poly);
-        }
+            Polygon = [topRight, topRight - horizontalGap, bottomRight - horizontalGap, bottomRight], Color = color
+        });
     }
 
     private void LoadCurrentPainting()

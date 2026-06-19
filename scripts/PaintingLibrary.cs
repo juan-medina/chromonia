@@ -9,8 +9,6 @@ namespace Chromonia.Scripts;
 
 public record PaintingEntry(
     string File,
-    float Width,
-    float Height,
     string Title,
     string Years,
     string Artist,
@@ -82,8 +80,6 @@ public partial class PaintingLibrary : Node
         {
             _entries.Add(new PaintingEntry(
                 element.GetProperty("file").GetString()!,
-                element.GetProperty("width").GetSingle(),
-                element.GetProperty("height").GetSingle(),
                 element.GetProperty("title").GetString()!,
                 element.GetProperty("years").GetString()!,
                 element.GetProperty("artist").GetString()!,
