@@ -11,8 +11,14 @@ shader_parameter/tint_strength = 0.4
 shader_parameter/ZONE_FREE = Vector3(0, 0, 0)
 shader_parameter/ZONE_CLAIMED = Vector3(1, 1, 1)
 
-[node name="Game" type="Node2D" unique_id=1676047802]
+[node name="Game" type="Node2D" unique_id=1676047802 node_paths=PackedStringArray("_maskViewport", "_maskRoot", "_painting", "_title", "_artist", "_arrow")]
 script = ExtResource("1_uwrxv")
+_maskViewport = NodePath("SubViewport")
+_maskRoot = NodePath("SubViewport/MaskRoot")
+_painting = NodePath("Painting")
+_title = NodePath("Painting/Title")
+_artist = NodePath("Painting/Artist")
+_arrow = NodePath("Painting/Arrow")
 
 [node name="Painting" type="Sprite2D" parent="." unique_id=1516573035]
 material = SubResource("ShaderMaterial_lbhrr")

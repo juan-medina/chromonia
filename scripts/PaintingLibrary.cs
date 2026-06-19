@@ -14,6 +14,12 @@ public record PaintingEntry(
     string Artist,
     string Nationality);
 
+public record PaintingError(bool Success, string Message)
+{
+    public static PaintingError Ok() => new(true, string.Empty);
+    public static PaintingError Fail(string msg) => new(false, msg);
+}
+
 public partial class PaintingLibrary : Node
 {
     private const string JsonPath = "res://paitings/paintings.json";
@@ -24,91 +30,100 @@ public partial class PaintingLibrary : Node
 
     public override void _Ready()
     {
-        LoadEntries();
+        var (success, error) = TryLoadEntries();
+        if (!success)
+        {
+            GD.PrintErr($"PaintingLibrary Critical Initialization Failure: {error}");
+            return;
+        }
+
         Shuffle();
     }
 
-    public PaintingEntry? Current()
+    public (PaintingEntry? Entry, PaintingError Err) Current()
     {
-        if (_entries.Count != 0) return _entries[_index];
-        GD.PrintErr("PaintingLibrary: no paintings");
-        return null;
+        return _entries.Count != 0
+            ? (_entries[_index], PaintingError.Ok())
+            : (null, PaintingError.Fail("PaintingLibrary has no paintings loaded."));
     }
 
     public void MoveNext()
     {
         if (_entries.Count == 0)
         {
-            GD.PrintErr("PaintingLibrary: no paintings");
+            GD.PrintErr("PaintingLibrary: cannot move next, no paintings");
             return;
         }
 
-
-        // if we don't reach the end just advance
+        // If we don't reach the end just advance
         if (_index + 1 < _entries.Count)
         {
             _index++;
             return;
         }
 
-        // shuffle and start over
+        // Shuffle and start over
         Shuffle();
         _index = 0;
     }
 
-    public static ImageTexture? LoadTexture(PaintingEntry entry)
+    public static (ImageTexture? Texture, PaintingError Err) LoadTexture(PaintingEntry entry)
     {
         var path = FolderPath + entry.File;
         var image = Image.LoadFromFile(ProjectSettings.GlobalizePath(path));
-        if (image is not null) return ImageTexture.CreateFromImage(image);
-
-        GD.PrintErr($"Could not load image: {path}");
-        return null;
+        return image is not null
+            ? (ImageTexture.CreateFromImage(image), PaintingError.Ok())
+            : (null, PaintingError.Fail($"Could not load image: {path}"));
     }
 
-    private void LoadEntries()
+    private (bool Success, string Error) TryLoadEntries()
     {
         using var file = FileAccess.Open(JsonPath, FileAccess.ModeFlags.Read);
         if (file is null)
         {
-            GD.PrintErr($"PaintingLibrary: could not open {JsonPath}: {FileAccess.GetOpenError()}");
-            return;
+            return (false, $"Could not open {JsonPath}: {FileAccess.GetOpenError()}");
         }
 
-        using var doc = JsonDocument.Parse(file.GetAsText());
-        foreach (var element in doc.RootElement.GetProperty("paintings").EnumerateArray())
+        try
         {
-            _entries.Add(new PaintingEntry(
-                element.GetProperty("file").GetString()!,
-                element.GetProperty("title").GetString()!,
-                element.GetProperty("years").GetString()!,
-                element.GetProperty("artist").GetString()!,
-                element.GetProperty("nationality").GetString()!
-            ));
+            using var doc = JsonDocument.Parse(file.GetAsText());
+            foreach (var element in doc.RootElement.GetProperty("paintings").EnumerateArray())
+            {
+                _entries.Add(new PaintingEntry(
+                    element.GetProperty("file").GetString()!,
+                    element.GetProperty("title").GetString()!,
+                    element.GetProperty("years").GetString()!,
+                    element.GetProperty("artist").GetString()!,
+                    element.GetProperty("nationality").GetString()!
+                ));
+            }
+        }
+        catch (JsonException ex)
+        {
+            return (false, $"Failed to parse JSON configuration: {ex.Message}");
         }
 
-        if (_entries.Count == 0)
-        {
-            GD.PrintErr($"PaintingLibrary: no paintings found in {JsonPath}");
-        }
+        return _entries.Count == 0
+            ? (false, $"No paintings found in the parsed configuration file {JsonPath}")
+            : (true, string.Empty);
     }
 
     private void Shuffle()
     {
-        // we don't shuffle if there is only 1 entry
+        // We don't shuffle if there is only 1 entry
         if (_entries.Count <= 1) return;
 
-        // where we are now
+        // Where we are now
         var at = _entries[_index];
 
-        // shuffle the entries
+        // Shuffle the entries
         for (int i = _entries.Count - 1; i > 0; i--)
         {
             int j = GD.RandRange(0, i);
             (_entries[i], _entries[j]) = (_entries[j], _entries[i]);
         }
 
-        // make sure we don't end with the current painting to the first position
+        // Make sure we don't end with the current painting in the first position
         if (at.File == _entries[0].File)
             (_entries[0], _entries[1]) = (_entries[1], _entries[0]);
     }
