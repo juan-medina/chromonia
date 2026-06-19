@@ -17,3 +17,6 @@ __pycache__/
 
 # Other
 .*/
+
+# Rider
+*.user
