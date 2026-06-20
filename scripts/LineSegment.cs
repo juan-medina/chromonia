@@ -9,6 +9,8 @@ namespace Chromonia.Scripts;
 public readonly struct LineSegment(Vector2 a, Vector2 b, float tolerance)
 {
     public float Tolerance { get; } = tolerance;
+    public bool IsHorizontal { get; } = Mathf.IsEqualApprox(a.Y, b.Y);
+
     public Vector2 GetClosestPoint(Vector2 p)
     {
         Vector2 ab = b - a;
