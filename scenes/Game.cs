@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 using System;
+using System.Collections.Generic;
 using Godot;
 using Chromonia.Scripts;
 
@@ -39,6 +40,7 @@ public partial class Game : Node2D
 
     private int _paintingHeight = ViewportHeight;
     private bool _revealed;
+    private readonly List<LineSegment> _safeSegments = [];
 
     //////////////////////////////////////////////////////////////////////
     /// Overrides
@@ -67,7 +69,6 @@ public partial class Game : Node2D
     {
         base._Process(delta);
         MoveArrow(delta);
-        Input.IsActionJustPressed("ui_accept");
     }
 
     public override void _UnhandledInput(InputEvent @event)
@@ -136,6 +137,8 @@ public partial class Game : Node2D
         // Create a border with a given color and thickness
         CreateBorder(_paintingWidth, _paintingHeight, BorderColor, BorderThickness);
 
+        UpdateSafeSegments();
+
         return (true, string.Empty);
     }
 
@@ -175,10 +178,57 @@ public partial class Game : Node2D
 
         var vx = Input.GetAxis("ui_left", "ui_right");
         var vy = Input.GetAxis("ui_up", "ui_down");
+
+        if (vx == 0 && vy == 0) return;
+
+        // we can move only horizontal or vertically but not both
+        // dominant axis wins; the other is discarded entirely
+        if (Math.Abs(vx) >= Math.Abs(vy)) vy = 0;
+        else vx = 0;
+
         var direction = new Vector2(vx, vy);
         var velocity = direction * speed;
 
-        _arrow.SetPosition(_arrow.GetPosition() + velocity);
+        var pos = _arrow.GetPosition();
+        
+        _arrow.SetPosition(GetSnappedPosition(pos, velocity));
+    }
+
+    private void UpdateSafeSegments()
+    {
+        _safeSegments.Clear();
+        float halfW = _paintingWidth / 2f;
+        float halfH = _paintingHeight / 2f;
+
+        float left = -halfW + BorderThickness;
+        float right = halfW - BorderThickness;
+        float top = -halfH + BorderThickness;
+        float bottom = halfH - BorderThickness;
+
+        _safeSegments.Add(new LineSegment(new Vector2(left, top), new Vector2(right, top), BorderThickness));
+        _safeSegments.Add(new LineSegment(new Vector2(left, bottom), new Vector2(right, bottom), BorderThickness));
+        _safeSegments.Add(new LineSegment(new Vector2(left, top), new Vector2(left, bottom), BorderThickness));
+        _safeSegments.Add(new LineSegment(new Vector2(right, top), new Vector2(right, bottom), BorderThickness));
+    }
+
+    private Vector2 GetSnappedPosition(Vector2 current, Vector2 move)
+    {
+        float min = float.MaxValue;
+        Vector2 possible = current + move;
+        Vector2 best = possible;
+        float tolerance = 0;
+
+        foreach (var segment in _safeSegments)
+        {
+            Vector2 closest = segment.GetClosestPoint(possible);
+            float dist = possible.DistanceTo(closest);
+            if (!(dist < min)) continue;
+            min = dist;
+            best = closest;
+            tolerance = segment.Tolerance;
+        }
+
+        return !(min <= tolerance) ? current : best;
     }
 
     private void HandleFatalError(string errorMessage)
