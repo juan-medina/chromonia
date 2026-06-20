@@ -19,8 +19,6 @@ public partial class Game : Node2D
 	[Export] private Label _title = null!;
 	[Export] private Label _artist = null!;
 	[Export] private Arrow _arrow = null!;
-	[Export] private Line2D _lineOutline = null!;
-	[Export] private Line2D _lineColor = null!;
 
 	//////////////////////////////////////////////////////////////////////
 	/// Globals
@@ -42,15 +40,6 @@ public partial class Game : Node2D
 
 	private int _paintingHeight = ViewportHeight;
 	private readonly List<LineSegment> _safeSegments = [];
-	private float _playLeft;
-	private float _playRight;
-	private float _playTop;
-	private float _playBottom;
-
-	private bool _isDrawing;
-	private int _drawStartSegmentIndex = -1;
-	private Vector2 _lastDrawDirection;
-	private readonly List<Vector2> _drawPoints = [];
 
 	//////////////////////////////////////////////////////////////////////
 	/// Overrides
@@ -198,95 +187,7 @@ public partial class Game : Node2D
 
 		var pos = _arrow.GetPosition();
 
-		if (!_isDrawing)
-		{
-			var restingIndex = GetRestingSegmentIndex(pos);
-			bool sliding = restingIndex >= 0 && IsAlongSegment(_safeSegments[restingIndex], direction);
-			if (sliding)
-			{
-				_arrow.SetPosition(GetSnappedPosition(pos, velocity));
-				return;
-			}
-
-			StartDrawing(pos, restingIndex);
-		}
-
-		var target = ClampToPlayfield(pos + velocity);
-
-		if (_lastDrawDirection != Vector2.Zero && direction != _lastDrawDirection)
-		{
-			_drawPoints.Add(pos);
-		}
-
-		_lastDrawDirection = direction;
-
-		if (TryGetDrawingHit(target, out var hitPoint))
-		{
-			UpdateDrawLines(hitPoint);
-			_arrow.SetPosition(hitPoint);
-			_isDrawing = false;
-			return;
-		}
-
-		UpdateDrawLines(target);
-		_arrow.SetPosition(target);
-	}
-
-	private void StartDrawing(Vector2 startPos, int segmentIndex)
-	{
-		_isDrawing = true;
-		_drawStartSegmentIndex = segmentIndex;
-		_lastDrawDirection = Vector2.Zero;
-		_drawPoints.Clear();
-		_drawPoints.Add(startPos);
-		_lineColor.DefaultColor = _arrow.TintColor;
-	}
-
-	private void UpdateDrawLines(Vector2 head)
-	{
-		var points = new Vector2[_drawPoints.Count + 1];
-		for (int i = 0; i < _drawPoints.Count; i++) points[i] = _drawPoints[i];
-		points[^1] = head;
-
-		_lineOutline.Points = points;
-		_lineColor.Points = points;
-	}
-
-	private Vector2 ClampToPlayfield(Vector2 pos)
-	{
-		return new Vector2(Math.Clamp(pos.X, _playLeft, _playRight), Math.Clamp(pos.Y, _playTop, _playBottom));
-	}
-
-	private static bool IsAlongSegment(LineSegment segment, Vector2 direction)
-	{
-		return segment.IsHorizontal ? direction.X != 0 : direction.Y != 0;
-	}
-
-	private int GetRestingSegmentIndex(Vector2 pos)
-	{
-		for (int i = 0; i < _safeSegments.Count; i++)
-		{
-			var segment = _safeSegments[i];
-			if (pos.DistanceTo(segment.GetClosestPoint(pos)) <= segment.Tolerance) return i;
-		}
-
-		return -1;
-	}
-
-	private bool TryGetDrawingHit(Vector2 pos, out Vector2 hitPoint)
-	{
-		hitPoint = pos;
-		for (int i = 0; i < _safeSegments.Count; i++)
-		{
-			if (i == _drawStartSegmentIndex) continue;
-			var segment = _safeSegments[i];
-			var closest = segment.GetClosestPoint(pos);
-			if (!(pos.DistanceTo(closest) <= segment.Tolerance)) continue;
-			hitPoint = closest;
-			return true;
-		}
-
-		return false;
+		_arrow.SetPosition(GetSnappedPosition(pos, velocity));
 	}
 
 	private void UpdateSafeSegments()
@@ -295,19 +196,15 @@ public partial class Game : Node2D
 		float halfW = _paintingWidth / 2f;
 		float halfH = _paintingHeight / 2f;
 
-		_playLeft = -halfW + BorderThickness;
-		_playRight = halfW - BorderThickness;
-		_playTop = -halfH + BorderThickness;
-		_playBottom = halfH - BorderThickness;
+		float left = -halfW + BorderThickness;
+		float right = halfW - BorderThickness;
+		float top = -halfH + BorderThickness;
+		float bottom = halfH - BorderThickness;
 
-		_safeSegments.Add(new LineSegment(new Vector2(_playLeft, _playTop), new Vector2(_playRight, _playTop),
-			BorderThickness));
-		_safeSegments.Add(new LineSegment(new Vector2(_playLeft, _playBottom), new Vector2(_playRight, _playBottom),
-			BorderThickness));
-		_safeSegments.Add(new LineSegment(new Vector2(_playLeft, _playTop), new Vector2(_playLeft, _playBottom),
-			BorderThickness));
-		_safeSegments.Add(new LineSegment(new Vector2(_playRight, _playTop), new Vector2(_playRight, _playBottom),
-			BorderThickness));
+		_safeSegments.Add(new LineSegment(new Vector2(left, top), new Vector2(right, top), BorderThickness));
+		_safeSegments.Add(new LineSegment(new Vector2(left, bottom), new Vector2(right, bottom), BorderThickness));
+		_safeSegments.Add(new LineSegment(new Vector2(left, top), new Vector2(left, bottom), BorderThickness));
+		_safeSegments.Add(new LineSegment(new Vector2(right, top), new Vector2(right, bottom), BorderThickness));
 	}
 
 	private Vector2 GetSnappedPosition(Vector2 current, Vector2 move)
