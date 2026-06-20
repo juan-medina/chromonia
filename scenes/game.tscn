@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://d0xga6khg0hq6" path="res://scenes/Game.cs" id="1_uwrxv"]
 [ext_resource type="Shader" uid="uid://bbsil6a6ejpo2" path="res://shaders/reveal.gdshader" id="2_lnu2h"]
 [ext_resource type="Texture2D" uid="uid://bf0srr2tucx2o" path="res://paitings/504657ldsdl.jpg" id="2_yqjtg"]
-[ext_resource type="Texture2D" uid="uid://l4y52l8yg6dq" path="res://sprites/arrow.png" id="4_lbhrr"]
+[ext_resource type="PackedScene" uid="uid://dxhwomcmo5bio" path="res://scenes/arrow.tscn" id="4_lbhrr"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_lbhrr"]
 shader = ExtResource("2_lnu2h")
@@ -42,8 +42,7 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 5
 text = "This is the artist name"
 
-[node name="Arrow" type="Sprite2D" parent="Painting" unique_id=1058754850]
-texture = ExtResource("4_lbhrr")
+[node name="Arrow" parent="Painting" unique_id=54182347 instance=ExtResource("4_lbhrr")]
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=178768570]
 
