@@ -122,12 +122,11 @@ When a claim is cancelled (wrong-colour enemy inside), all enemies inside contin
 
 ### 2.7 Win Condition
 
-A round is won when **both** of the following are true simultaneously:
+A round is won when the player successfully claims **35% of the total area in Red** AND **35% of the total area in Blue** (a combined 70% threshold). 
 
-- The claimed area equals or exceeds the fill threshold.
-- All enemies have been eliminated.
+Because enemies are only vulnerable to lines of their own colour, the player must dynamically balance their colour usage to safely navigate the enemies while fulfilling both quotas.
 
-Either condition can be met first. The player may clear all enemies early and then claim territory freely, or hit the fill threshold and then hunt remaining enemies. Both create a satisfying cooldown phase after the tension of the main game.
+When both quotas are met, the round is won. All remaining enemies disappear and the full-colour painting is revealed.
 
 ### 2.8 Difficulty
 
