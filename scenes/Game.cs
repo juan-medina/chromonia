@@ -9,44 +9,39 @@ using Chromonia.Scripts;
 
 namespace Chromonia.Scenes;
 
+public enum PlayerState
+{
+    OnPerimeter,
+    Drawing
+}
+
 public partial class Game : Node2D
 {
-    //////////////////////////////////////////////////////////////////////
-    /// Nodes
     [Export] private SubViewport _maskViewport = null!;
-
     [Export] private Node2D _maskRoot = null!;
     [Export] private Sprite2D _painting = null!;
     [Export] private Label _title = null!;
     [Export] private Label _artist = null!;
     [Export] private Arrow _arrow = null!;
-
-    //////////////////////////////////////////////////////////////////////
-    /// Globals
     private PaintingLibrary _library = null!;
 
-    //////////////////////////////////////////////////////////////////////
-    /// Constants
     private const int ViewportWidth = 1920;
-
     private const int ViewportHeight = 1080;
     private const float LabelPadding = 10f;
     private static readonly Color BorderColor = new(0.25f, 0.55f, 0.3f);
     private const float BorderThickness = 5f;
     private const float ArrowSpeed = 300f;
 
-    //////////////////////////////////////////////////////////////////////
-    /// State
     private int _paintingWidth = ViewportWidth;
-
     private int _paintingHeight = ViewportHeight;
-
     private Vector2[] _perimeter = []; // represent all the points that create the safe perimeter of the safe area
     private readonly List<int> _segmentsOnPoint = new(4); // Pre-allocated list to prevent GC pressure
     private Line2D _debugPerimeterLine = null!;
+    private PlayerState _playerState = PlayerState.OnPerimeter;
+    private readonly List<Vector2> _activeLine = new();
+    private Vector2 _lastDrawDirection = Vector2.Zero;
+    private Line2D _debugActiveLine = null!;
 
-    //////////////////////////////////////////////////////////////////////
-    /// Overrides
     public override void _Ready()
     {
         // 1. Resolve Autoload explicitly
@@ -166,6 +161,15 @@ public partial class Game : Node2D
             ZIndex = 1
         };
         _painting.AddChild(_debugPerimeterLine);
+
+        _debugActiveLine = new Line2D
+        {
+            DefaultColor = Colors.HotPink,
+            Width = thickness,
+            Closed = false,
+            ZIndex = 1
+        };
+        _painting.AddChild(_debugActiveLine);
     }
 
     private void SetupArrow()
@@ -194,30 +198,74 @@ public partial class Game : Node2D
 
         // The user's input vector. We preserve its analog magnitude along the dominant axis.
         var velocity = new Vector2(vx, vy) * speed;
+        var inputDir = new Vector2(vx, vy);
         Vector2 current = _arrow.Position;
 
-        // Update our pre-allocated list of segments we are touching
-        UpdateSegmentsOnPoint(current);
-
-        foreach (var idx in _segmentsOnPoint)
+        if (_playerState == PlayerState.OnPerimeter)
         {
-            Vector2 a = _perimeter[idx];
-            Vector2 b = _perimeter[idx + 1];
-            Vector2 dir = (b - a).Normalized();
+            UpdateSegmentsOnPoint(current);
+            bool movedOnPerimeter = false;
 
-            // We only move if the input axis matches the wall's axis.
-            bool isWallHorizontal = dir.Y == 0;
-            bool isInputHorizontal = vy == 0;
-            if (isWallHorizontal != isInputHorizontal) continue;
+            foreach (var idx in _segmentsOnPoint)
+            {
+                Vector2 a = _perimeter[idx];
+                Vector2 b = _perimeter[idx + 1];
+                Vector2 dir = (b - a).Normalized();
 
-            Vector2 target = ClampPointToSegment(current + velocity, a, b);
+                bool isWallHorizontal = dir.Y == 0;
+                bool isInputHorizontal = vy == 0;
 
-            // if we are not moving
-            if (target.IsEqualApprox(current)) continue;
+                // If input is not in the direction of the wall we slide
+                if (isWallHorizontal != isInputHorizontal) continue;
 
-            _arrow.Position = target;
-            break; // we successfully moved along a segment
+                // clamp to the segment
+                Vector2 target = ClampPointToSegment(current + velocity, a, b);
+
+                // if the target is where we were, do nothing
+                if (target.IsEqualApprox(current)) continue;
+
+                _arrow.Position = target;
+                movedOnPerimeter = true;
+                break;
+            }
+
+            // If we didn't slide, the user is pushing AWAY from the wall.
+            // Check if they are pushing INSIDE the safe area (unclaimed space).
+            if (!movedOnPerimeter)
+            {
+                Vector2 testPoint = current + inputDir * 1.0f;
+                if (Geometry2D.IsPointInPolygon(testPoint, _perimeter))
+                {
+                    // Break away!
+                    _playerState = PlayerState.Drawing;
+                    _lastDrawDirection = inputDir;
+                    _activeLine.Clear();
+                    _activeLine.Add(current); // Anchor point on the perimeter
+                    _activeLine.Add(current); // The moving head of the line
+                }
+            }
         }
+
+        // if we are not drawing a line we return
+
+        if (_playerState != PlayerState.Drawing) return;
+
+        // Did they turn?
+        if (inputDir != _lastDrawDirection)
+        {
+            // Drop a new waypoint where they turned
+            _activeLine.Add(_arrow.Position);
+            _lastDrawDirection = inputDir;
+        }
+
+        // Move freely
+        _arrow.Position += velocity;
+
+        // Update the tip of the line to follow the arrow
+        _activeLine[^1] = _arrow.Position;
+
+        // Render the line
+        _debugActiveLine.Points = _activeLine.ToArray();
     }
 
     private void UpdateSegmentsOnPoint(Vector2 pt)
