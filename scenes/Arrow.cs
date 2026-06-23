@@ -34,7 +34,7 @@ public partial class Arrow : Sprite2D
         }
     }
 
-    private Color TintColor => CurrentTint == Tint.A ? AColor : BColor;
+    public Color TintColor => CurrentTint == Tint.A ? AColor : BColor;
 
     public void Cycle()
     {

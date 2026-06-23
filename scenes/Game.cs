@@ -35,12 +35,12 @@ public partial class Game : Node2D
     private int _paintingHeight = ViewportHeight;
     private Vector2[] _perimeter = []; // represent all the points that create the safe perimeter of the safe area
     private readonly List<int> _segmentsOnPoint = new(4); // Pre-allocated list to prevent GC pressure
-    private Line2D _debugPerimeterLine = null!;
+    private Line2D _perimeterLine = null!;
     private PlayerState _playerState = PlayerState.OnPerimeter;
     private readonly List<Vector2> _activeLine = new();
     private Vector2 _lastDrawDirection = Vector2.Zero;
     private int _startSegmentIndex = -1;
-    private Line2D _debugActiveLine = null!;
+    private Line2D _drawingLine = null!;
 
     public override void _Ready()
     {
@@ -73,7 +73,13 @@ public partial class Game : Node2D
     {
         if (@event.IsActionPressed("ui_cancel")) GetTree().Quit();
         if (!@event.IsActionPressed("ui_accept")) return;
+        
         _arrow.Cycle();
+        
+        if (_playerState == PlayerState.Drawing)
+        {
+            _drawingLine.DefaultColor = _arrow.TintColor;
+        }
     }
 
 
@@ -146,7 +152,7 @@ public partial class Game : Node2D
 
         _perimeter = [topLeft, topRight, bottomRight, bottomLeft, topLeft];
 
-        _debugPerimeterLine = new Line2D
+        _perimeterLine = new Line2D
         {
             Points = [topLeft, topRight, bottomRight, bottomLeft],
             DefaultColor = color,
@@ -154,16 +160,16 @@ public partial class Game : Node2D
             Closed = true,
             ZIndex = 1
         };
-        _painting.AddChild(_debugPerimeterLine);
+        _painting.AddChild(_perimeterLine);
 
-        _debugActiveLine = new Line2D
+        _drawingLine = new Line2D
         {
             DefaultColor = Colors.HotPink,
             Width = thickness,
             Closed = false,
             ZIndex = 1
         };
-        _painting.AddChild(_debugActiveLine);
+        _painting.AddChild(_drawingLine);
     }
 
     private void SetupArrow()
@@ -235,14 +241,16 @@ public partial class Game : Node2D
         _playerState = PlayerState.Drawing;
         _lastDrawDirection = inputDir;
         _startSegmentIndex = _segmentsOnPoint[0];
+        
+        _drawingLine.DefaultColor = _arrow.TintColor;
 
         _activeLine.Clear();
         _activeLine.Add(current);
         _activeLine.Add(current);
 
-        _debugActiveLine.ClearPoints();
-        _debugActiveLine.AddPoint(current);
-        _debugActiveLine.AddPoint(current);
+        _drawingLine.ClearPoints();
+        _drawingLine.AddPoint(current);
+        _drawingLine.AddPoint(current);
     }
 
     private void ProcessDrawing(Vector2 velocity, Vector2 inputDir)
@@ -257,7 +265,7 @@ public partial class Game : Node2D
         if (_playerState != PlayerState.Drawing) return;
 
         _activeLine[^1] = _arrow.Position;
-        _debugActiveLine.SetPointPosition(_debugActiveLine.GetPointCount() - 1, _arrow.Position);
+        _drawingLine.SetPointPosition(_drawingLine.GetPointCount() - 1, _arrow.Position);
     }
 
     private void HandleBacktracking(Vector2 velocity)
@@ -269,7 +277,7 @@ public partial class Game : Node2D
 
         _arrow.Position = corner;
         _activeLine.RemoveAt(_activeLine.Count - 1);
-        _debugActiveLine.RemovePoint(_debugActiveLine.GetPointCount() - 1);
+        _drawingLine.RemovePoint(_drawingLine.GetPointCount() - 1);
 
         if (_activeLine.Count == 1)
             CancelDrawing();
@@ -337,12 +345,12 @@ public partial class Game : Node2D
             var newPerimeterList = new List<Vector2>(newPerimeter) { newPerimeter[0] };
             _perimeter = newPerimeterList.ToArray();
 
-            _debugPerimeterLine.Points = newPerimeter;
+            _perimeterLine.Points = newPerimeter;
 
             Polygon2D claimNode = new Polygon2D
             {
                 Polygon = ConvertToMaskCoordinates(claimedPoly),
-                Color = Colors.White
+                Color = _arrow.TintColor
             };
             _maskRoot.AddChild(claimNode);
 
@@ -353,7 +361,7 @@ public partial class Game : Node2D
             if (inputDir != _lastDrawDirection)
             {
                 _activeLine.Insert(_activeLine.Count - 1, _arrow.Position);
-                _debugActiveLine.AddPoint(_arrow.Position, _debugActiveLine.GetPointCount() - 1);
+                _drawingLine.AddPoint(_arrow.Position, _drawingLine.GetPointCount() - 1);
                 _lastDrawDirection = inputDir;
             }
 
@@ -365,7 +373,7 @@ public partial class Game : Node2D
     {
         _playerState = PlayerState.OnPerimeter;
         _activeLine.Clear();
-        _debugActiveLine.ClearPoints();
+        _drawingLine.ClearPoints();
     }
 
     private Vector2[] BuildPolygon(int startSeg, int endSeg, Vector2[] activeLine, bool forward)
