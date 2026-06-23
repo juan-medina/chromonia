@@ -1,4 +1,4 @@
-﻿# CHROMONIA
+# CHROMONIA
 ## Game Design Document
 
 **Version 1.0 · June 2026**
@@ -78,9 +78,9 @@ The player's marker always starts on the border of the playfield. The border and
 
 When the player moves off safe ground into unclaimed space, a line begins drawing behind them (a *Stix*). The line is rendered in the player's current colour (red or blue). The player may change direction while drawing, producing a multi-segment line, as long as each new direction is one of the 8 allowed angles.
 
-If the player returns to safe ground, the enclosed area is claimed. If the player presses Space while drawing mid-line, the line is cancelled and the player snaps back to the border — there is no penalty beyond losing the progress of that line.
+If the player returns to safe ground, the enclosed area is claimed. The player may press Space at any time — even while drawing mid-line — to instantly swap their active colour.
 
-> **Note:** The player may only switch colour (Space) while on safe ground. Pressing Space mid-line cancels the current line and returns the player to the border.
+> **Note:** Swapping colour mid-line changes the entire active line to the new colour. This is a core defensive mechanic, allowing the player to dynamically swap "teams" to allow an approaching enemy to pass through their line harmlessly.
 
 ### 2.4 Claiming Territory
 
@@ -146,7 +146,7 @@ Chosen before each session on the play screen. Enemy count is always evenly spli
 | Input | Action |
 |---|---|
 | Arrow Keys / WASD | Move the player marker |
-| Space | Switch colour (red ↔ blue). Only on safe ground; mid-line it cancels the line and snaps to border. |
+| Space | Switch colour (red ↔ blue). Can be used mid-line to dynamically change the entire line's colour and dodge enemies. |
 | Escape | Open in-game pause menu |
 
 > Controller support is a stretch goal. The game is designed primarily around keyboard.

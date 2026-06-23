@@ -11,7 +11,8 @@ namespace Chromonia.Scenes;
 public enum PlayerState
 {
     OnPerimeter,
-    Drawing
+    Drawing,
+    Won
 }
 
 public partial class Game : Node2D
@@ -41,6 +42,8 @@ public partial class Game : Node2D
     private Vector2 _lastDrawDirection = Vector2.Zero;
     private int _startSegmentIndex = -1;
     private Line2D _drawingLine = null!;
+    private float _totalClaimedArea;
+    private float _totalArea;
 
     public override void _Ready()
     {
@@ -71,11 +74,13 @@ public partial class Game : Node2D
 
     public override void _UnhandledInput(InputEvent @event)
     {
+        if (_playerState == PlayerState.Won) return;
+
         if (@event.IsActionPressed("ui_cancel")) GetTree().Quit();
         if (!@event.IsActionPressed("ui_accept")) return;
-        
+
         _arrow.Cycle();
-        
+
         if (_playerState == PlayerState.Drawing)
         {
             _drawingLine.DefaultColor = _arrow.TintColor;
@@ -85,9 +90,13 @@ public partial class Game : Node2D
 
     private void Reveal()
     {
+        _playerState = PlayerState.Won;
         _painting.Material = null;
         _title.Visible = true;
         _artist.Visible = true;
+        _arrow.Visible = false;
+        _perimeterLine.Visible = false;
+        _drawingLine.Visible = false;
     }
 
 
@@ -107,6 +116,7 @@ public partial class Game : Node2D
 
         _paintingWidth = texture!.GetWidth();
         _paintingHeight = texture.GetHeight();
+        _totalArea = _paintingWidth * _paintingHeight;
 
         if (_paintingWidth <= 0 || _paintingHeight <= 0)
         {
@@ -181,6 +191,8 @@ public partial class Game : Node2D
 
     private void MoveArrow(double delta)
     {
+        if (_playerState == PlayerState.Won) return;
+
         var speed = ArrowSpeed * (float)delta;
         var vx = Input.GetAxis("ui_left", "ui_right");
         var vy = Input.GetAxis("ui_up", "ui_down");
@@ -241,7 +253,7 @@ public partial class Game : Node2D
         _playerState = PlayerState.Drawing;
         _lastDrawDirection = inputDir;
         _startSegmentIndex = _segmentsOnPoint[0];
-        
+
         _drawingLine.DefaultColor = _arrow.TintColor;
 
         _activeLine.Clear();
@@ -339,8 +351,9 @@ public partial class Game : Node2D
             float area2 = GetPolygonArea(poly2);
 
             // The smaller area is claimed, the larger area becomes the new safe perimeter
-            Vector2[] claimedPoly = area1 < area2 ? poly1 : poly2;
-            Vector2[] newPerimeter = area1 < area2 ? poly2 : poly1;
+            var (claimedPoly, newPerimeter, claimedArea) = area1 < area2
+                ? (poly1, poly2, area1)
+                : (poly2, poly1, area2);
 
             var newPerimeterList = new List<Vector2>(newPerimeter) { newPerimeter[0] };
             _perimeter = newPerimeterList.ToArray();
@@ -355,6 +368,9 @@ public partial class Game : Node2D
             _maskRoot.AddChild(claimNode);
 
             CancelDrawing();
+
+            _totalClaimedArea += claimedArea;
+            if (_totalClaimedArea / _totalArea >= 0.75f) Reveal();
         }
         else
         {
