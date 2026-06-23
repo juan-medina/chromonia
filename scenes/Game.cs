@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Godot;
 using Chromonia.Scripts;
 
@@ -145,15 +144,11 @@ public partial class Game : Node2D
         var bottomLeft = new Vector2(-halfWidth, halfHeight);
         var bottomRight = new Vector2(halfWidth, halfHeight);
 
-        _perimeter =
-        [
-            topLeft, topRight, bottomRight, bottomLeft, topLeft
-        ];
+        _perimeter = [topLeft, topRight, bottomRight, bottomLeft, topLeft];
 
-        // Create debug line to visualize math. We strip the 5th point and let Godot close the loop for perfect corners.
         _debugPerimeterLine = new Line2D
         {
-            Points = _perimeter.Take(_perimeter.Length - 1).ToArray(),
+            Points = [topLeft, topRight, bottomRight, bottomLeft],
             DefaultColor = color,
             Width = thickness,
             Closed = true,
@@ -211,8 +206,9 @@ public partial class Game : Node2D
         UpdateSegmentsOnPoint(current);
         bool movedOnPerimeter = false;
 
-        foreach (var idx in _segmentsOnPoint)
+        for (int i = 0; i < _segmentsOnPoint.Count; i++)
         {
+            int idx = _segmentsOnPoint[i];
             Vector2 a = _perimeter[idx];
             Vector2 b = _perimeter[idx + 1];
             Vector2 dir = (b - a).Normalized();
@@ -297,10 +293,10 @@ public partial class Game : Node2D
             var inter = Geometry2D.SegmentIntersectsSegment(moveA, moveB, _perimeter[i], _perimeter[i + 1]);
             if (inter.VariantType == Variant.Type.Nil) continue;
             Vector2 pt = inter.AsVector2();
-            
+
             // Ignore collision with our own starting anchor to prevent instant termination
             if (pt.DistanceTo(_activeLine[0]) <= 1.0f) continue;
-            
+
             hitPoint = pt;
             hitPerimeter = true;
             hitSegmentIndex = i;
@@ -324,24 +320,32 @@ public partial class Game : Node2D
             _arrow.Position = hitPoint.Value;
 
             if (!hitPerimeter) return;
-            
+
             _activeLine[^1] = hitPoint.Value;
             var activeArray = _activeLine.ToArray();
-            
-            var poly1 = BuildForwardPolygon(_startSegmentIndex, hitSegmentIndex, activeArray);
-            var poly2 = BuildBackwardPolygon(_startSegmentIndex, hitSegmentIndex, activeArray);
-            
+
+            var poly1 = BuildPolygon(_startSegmentIndex, hitSegmentIndex, activeArray, forward: true);
+            var poly2 = BuildPolygon(_startSegmentIndex, hitSegmentIndex, activeArray, forward: false);
+
             float area1 = GetPolygonArea(poly1);
             float area2 = GetPolygonArea(poly2);
-            
+
             // The smaller area is claimed, the larger area becomes the new safe perimeter
+            Vector2[] claimedPoly = area1 < area2 ? poly1 : poly2;
             Vector2[] newPerimeter = area1 < area2 ? poly2 : poly1;
-            
-            var newPerimList = new List<Vector2>(newPerimeter) { newPerimeter[0] };
-            _perimeter = newPerimList.ToArray();
-            
-            _debugPerimeterLine.Points = _perimeter.Take(_perimeter.Length - 1).ToArray();
-            
+
+            var newPerimeterList = new List<Vector2>(newPerimeter) { newPerimeter[0] };
+            _perimeter = newPerimeterList.ToArray();
+
+            _debugPerimeterLine.Points = newPerimeter;
+
+            Polygon2D claimNode = new Polygon2D
+            {
+                Polygon = ConvertToMaskCoordinates(claimedPoly),
+                Color = Colors.White
+            };
+            _maskRoot.AddChild(claimNode);
+
             CancelDrawing();
         }
         else
@@ -364,39 +368,27 @@ public partial class Game : Node2D
         _debugActiveLine.ClearPoints();
     }
 
-    private Vector2[] BuildForwardPolygon(int startSeg, int endSeg, Vector2[] activeLine)
+    private Vector2[] BuildPolygon(int startSeg, int endSeg, Vector2[] activeLine, bool forward)
     {
         int totalUnique = _perimeter.Length - 1;
         var poly = new List<Vector2>(activeLine);
 
-        if (startSeg == endSeg && _perimeter[startSeg].DistanceSquaredTo(activeLine[0]) >= _perimeter[startSeg].DistanceSquaredTo(activeLine[^1]))
-            return poly.ToArray();
+        bool startBeforeEnd = _perimeter[startSeg].DistanceSquaredTo(activeLine[0]) <
+                              _perimeter[startSeg].DistanceSquaredTo(activeLine[^1]);
 
-        int curr = (endSeg + 1) % totalUnique;
+        if (startSeg == endSeg)
+            if (forward && !startBeforeEnd || !forward && startBeforeEnd)
+                return poly.ToArray();
+
+        int curr = forward ? (endSeg + 1) % totalUnique : endSeg;
+        int target = forward ? startSeg : (startSeg + 1) % totalUnique;
+        int step = forward ? 1 : -1;
+
         while (true)
         {
             poly.Add(_perimeter[curr]);
-            if (curr == startSeg) break;
-            curr = (curr + 1) % totalUnique;
-        }
-
-        return poly.ToArray();
-    }
-
-    private Vector2[] BuildBackwardPolygon(int startSeg, int endSeg, Vector2[] activeLine)
-    {
-        int totalUnique = _perimeter.Length - 1;
-        var poly = new List<Vector2>(activeLine);
-
-        if (startSeg == endSeg && _perimeter[startSeg].DistanceSquaredTo(activeLine[0]) < _perimeter[startSeg].DistanceSquaredTo(activeLine[^1]))
-            return poly.ToArray();
-
-        int curr = endSeg;
-        while (true)
-        {
-            poly.Add(_perimeter[curr]);
-            if (curr == (startSeg + 1) % totalUnique) break;
-            curr = (curr - 1 + totalUnique) % totalUnique;
+            if (curr == target) break;
+            curr = (curr + step + totalUnique) % totalUnique;
         }
 
         return poly.ToArray();
@@ -411,10 +403,18 @@ public partial class Game : Node2D
             area += (polygon[j].X + polygon[i].X) * (polygon[j].Y - polygon[i].Y);
             j = i;
         }
+
         return Math.Abs(area / 2.0f);
     }
 
-
+    private Vector2[] ConvertToMaskCoordinates(Vector2[] poly)
+    {
+        var shift = new Vector2(_paintingWidth / 2f, _paintingHeight / 2f);
+        var shifted = new Vector2[poly.Length];
+        for (int i = 0; i < poly.Length; i++)
+            shifted[i] = poly[i] + shift;
+        return shifted;
+    }
 
     private void UpdateSegmentsOnPoint(Vector2 pt)
     {
