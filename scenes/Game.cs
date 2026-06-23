@@ -40,6 +40,7 @@ public partial class Game : Node2D
     private PlayerState _playerState = PlayerState.OnPerimeter;
     private readonly List<Vector2> _activeLine = new();
     private Vector2 _lastDrawDirection = Vector2.Zero;
+    private int _startSegmentIndex = -1;
     private Line2D _debugActiveLine = null!;
 
     public override void _Ready()
@@ -206,7 +207,6 @@ public partial class Game : Node2D
 
     private void ProcessOnPerimeter(Vector2 velocity, Vector2 inputDir, float vy)
     {
-        // 1. Attempt to slide along the current safe perimeter
         Vector2 current = _arrow.Position;
         UpdateSegmentsOnPoint(current);
         bool movedOnPerimeter = false;
@@ -233,12 +233,12 @@ public partial class Game : Node2D
 
         if (movedOnPerimeter) return;
 
-        // 2. If the player pushes into the unclaimed polygon space, break away and begin drawing
         Vector2 testPoint = current + inputDir * 1.0f;
         if (!Geometry2D.IsPointInPolygon(testPoint, _perimeter)) return;
 
         _playerState = PlayerState.Drawing;
         _lastDrawDirection = inputDir;
+        _startSegmentIndex = _segmentsOnPoint[0];
 
         _activeLine.Clear();
         _activeLine.Add(current);
@@ -251,7 +251,6 @@ public partial class Game : Node2D
 
     private void ProcessDrawing(Vector2 velocity, Vector2 inputDir)
     {
-        // Determine if the player is erasing their line by moving backwards
         bool backtracking = inputDir == -_lastDrawDirection;
 
         if (backtracking)
@@ -261,31 +260,25 @@ public partial class Game : Node2D
 
         if (_playerState != PlayerState.Drawing) return;
 
-        // Sync the visual line to the logical line exactly, without allocating new arrays
         _activeLine[^1] = _arrow.Position;
         _debugActiveLine.SetPointPosition(_debugActiveLine.GetPointCount() - 1, _arrow.Position);
     }
 
     private void HandleBacktracking(Vector2 velocity)
     {
-        // Reverse along the active segment
         _arrow.Position += velocity;
         Vector2 corner = _activeLine[^2];
 
-        // Check if we reversed past the previous corner
         if (!((_arrow.Position - corner).Dot(_lastDrawDirection) <= 0)) return;
 
-        // Snap to the corner and pop the erased segment
         _arrow.Position = corner;
         _activeLine.RemoveAt(_activeLine.Count - 1);
         _debugActiveLine.RemovePoint(_debugActiveLine.GetPointCount() - 1);
 
-        // If we erased everything, return to the safety of the perimeter
         if (_activeLine.Count == 1)
             CancelDrawing();
         else
         {
-            // Calculate the trajectory of the previous segment so backtracking can continue smoothly
             Vector2 prevCorner = _activeLine[^2];
             _lastDrawDirection = (corner - prevCorner).Normalized();
         }
@@ -297,20 +290,24 @@ public partial class Game : Node2D
         Vector2 moveB = _arrow.Position + velocity;
         Vector2? hitPoint = null;
         bool hitPerimeter = false;
+        int hitSegmentIndex = -1;
 
-        // Raycast against the perimeter to detect shape closure, ignoring the anchor we just left
         for (int i = 0; i < _perimeter.Length - 1; i++)
         {
             var inter = Geometry2D.SegmentIntersectsSegment(moveA, moveB, _perimeter[i], _perimeter[i + 1]);
             if (inter.VariantType == Variant.Type.Nil) continue;
             Vector2 pt = inter.AsVector2();
+            
+            // Ignore collision with our own starting anchor to prevent instant termination
             if (pt.DistanceTo(_activeLine[0]) <= 1.0f) continue;
+            
             hitPoint = pt;
             hitPerimeter = true;
+            hitSegmentIndex = i;
             break;
         }
 
-        // Raycast against our own tail, ignoring the most recent segments to prevent self-intersection bugs
+        // Check self-collision against tail. Ignore the 3 most recent segments to prevent trivial vertex intersections.
         if (!hitPoint.HasValue && _activeLine.Count >= 4)
         {
             for (int i = 0; i < _activeLine.Count - 3; i++)
@@ -324,16 +321,31 @@ public partial class Game : Node2D
 
         if (hitPoint.HasValue)
         {
-            // We hit a boundary. Snap exactly to the collision point and halt advance.
             _arrow.Position = hitPoint.Value;
 
             if (!hitPerimeter) return;
-            GD.Print("Hit Perimeter! Ready to close shape.");
+            
+            _activeLine[^1] = hitPoint.Value;
+            var activeArray = _activeLine.ToArray();
+            
+            var poly1 = BuildForwardPolygon(_startSegmentIndex, hitSegmentIndex, activeArray);
+            var poly2 = BuildBackwardPolygon(_startSegmentIndex, hitSegmentIndex, activeArray);
+            
+            float area1 = GetPolygonArea(poly1);
+            float area2 = GetPolygonArea(poly2);
+            
+            // The smaller area is claimed, the larger area becomes the new safe perimeter
+            Vector2[] newPerimeter = area1 < area2 ? poly2 : poly1;
+            
+            var newPerimList = new List<Vector2>(newPerimeter) { newPerimeter[0] };
+            _perimeter = newPerimList.ToArray();
+            
+            _debugPerimeterLine.Points = _perimeter.Take(_perimeter.Length - 1).ToArray();
+            
             CancelDrawing();
         }
         else
         {
-            // If the player changed direction, drop a permanent waypoint corner
             if (inputDir != _lastDrawDirection)
             {
                 _activeLine.Insert(_activeLine.Count - 1, _arrow.Position);
@@ -351,6 +363,58 @@ public partial class Game : Node2D
         _activeLine.Clear();
         _debugActiveLine.ClearPoints();
     }
+
+    private Vector2[] BuildForwardPolygon(int startSeg, int endSeg, Vector2[] activeLine)
+    {
+        int totalUnique = _perimeter.Length - 1;
+        var poly = new List<Vector2>(activeLine);
+
+        if (startSeg == endSeg && _perimeter[startSeg].DistanceSquaredTo(activeLine[0]) >= _perimeter[startSeg].DistanceSquaredTo(activeLine[^1]))
+            return poly.ToArray();
+
+        int curr = (endSeg + 1) % totalUnique;
+        while (true)
+        {
+            poly.Add(_perimeter[curr]);
+            if (curr == startSeg) break;
+            curr = (curr + 1) % totalUnique;
+        }
+
+        return poly.ToArray();
+    }
+
+    private Vector2[] BuildBackwardPolygon(int startSeg, int endSeg, Vector2[] activeLine)
+    {
+        int totalUnique = _perimeter.Length - 1;
+        var poly = new List<Vector2>(activeLine);
+
+        if (startSeg == endSeg && _perimeter[startSeg].DistanceSquaredTo(activeLine[0]) < _perimeter[startSeg].DistanceSquaredTo(activeLine[^1]))
+            return poly.ToArray();
+
+        int curr = endSeg;
+        while (true)
+        {
+            poly.Add(_perimeter[curr]);
+            if (curr == (startSeg + 1) % totalUnique) break;
+            curr = (curr - 1 + totalUnique) % totalUnique;
+        }
+
+        return poly.ToArray();
+    }
+
+    private static float GetPolygonArea(Vector2[] polygon)
+    {
+        float area = 0;
+        int j = polygon.Length - 1;
+        for (int i = 0; i < polygon.Length; i++)
+        {
+            area += (polygon[j].X + polygon[i].X) * (polygon[j].Y - polygon[i].Y);
+            j = i;
+        }
+        return Math.Abs(area / 2.0f);
+    }
+
+
 
     private void UpdateSegmentsOnPoint(Vector2 pt)
     {
