@@ -77,8 +77,6 @@ public partial class Game : Node2D
     }
 
 
-    //////////////////////////////////////////////////////////////////////
-    /// Helpers
     private void Reveal()
     {
         _painting.Material = null;
@@ -181,91 +179,177 @@ public partial class Game : Node2D
 
     private void MoveArrow(double delta)
     {
-        // our speed scale with passed time
         var speed = ArrowSpeed * (float)delta;
-
-        // get axis input this is -1..1
         var vx = Input.GetAxis("ui_left", "ui_right");
         var vy = Input.GetAxis("ui_up", "ui_down");
 
-        // if we are not moving return
         if (vx == 0 && vy == 0) return;
 
-        // We can move only horizontal or vertically but not both
-        // dominant axis wins; the other is discarded entirely
         if (Math.Abs(vx) >= Math.Abs(vy)) vy = 0;
         else vx = 0;
 
-        // The user's input vector. We preserve its analog magnitude along the dominant axis.
         var velocity = new Vector2(vx, vy) * speed;
         var inputDir = new Vector2(vx, vy);
-        Vector2 current = _arrow.Position;
 
-        if (_playerState == PlayerState.OnPerimeter)
+        switch (_playerState)
         {
-            UpdateSegmentsOnPoint(current);
-            bool movedOnPerimeter = false;
-
-            foreach (var idx in _segmentsOnPoint)
-            {
-                Vector2 a = _perimeter[idx];
-                Vector2 b = _perimeter[idx + 1];
-                Vector2 dir = (b - a).Normalized();
-
-                bool isWallHorizontal = dir.Y == 0;
-                bool isInputHorizontal = vy == 0;
-
-                // If input is not in the direction of the wall we slide
-                if (isWallHorizontal != isInputHorizontal) continue;
-
-                // clamp to the segment
-                Vector2 target = ClampPointToSegment(current + velocity, a, b);
-
-                // if the target is where we were, do nothing
-                if (target.IsEqualApprox(current)) continue;
-
-                _arrow.Position = target;
-                movedOnPerimeter = true;
+            case PlayerState.OnPerimeter:
+                ProcessOnPerimeter(velocity, inputDir, vy);
                 break;
-            }
+            case PlayerState.Drawing:
+                ProcessDrawing(velocity, inputDir);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
 
-            // If we didn't slide, the user is pushing AWAY from the wall.
-            // Check if they are pushing INSIDE the safe area (unclaimed space).
-            if (!movedOnPerimeter)
-            {
-                Vector2 testPoint = current + inputDir * 1.0f;
-                if (Geometry2D.IsPointInPolygon(testPoint, _perimeter))
-                {
-                    // Break away!
-                    _playerState = PlayerState.Drawing;
-                    _lastDrawDirection = inputDir;
-                    _activeLine.Clear();
-                    _activeLine.Add(current); // Anchor point on the perimeter
-                    _activeLine.Add(current); // The moving head of the line
-                }
-            }
+    private void ProcessOnPerimeter(Vector2 velocity, Vector2 inputDir, float vy)
+    {
+        // 1. Attempt to slide along the current safe perimeter
+        Vector2 current = _arrow.Position;
+        UpdateSegmentsOnPoint(current);
+        bool movedOnPerimeter = false;
+
+        foreach (var idx in _segmentsOnPoint)
+        {
+            Vector2 a = _perimeter[idx];
+            Vector2 b = _perimeter[idx + 1];
+            Vector2 dir = (b - a).Normalized();
+
+            bool isWallHorizontal = dir.Y == 0;
+            bool isInputHorizontal = vy == 0;
+
+            if (isWallHorizontal != isInputHorizontal) continue;
+
+            Vector2 target = ClampPointToSegment(current + velocity, a, b);
+
+            if (target.IsEqualApprox(current)) continue;
+
+            _arrow.Position = target;
+            movedOnPerimeter = true;
+            break;
         }
 
-        // if we are not drawing a line we return
+        if (movedOnPerimeter) return;
+
+        // 2. If the player pushes into the unclaimed polygon space, break away and begin drawing
+        Vector2 testPoint = current + inputDir * 1.0f;
+        if (!Geometry2D.IsPointInPolygon(testPoint, _perimeter)) return;
+
+        _playerState = PlayerState.Drawing;
+        _lastDrawDirection = inputDir;
+
+        _activeLine.Clear();
+        _activeLine.Add(current);
+        _activeLine.Add(current);
+
+        _debugActiveLine.ClearPoints();
+        _debugActiveLine.AddPoint(current);
+        _debugActiveLine.AddPoint(current);
+    }
+
+    private void ProcessDrawing(Vector2 velocity, Vector2 inputDir)
+    {
+        // Determine if the player is erasing their line by moving backwards
+        bool backtracking = inputDir == -_lastDrawDirection;
+
+        if (backtracking)
+            HandleBacktracking(velocity);
+        else
+            HandleAdvancing(velocity, inputDir);
 
         if (_playerState != PlayerState.Drawing) return;
 
-        // Did they turn?
-        if (inputDir != _lastDrawDirection)
+        // Sync the visual line to the logical line exactly, without allocating new arrays
+        _activeLine[^1] = _arrow.Position;
+        _debugActiveLine.SetPointPosition(_debugActiveLine.GetPointCount() - 1, _arrow.Position);
+    }
+
+    private void HandleBacktracking(Vector2 velocity)
+    {
+        // Reverse along the active segment
+        _arrow.Position += velocity;
+        Vector2 corner = _activeLine[^2];
+
+        // Check if we reversed past the previous corner
+        if (!((_arrow.Position - corner).Dot(_lastDrawDirection) <= 0)) return;
+
+        // Snap to the corner and pop the erased segment
+        _arrow.Position = corner;
+        _activeLine.RemoveAt(_activeLine.Count - 1);
+        _debugActiveLine.RemovePoint(_debugActiveLine.GetPointCount() - 1);
+
+        // If we erased everything, return to the safety of the perimeter
+        if (_activeLine.Count == 1)
+            CancelDrawing();
+        else
         {
-            // Drop a new waypoint where they turned
-            _activeLine.Add(_arrow.Position);
-            _lastDrawDirection = inputDir;
+            // Calculate the trajectory of the previous segment so backtracking can continue smoothly
+            Vector2 prevCorner = _activeLine[^2];
+            _lastDrawDirection = (corner - prevCorner).Normalized();
+        }
+    }
+
+    private void HandleAdvancing(Vector2 velocity, Vector2 inputDir)
+    {
+        Vector2 moveA = _arrow.Position;
+        Vector2 moveB = _arrow.Position + velocity;
+        Vector2? hitPoint = null;
+        bool hitPerimeter = false;
+
+        // Raycast against the perimeter to detect shape closure, ignoring the anchor we just left
+        for (int i = 0; i < _perimeter.Length - 1; i++)
+        {
+            var inter = Geometry2D.SegmentIntersectsSegment(moveA, moveB, _perimeter[i], _perimeter[i + 1]);
+            if (inter.VariantType == Variant.Type.Nil) continue;
+            Vector2 pt = inter.AsVector2();
+            if (pt.DistanceTo(_activeLine[0]) <= 1.0f) continue;
+            hitPoint = pt;
+            hitPerimeter = true;
+            break;
         }
 
-        // Move freely
-        _arrow.Position += velocity;
+        // Raycast against our own tail, ignoring the most recent segments to prevent self-intersection bugs
+        if (!hitPoint.HasValue && _activeLine.Count >= 4)
+        {
+            for (int i = 0; i < _activeLine.Count - 3; i++)
+            {
+                var inter = Geometry2D.SegmentIntersectsSegment(moveA, moveB, _activeLine[i], _activeLine[i + 1]);
+                if (inter.VariantType == Variant.Type.Nil) continue;
+                hitPoint = inter.AsVector2();
+                break;
+            }
+        }
 
-        // Update the tip of the line to follow the arrow
-        _activeLine[^1] = _arrow.Position;
+        if (hitPoint.HasValue)
+        {
+            // We hit a boundary. Snap exactly to the collision point and halt advance.
+            _arrow.Position = hitPoint.Value;
 
-        // Render the line
-        _debugActiveLine.Points = _activeLine.ToArray();
+            if (!hitPerimeter) return;
+            GD.Print("Hit Perimeter! Ready to close shape.");
+            CancelDrawing();
+        }
+        else
+        {
+            // If the player changed direction, drop a permanent waypoint corner
+            if (inputDir != _lastDrawDirection)
+            {
+                _activeLine.Insert(_activeLine.Count - 1, _arrow.Position);
+                _debugActiveLine.AddPoint(_arrow.Position, _debugActiveLine.GetPointCount() - 1);
+                _lastDrawDirection = inputDir;
+            }
+
+            _arrow.Position += velocity;
+        }
+    }
+
+    private void CancelDrawing()
+    {
+        _playerState = PlayerState.OnPerimeter;
+        _activeLine.Clear();
+        _debugActiveLine.ClearPoints();
     }
 
     private void UpdateSegmentsOnPoint(Vector2 pt)
