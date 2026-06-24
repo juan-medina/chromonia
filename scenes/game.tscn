@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://bgcd70qm8pk3t"]
+[gd_scene format=3 uid="uid://bujvwvf4xmwo0"]
 
 [ext_resource type="Script" uid="uid://d0xga6khg0hq6" path="res://scenes/Game.cs" id="1_uwrxv"]
 [ext_resource type="Shader" uid="uid://bbsil6a6ejpo2" path="res://shaders/reveal.gdshader" id="2_lnu2h"]
@@ -10,6 +10,11 @@ shader = ExtResource("2_lnu2h")
 shader_parameter/tint_strength = 0.4
 shader_parameter/ZONE_FREE = Vector3(0, 0, 0)
 shader_parameter/ZONE_CLAIMED = Vector3(1, 1, 1)
+
+[sub_resource type="Environment" id="Environment_lbhrr"]
+background_mode = 3
+glow_enabled = true
+glow_blend_mode = 0
 
 [node name="Game" type="Node2D" unique_id=1676047802 node_paths=PackedStringArray("_maskViewport", "_maskRoot", "_painting", "_title", "_artist", "_arrow")]
 script = ExtResource("1_uwrxv")
@@ -51,3 +56,6 @@ handle_input_locally = false
 render_target_update_mode = 4
 
 [node name="MaskRoot" type="Node2D" parent="SubViewport" unique_id=197539567]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1375889662]
+environment = SubResource("Environment_lbhrr")

@@ -28,7 +28,7 @@ public partial class Game : Node2D
     private const int ViewportWidth = 1920;
     private const int ViewportHeight = 1080;
     private const float LabelPadding = 10f;
-    private static readonly Color BorderColor = new(0.25f, 0.55f, 0.3f);
+    private static readonly Color BorderColor = new(0.75f, 2.25f, 0.75f);
     private const float BorderThickness = 5f;
     private const float ArrowSpeed = 300f;
 

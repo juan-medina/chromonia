@@ -13,8 +13,8 @@ public partial class Arrow : Sprite2D
         B
     }
 
-    private static readonly Color AColor = new(0.8f, 0.25f, 0.2f);
-    private static readonly Color BColor = new(0.2f, 0.35f, 0.75f);
+    private static readonly Color AColor = new(2.25f, 0.0f, 0.0f);
+    private static readonly Color BColor = new(0.0f, 1.15f, 2.25f);
 
     private const float PulsateScale = 1.25f;
     private const float PulsateDuration = 0.25f;
