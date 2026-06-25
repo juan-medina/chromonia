@@ -55,8 +55,8 @@ public partial class Arrow : Sprite2D
 
     private void AddPulsate()
     {
-        var minColor = CurrentEnergy.Line * PulsateMinGlow;
-        var maxColor = CurrentEnergy.Fill * PulsateMaxGlow;
+        var minColor = CurrentEnergy.Marker * PulsateMinGlow;
+        var maxColor = CurrentEnergy.Line * PulsateMaxGlow;
 
         SelfModulate = minColor;
 
