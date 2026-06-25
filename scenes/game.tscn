@@ -62,10 +62,10 @@ render_target_update_mode = 4
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1375889662]
 environment = SubResource("Environment_lbhrr")
 
-[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=761815789]
+[node name="Background" type="CanvasLayer" parent="." unique_id=761815789]
 layer = -1
 
-[node name="TextureRect" type="TextureRect" parent="CanvasLayer" unique_id=320634080]
+[node name="Canvas" type="TextureRect" parent="Background" unique_id=320634080]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
