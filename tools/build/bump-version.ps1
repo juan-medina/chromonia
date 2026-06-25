@@ -1,4 +1,4 @@
-﻿# SPDX-FileCopyrightText: 2026 Juan Medina
+# SPDX-FileCopyrightText: 2026 Juan Medina
 # SPDX-License-Identifier: MIT
 #
 # Increments the build number in version.props and syncs the new version
@@ -68,6 +68,7 @@ if (-not $found) {
 }
 
 # Write with LF line endings, no BOM
-$updated -join "`n" | Set-Content $projectGodot -Encoding UTF8 -NoNewline
+$contentToSave = ($updated -join "`n") + "`n"
+[System.IO.File]::WriteAllText($projectGodot, $contentToSave, [System.Text.UTF8Encoding]::new($false))
 
 Write-Host "project.godot updated to $version"
