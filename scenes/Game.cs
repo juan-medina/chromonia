@@ -23,6 +23,7 @@ public partial class Game : Node2D
     [Export] private Label _title = null!;
     [Export] private Label _artist = null!;
     [Export] private Arrow _arrow = null!;
+    [Export] private SharedProgressBar _progressBar = null!;
     private PaintingLibrary _library = null!;
 
     private const int ViewportWidth = 1920;
@@ -31,7 +32,7 @@ public partial class Game : Node2D
     private static readonly Color BorderColor = new(0.75f, 2.25f, 0.75f);
     private const float BorderThickness = 5f;
     private const float ArrowSpeed = 300f;
-    private const float TopMargin = 150f;
+    private const float TopMargin = 120f;
     private const float BottomMargin = 35f;
     private const float SideMargin = 25f;
     private const float AvailableWidth = ViewportWidth - (SideMargin * 2);
@@ -48,6 +49,8 @@ public partial class Game : Node2D
     private int _startSegmentIndex = -1;
     private Line2D _drawingLine = null!;
     private float _totalClaimedArea;
+    private float _redClaimedArea;
+    private float _blueClaimedArea;
     private float _totalArea;
 
     public override void _Ready()
@@ -88,7 +91,7 @@ public partial class Game : Node2D
 
         if (_playerState == PlayerState.Drawing)
         {
-            _drawingLine.DefaultColor = _arrow.LineColor;
+            _drawingLine.DefaultColor = _arrow.CurrentEnergy.Line;
         }
     }
 
@@ -281,7 +284,7 @@ public partial class Game : Node2D
         _lastDrawDirection = inputDir;
         _startSegmentIndex = _segmentsOnPoint[0];
 
-        _drawingLine.DefaultColor = _arrow.LineColor;
+        _drawingLine.DefaultColor = _arrow.CurrentEnergy.Line;
 
         _activeLine.Clear();
         _activeLine.Add(current);
@@ -390,14 +393,24 @@ public partial class Game : Node2D
             Polygon2D claimNode = new Polygon2D
             {
                 Polygon = ConvertToMaskCoordinates(claimedPoly),
-                Color = _arrow.LineColor
+                Color = _arrow.CurrentEnergy.Fill
             };
             _maskRoot.AddChild(claimNode);
 
             CancelDrawing();
 
-            _totalClaimedArea += claimedArea;
-            if (_totalClaimedArea / _totalArea >= 0.75f) Reveal();
+            if (_arrow.CurrentEnergy.Primary)
+                _redClaimedArea += claimedArea;
+            else
+                _blueClaimedArea += claimedArea;
+
+            _totalClaimedArea = _redClaimedArea + _blueClaimedArea;
+
+            _progressBar.UpdateProgress(_redClaimedArea / _totalArea, _blueClaimedArea / _totalArea);
+
+            // Win condition: both colors must reach the 35% goal
+            if (_redClaimedArea / _totalArea >= 0.35f && _blueClaimedArea / _totalArea >= 0.35f)
+                Reveal();
         }
         else
         {

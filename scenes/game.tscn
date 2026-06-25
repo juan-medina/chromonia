@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://bf0srr2tucx2o" path="res://paitings/504657ldsdl.jpg" id="2_yqjtg"]
 [ext_resource type="PackedScene" uid="uid://dxhwomcmo5bio" path="res://scenes/arrow.tscn" id="4_lbhrr"]
 [ext_resource type="Texture2D" uid="uid://da27hv6rxfri3" path="res://background/canvas.jpg" id="5_iywne"]
+[ext_resource type="PackedScene" uid="uid://bfytw5fks6f4w" path="res://scenes/shared_progress_bar.tscn" id="6_p57ef"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_lbhrr"]
 shader = ExtResource("2_lnu2h")
@@ -17,7 +18,7 @@ background_mode = 3
 glow_enabled = true
 glow_blend_mode = 0
 
-[node name="Game" type="Node2D" unique_id=1676047802 node_paths=PackedStringArray("_maskViewport", "_maskRoot", "_painting", "_title", "_artist", "_arrow")]
+[node name="Game" type="Node2D" unique_id=1676047802 node_paths=PackedStringArray("_maskViewport", "_maskRoot", "_painting", "_title", "_artist", "_arrow", "_progressBar")]
 script = ExtResource("1_uwrxv")
 _maskViewport = NodePath("SubViewport")
 _maskRoot = NodePath("SubViewport/MaskRoot")
@@ -25,6 +26,7 @@ _painting = NodePath("Painting")
 _title = NodePath("Painting/Title")
 _artist = NodePath("Painting/Artist")
 _arrow = NodePath("Painting/Arrow")
+_progressBar = NodePath("SharedProgressBar")
 
 [node name="Painting" type="Sprite2D" parent="." unique_id=1516573035]
 material = SubResource("ShaderMaterial_lbhrr")
@@ -74,3 +76,9 @@ grow_vertical = 2
 texture = ExtResource("5_iywne")
 expand_mode = 1
 stretch_mode = 6
+
+[node name="SharedProgressBar" parent="." unique_id=1012471350 instance=ExtResource("6_p57ef")]
+offset_left = -400.0
+offset_top = -505.0
+offset_right = 400.0
+offset_bottom = -465.0
