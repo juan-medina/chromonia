@@ -49,8 +49,8 @@ public partial class Game : Node2D
     private int _startSegmentIndex = -1;
     private Line2D _drawingLine = null!;
     private float _totalClaimedArea;
-    private float _redClaimedArea;
-    private float _blueClaimedArea;
+    private float _claimedAreaA;
+    private float _claimedAreaB;
     private float _totalArea;
 
     public override void _Ready()
@@ -400,16 +400,16 @@ public partial class Game : Node2D
             CancelDrawing();
 
             if (_arrow.CurrentEnergy.Primary)
-                _redClaimedArea += claimedArea;
+                _claimedAreaA += claimedArea;
             else
-                _blueClaimedArea += claimedArea;
+                _claimedAreaB += claimedArea;
 
-            _totalClaimedArea = _redClaimedArea + _blueClaimedArea;
+            _totalClaimedArea = _claimedAreaA + _claimedAreaB;
 
-            _progressBar.UpdateProgress(_redClaimedArea / _totalArea, _blueClaimedArea / _totalArea);
+            _progressBar.UpdateProgress(_claimedAreaA / _totalArea, _claimedAreaB / _totalArea);
 
             // Win condition: both colors must reach the 35% goal
-            if (_redClaimedArea / _totalArea >= 0.35f && _blueClaimedArea / _totalArea >= 0.35f)
+            if (_claimedAreaA / _totalArea >= 0.35f && _claimedAreaB / _totalArea >= 0.35f)
                 Reveal();
         }
         else
