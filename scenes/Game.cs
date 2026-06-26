@@ -393,9 +393,12 @@ public partial class Game : Node2D
             Polygon2D claimNode = new Polygon2D
             {
                 Polygon = ConvertToMaskCoordinates(claimedPoly),
-                Color = _arrow.CurrentEnergy.Fill
+                Color = _arrow.CurrentEnergy.Fill with { A = 0.0f }
             };
             _maskRoot.AddChild(claimNode);
+
+            var tween = CreateTween();
+            tween.TweenProperty(claimNode, "color:a", 1.0f, 0.5f);
 
             CancelDrawing();
 
