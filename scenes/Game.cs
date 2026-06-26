@@ -37,6 +37,7 @@ public partial class Game : Node2D
     private const float SideMargin = 25f;
     private const float AvailableWidth = ViewportWidth - (SideMargin * 2);
     private const float AvailableHeight = ViewportHeight - (TopMargin + BottomMargin);
+    private const float RevealTime = 1.0F;
 
     private int _paintingWidth = ViewportWidth;
     private int _paintingHeight = ViewportHeight;
@@ -82,10 +83,10 @@ public partial class Game : Node2D
 
     public override void _UnhandledInput(InputEvent @event)
     {
-        if (_playerState == PlayerState.Won) return;
-
         if (@event.IsActionPressed("ui_cancel")) GetTree().Quit();
         if (!@event.IsActionPressed("ui_accept")) return;
+
+        if (_playerState == PlayerState.Won) GetTree().ReloadCurrentScene();
 
         _arrow.Cycle();
 
@@ -100,8 +101,22 @@ public partial class Game : Node2D
     {
         _playerState = PlayerState.Won;
 
+
+        // Run all these animations simultaneously
         var tween = CreateTween();
-        tween.TweenProperty(_painting.Material, "shader_parameter/reveal_progress", 1.0f, 1.0f);
+        tween.SetParallel();
+        tween.TweenProperty(_painting.Material, "shader_parameter/reveal_progress", 1.0f, RevealTime);
+        tween.TweenProperty(_progressBar, "modulate:a", 0.0f, RevealTime / 3);
+
+        // Calculate new scale and position as if TopMargin was 35f
+        const float newAvailableHeight = ViewportHeight - (35f + BottomMargin);
+        float newScale = Math.Min(AvailableWidth / _paintingWidth, newAvailableHeight / _paintingHeight);
+
+        tween.TweenProperty(_painting, "scale", new Vector2(newScale, newScale), RevealTime);
+        tween.TweenProperty(_painting, "position", Vector2.Zero, RevealTime); // (35 - 35) / 2 = 0
+
+        // Wait for animations to finish before removing material
+        tween.SetParallel(false);
         tween.TweenCallback(Callable.From(() => _painting.Material = null));
 
         _title.Visible = true;
@@ -175,8 +190,14 @@ public partial class Game : Node2D
         // Size the viewport after setting scale/position
         _maskViewport.Size = new Vector2I(_paintingWidth, _paintingHeight);
 
-        var material = (ShaderMaterial)_painting.Material;
-        material.SetShaderParameter("mask_texture", _maskViewport.GetTexture());
+        if (_painting.Material is ShaderMaterial material)
+        {
+            material.SetShaderParameter("mask_texture", _maskViewport.GetTexture());
+            material.SetShaderParameter("reveal_progress", 0.0f);
+        }
+        else
+            HandleFatalError(
+                "Painting material is not a ShaderMaterial. Please ensure the painting uses the correct shader.");
 
         // Create a border with a given color and thickness
         CreateBorder(_paintingWidth, _paintingHeight, BorderColor, BorderThickness);
