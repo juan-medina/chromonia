@@ -44,13 +44,13 @@ public class Energy(Energy.Tint tint = Energy.Tint.A)
     public abstract class B
     {
         // Glowing Neon Magenta Line (for drawing)
-        public static readonly Color Line = new(2.2f, 0.4f, 1.5f);
+        public static readonly Color Line = new(2.4f, 0.2f, 2.4f);
 
         // Neon Magenta Fill (strong glow)
-        public static readonly Color Fill = new(1.8f, 0.0f, 1.4f);
+        public static readonly Color Fill = new(2.0f, 0.0f, 2.0f);
 
         // Bright pastel Magenta (non-glowing, for UI markers)
-        public static readonly Color Marker = new(1.0f, 0.6f, 0.9f);
+        public static readonly Color Marker = new(1.0f, 0.4f, 1.0f);
     }
 
     public abstract class Combined

@@ -25,6 +25,7 @@ public partial class Game : Node2D
     [Export] private Arrow _arrow = null!;
     [Export] private SharedProgressBar _progressBar = null!;
     private PaintingLibrary _library = null!;
+    private CanvasGroup _blobsLayer = null!;
 
     private const int ViewportWidth = 1920;
     private const int ViewportHeight = 1080;
@@ -39,6 +40,9 @@ public partial class Game : Node2D
     private const float AvailableHeight = ViewportHeight - (TopMargin + BottomMargin);
     private const float RevealTime = 1.0F;
     private const float MergeDistance = 120f;
+    private const int InitialBlobCount = 8;
+    private const float MinBlobSpeed = 50f;
+    private const float MaxBlobSpeed = 350f;
 
     private int _paintingWidth = ViewportWidth;
     private int _paintingHeight = ViewportHeight;
@@ -66,6 +70,10 @@ public partial class Game : Node2D
             return;
         }
 
+        var blobShader = ResourceLoader.Load<Shader>("res://shaders/blob_merge.gdshader");
+        _blobsLayer = new CanvasGroup { ZIndex = 2, Material = new ShaderMaterial { Shader = blobShader } };
+        _painting.AddChild(_blobsLayer);
+
         // 2. Load game data using explicit value checking
         var (success, error) = TryLoadCurrentPainting();
         if (!success)
@@ -88,13 +96,15 @@ public partial class Game : Node2D
     private void UpdateBlobMergeStates()
     {
         var blobs = new List<BlobEnemy>();
-        foreach (var child in _painting.GetChildren())
+        foreach (var child in _blobsLayer.GetChildren())
             if (child is BlobEnemy blob)
                 blobs.Add(blob);
 
         // Reset to base tint
         foreach (var blob in blobs)
+        {
             blob.BlobEnergy.CurrentTint = blob.BaseTint;
+        }
 
         // Check for merges between different base colors
         for (int i = 0; i < blobs.Count; i++)
@@ -116,7 +126,7 @@ public partial class Game : Node2D
         const float arrowRadius = 15f; // Estimated hitbox radius for Arrow
         const float lineThicknessRadius = 4f; // _drawingLine thickness is 8, so radius is 4
 
-        foreach (var child in _painting.GetChildren())
+        foreach (var child in _blobsLayer.GetChildren())
         {
             if (child is not BlobEnemy blob) continue;
 
@@ -161,7 +171,7 @@ public partial class Game : Node2D
         _playerState = PlayerState.Won;
 
         // Kill all remaining blobs
-        foreach (var child in _painting.GetChildren())
+        foreach (var child in _blobsLayer.GetChildren())
             if (child is BlobEnemy blob)
                 blob.QueueFree();
 
@@ -270,10 +280,11 @@ public partial class Game : Node2D
     {
         var bounds = new Rect2(-width / 2f, -height / 2f, width, height);
 
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < InitialBlobCount; i++)
         {
             var tint = (i % 2 == 0) ? Energy.Tint.A : Energy.Tint.B;
-            var blob = new BlobEnemy(tint, 250f);
+            float speed = (float)GD.RandRange(MinBlobSpeed, MaxBlobSpeed);
+            var blob = new BlobEnemy(tint, speed);
 
             // Random start position within bounds (leaving some margin for the radius)
             float px = (float)GD.RandRange(bounds.Position.X + 70f, bounds.End.X - 70f);
@@ -281,7 +292,7 @@ public partial class Game : Node2D
             blob.Position = new Vector2(px, py);
             blob.ZIndex = 2;
 
-            _painting.AddChild(blob);
+            _blobsLayer.AddChild(blob);
         }
     }
 
@@ -571,7 +582,7 @@ public partial class Game : Node2D
         bool lethalTrapFound = false;
         var trappedBlobs = new List<BlobEnemy>();
 
-        foreach (var child in _painting.GetChildren())
+        foreach (var child in _blobsLayer.GetChildren())
         {
             if (child is BlobEnemy blob && Geometry2D.IsPointInPolygon(blob.Position, claimedPoly))
             {

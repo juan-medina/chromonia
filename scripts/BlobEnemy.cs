@@ -6,7 +6,7 @@ public partial class BlobEnemy : RigidBody2D
 {
     public Energy BlobEnergy { get; } = new();
     public Energy.Tint BaseTint { get; private set; }
-    public float Radius { get; set; } = 40f;
+    public float Radius { get; private set; } = 40f;
     private float _speed;
 
     public BlobEnemy(Energy.Tint tint, float speed)
@@ -44,18 +44,34 @@ public partial class BlobEnemy : RigidBody2D
         LinearVelocity = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * speed;
     }
 
+    public Color DisplayColor { get; set; }
+
     public BlobEnemy()
     {
     }
 
+    public override void _Ready()
+    {
+        DisplayColor = BlobEnergy.Fill;
+
+        var shader = ResourceLoader.Load<Shader>("res://shaders/blob_soft.gdshader");
+        Material = new ShaderMaterial { Shader = shader };
+    }
+
     public override void _Process(double delta)
     {
+        // Smoothly transition the display color towards the target logical color
+        DisplayColor = DisplayColor.Lerp(BlobEnergy.Fill, (float)delta * 10.0f);
         QueueRedraw();
     }
 
     public override void _Draw()
     {
-        DrawCircle(Vector2.Zero, Radius, BlobEnergy.Fill);
-        DrawArc(Vector2.Zero, Radius, 0, Mathf.Tau, 32, BlobEnergy.Line, 3f);
+        // Draw the blob slightly larger than its collision radius to account for the fuzzy edge
+        float drawRadius = Radius * 1.5f;
+        var rect = new Rect2(-drawRadius, -drawRadius, drawRadius * 2, drawRadius * 2);
+
+        // Draw a solid rect. The blob_soft.gdshader will turn it into a soft radial gradient!
+        DrawRect(rect, DisplayColor);
     }
 }
