@@ -38,11 +38,12 @@ public partial class Game : Node2D
     private const float AvailableWidth = ViewportWidth - (SideMargin * 2);
     private const float AvailableHeight = ViewportHeight - (TopMargin + BottomMargin);
     private const float RevealTime = 1.0F;
+    private const float MergeDistance = 120f;
 
     private int _paintingWidth = ViewportWidth;
     private int _paintingHeight = ViewportHeight;
-    private Vector2[] _perimeter = []; // represent all the points that create the safe perimeter of the safe area
-    public Vector2[] Perimeter => _perimeter;
+    private Vector2[] Perimeter { get; set; } = [];
+
     private readonly List<int> _segmentsOnPoint = new(4); // Pre-allocated list to prevent GC pressure
     private Line2D _perimeterLine = null!;
     private PlayerState _playerState = PlayerState.OnPerimeter;
@@ -80,7 +81,32 @@ public partial class Game : Node2D
     {
         base._Process(delta);
         MoveArrow(delta);
+        UpdateBlobMergeStates();
         CheckCollisions();
+    }
+
+    private void UpdateBlobMergeStates()
+    {
+        var blobs = new List<BlobEnemy>();
+        foreach (var child in _painting.GetChildren())
+            if (child is BlobEnemy blob)
+                blobs.Add(blob);
+
+        // Reset to base tint
+        foreach (var blob in blobs)
+            blob.BlobEnergy.CurrentTint = blob.BaseTint;
+
+        // Check for merges between different base colors
+        for (int i = 0; i < blobs.Count; i++)
+        {
+            for (int j = i + 1; j < blobs.Count; j++)
+            {
+                if (blobs[i].BaseTint == blobs[j].BaseTint) continue;
+                if (!(blobs[i].Position.DistanceTo(blobs[j].Position) < MergeDistance)) continue;
+                blobs[i].BlobEnergy.CurrentTint = Energy.Tint.Combined;
+                blobs[j].BlobEnergy.CurrentTint = Energy.Tint.Combined;
+            }
+        }
     }
 
     private void CheckCollisions()
@@ -94,8 +120,9 @@ public partial class Game : Node2D
         {
             if (child is not BlobEnemy blob) continue;
 
-            // Polarity rule: Same color is SAFE, Opposite color is LETHAL
-            if (blob.BlobEnergy.CurrentTint == _arrow.CurrentEnergy.CurrentTint) continue;
+            // Polarity rule: Same color is SAFE. Opposite color (or Combined) is LETHAL.
+            if (blob.BlobEnergy.CurrentTint == _arrow.CurrentEnergy.CurrentTint &&
+                blob.BlobEnergy.CurrentTint != Energy.Tint.Combined) continue;
 
             // Check collision with Player
             if (blob.Position.DistanceTo(_arrow.Position) < blob.Radius + arrowRadius)
@@ -268,7 +295,7 @@ public partial class Game : Node2D
         var bottomLeft = new Vector2(-halfWidth, halfHeight);
         var bottomRight = new Vector2(halfWidth, halfHeight);
 
-        _perimeter = [topLeft, topRight, bottomRight, bottomLeft, topLeft];
+        Perimeter = [topLeft, topRight, bottomRight, bottomLeft, topLeft];
 
         _perimeterLine = new Line2D
         {
@@ -290,11 +317,11 @@ public partial class Game : Node2D
         _painting.AddChild(_drawingLine);
 
         var borderPhysics = new StaticBody2D { Name = "BorderPhysics" };
-        for (int i = 0; i < _perimeter.Length - 1; i++)
+        for (int i = 0; i < Perimeter.Length - 1; i++)
         {
             var shape = new CollisionShape2D
             {
-                Shape = new SegmentShape2D { A = _perimeter[i], B = _perimeter[i + 1] }
+                Shape = new SegmentShape2D { A = Perimeter[i], B = Perimeter[i + 1] }
             };
             borderPhysics.AddChild(shape);
         }
@@ -366,8 +393,8 @@ public partial class Game : Node2D
         for (int i = 0; i < _segmentsOnPoint.Count; i++)
         {
             int idx = _segmentsOnPoint[i];
-            Vector2 a = _perimeter[idx];
-            Vector2 b = _perimeter[idx + 1];
+            Vector2 a = Perimeter[idx];
+            Vector2 b = Perimeter[idx + 1];
             Vector2 dir = (b - a).Normalized();
 
             bool isWallHorizontal = dir.Y == 0;
@@ -387,7 +414,7 @@ public partial class Game : Node2D
         if (movedOnPerimeter) return;
 
         Vector2 testPoint = current + inputDir * 1.0f;
-        if (!Geometry2D.IsPointInPolygon(testPoint, _perimeter)) return;
+        if (!Geometry2D.IsPointInPolygon(testPoint, Perimeter)) return;
 
         _playerState = PlayerState.Drawing;
         _lastDrawDirection = inputDir;
@@ -447,9 +474,9 @@ public partial class Game : Node2D
         bool hitPerimeter = false;
         int hitSegmentIndex = -1;
 
-        for (int i = 0; i < _perimeter.Length - 1; i++)
+        for (int i = 0; i < Perimeter.Length - 1; i++)
         {
-            var inter = Geometry2D.SegmentIntersectsSegment(moveA, moveB, _perimeter[i], _perimeter[i + 1]);
+            var inter = Geometry2D.SegmentIntersectsSegment(moveA, moveB, Perimeter[i], Perimeter[i + 1]);
             if (inter.VariantType == Variant.Type.Nil) continue;
             Vector2 pt = inter.AsVector2();
 
@@ -520,9 +547,9 @@ public partial class Game : Node2D
     private (Vector2[] ClaimedPoly, Vector2[] NewPerimeter, float ClaimedArea) DetermineClaimedPolygon(
         int hitSegmentIndex, Vector2[] activeArray)
     {
-        var poly1 = GeometryUtils.BuildPolygon(_perimeter, _startSegmentIndex, hitSegmentIndex, activeArray,
+        var poly1 = GeometryUtils.BuildPolygon(Perimeter, _startSegmentIndex, hitSegmentIndex, activeArray,
             forward: true);
-        var poly2 = GeometryUtils.BuildPolygon(_perimeter, _startSegmentIndex, hitSegmentIndex, activeArray,
+        var poly2 = GeometryUtils.BuildPolygon(Perimeter, _startSegmentIndex, hitSegmentIndex, activeArray,
             forward: false);
 
         float area1 = GeometryUtils.GetPolygonArea(poly1);
@@ -535,7 +562,7 @@ public partial class Game : Node2D
     private void ApplyNewPerimeter(Vector2[] newPerimeter)
     {
         var newPerimeterList = new List<Vector2>(newPerimeter) { newPerimeter[0] };
-        _perimeter = newPerimeterList.ToArray();
+        Perimeter = newPerimeterList.ToArray();
         _perimeterLine.Points = newPerimeter;
     }
 
@@ -548,8 +575,9 @@ public partial class Game : Node2D
         {
             if (child is BlobEnemy blob && Geometry2D.IsPointInPolygon(blob.Position, claimedPoly))
             {
-                // Polarity rules: Trapping the SAME color is lethal. You can only destroy OPPOSITE colors.
-                if (blob.BlobEnergy.CurrentTint == _arrow.CurrentEnergy.CurrentTint)
+                // Polarity rules: Trapping the SAME color is lethal. A Combined blob counts as BOTH colors.
+                if (blob.BlobEnergy.CurrentTint == _arrow.CurrentEnergy.CurrentTint ||
+                    blob.BlobEnergy.CurrentTint == Energy.Tint.Combined)
                 {
                     lethalTrapFound = true;
                     break;
@@ -645,8 +673,8 @@ public partial class Game : Node2D
     private void UpdateSegmentsOnPoint(Vector2 pt)
     {
         _segmentsOnPoint.Clear();
-        for (int i = 0; i < _perimeter.Length - 1; i++)
-            if (GeometryUtils.DistanceToSegment(pt, _perimeter[i], _perimeter[i + 1]) < 0.1f)
+        for (int i = 0; i < Perimeter.Length - 1; i++)
+            if (GeometryUtils.DistanceToSegment(pt, Perimeter[i], Perimeter[i + 1]) < 0.1f)
                 _segmentsOnPoint.Add(i);
     }
 

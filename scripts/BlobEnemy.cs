@@ -5,11 +5,13 @@ namespace Chromonia.Scripts;
 public partial class BlobEnemy : RigidBody2D
 {
     public Energy BlobEnergy { get; } = new();
+    public Energy.Tint BaseTint { get; private set; }
     public float Radius { get; set; } = 40f;
     private float _speed;
 
     public BlobEnemy(Energy.Tint tint, float speed)
     {
+        BaseTint = tint;
         BlobEnergy.CurrentTint = tint;
         _speed = speed;
 
@@ -44,6 +46,11 @@ public partial class BlobEnemy : RigidBody2D
 
     public BlobEnemy()
     {
+    }
+
+    public override void _Process(double delta)
+    {
+        QueueRedraw();
     }
 
     public override void _Draw()
