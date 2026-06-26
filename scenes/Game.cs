@@ -102,6 +102,11 @@ public partial class Game : Node2D
     {
         _playerState = PlayerState.Won;
 
+        // Kill all remaining blobs
+        foreach (var child in _painting.GetChildren())
+        {
+            if (child is BlobEnemy blob) blob.QueueFree();
+        }
 
         // Run all these animations simultaneously
         var tween = CreateTween();
@@ -263,10 +268,11 @@ public partial class Game : Node2D
         {
             var shape = new CollisionShape2D
             {
-                Shape = new SegmentShape2D { A = _perimeter[i], B = _perimeter[i+1] }
+                Shape = new SegmentShape2D { A = _perimeter[i], B = _perimeter[i + 1] }
             };
             borderPhysics.AddChild(shape);
         }
+
         _painting.AddChild(borderPhysics);
     }
 
@@ -320,7 +326,7 @@ public partial class Game : Node2D
         if (_activeLine.Count < 4) return false;
         for (int i = 0; i < _activeLine.Count - 3; i++)
         {
-            if (DistanceToSegment(_arrow.Position, _activeLine[i], _activeLine[i + 1]) < 0.05f)
+            if (GeometryUtils.DistanceToSegment(_arrow.Position, _activeLine[i], _activeLine[i + 1]) < 0.05f)
             {
                 return true;
             }
@@ -347,7 +353,7 @@ public partial class Game : Node2D
 
             if (isWallHorizontal != isInputHorizontal) continue;
 
-            Vector2 target = ClampPointToSegment(current + velocity, a, b);
+            Vector2 target = GeometryUtils.ClampPointToSegment(current + velocity, a, b);
 
             if (target.IsEqualApprox(current)) continue;
 
@@ -453,61 +459,7 @@ public partial class Game : Node2D
             if (!hitPerimeter) return;
 
             _activeLine[^1] = hitPoint.Value;
-            var activeArray = _activeLine.ToArray();
-
-            var poly1 = BuildPolygon(_startSegmentIndex, hitSegmentIndex, activeArray, forward: true);
-            var poly2 = BuildPolygon(_startSegmentIndex, hitSegmentIndex, activeArray, forward: false);
-
-            float area1 = GetPolygonArea(poly1);
-            float area2 = GetPolygonArea(poly2);
-
-            // The smaller area is claimed, the larger area becomes the new safe perimeter
-            var (claimedPoly, newPerimeter, claimedArea) = area1 < area2
-                ? (poly1, poly2, area1)
-                : (poly2, poly1, area2);
-
-            var newPerimeterList = new List<Vector2>(newPerimeter) { newPerimeter[0] };
-            _perimeter = newPerimeterList.ToArray();
-
-            _perimeterLine.Points = newPerimeter;
-
-            foreach (var child in _painting.GetChildren())
-            {
-                if (child is BlobEnemy blob && Geometry2D.IsPointInPolygon(blob.Position, claimedPoly))
-                {
-                    blob.QueueFree();
-                }
-            }
-
-            Polygon2D claimNode = new Polygon2D
-            {
-                Polygon = ConvertToMaskCoordinates(claimedPoly),
-                Color = _arrow.CurrentEnergy.Fill with { A = 0.0f }
-            };
-            _maskRoot.AddChild(claimNode);
-
-            var claimPhysics = new StaticBody2D();
-            var collisionPoly = new CollisionPolygon2D { Polygon = claimedPoly };
-            claimPhysics.AddChild(collisionPoly);
-            _painting.AddChild(claimPhysics);
-
-            var tween = CreateTween();
-            tween.TweenProperty(claimNode, "color:a", 1.0f, 0.5f);
-
-            CancelDrawing();
-
-            if (_arrow.CurrentEnergy.Primary)
-                _claimedAreaA += claimedArea;
-            else
-                _claimedAreaB += claimedArea;
-
-            _totalClaimedArea = _claimedAreaA + _claimedAreaB;
-
-            _progressBar.UpdateProgress(_claimedAreaA / _totalArea, _claimedAreaB / _totalArea);
-
-            // Win condition: both colors must reach the 35% goal
-            if (_claimedAreaA / _totalArea >= 0.35f && _claimedAreaB / _totalArea >= 0.35f)
-                Reveal();
+            ProcessClaim(hitSegmentIndex);
         }
         else
         {
@@ -522,6 +474,125 @@ public partial class Game : Node2D
         }
     }
 
+    private void ProcessClaim(int hitSegmentIndex)
+    {
+        var activeArray = _activeLine.ToArray();
+
+        var (claimedPoly, newPerimeter, claimedArea) = DetermineClaimedPolygon(hitSegmentIndex, activeArray);
+
+        // Pass the mathematical polygon through Godot's Clipper library (OffsetPolygon with delta 0).
+        // This is the standard "Godot way" to instantly eliminate self-intersections and duplicate
+        // points that cause "Convex decomposing failed".
+        var cleanPolys = Geometry2D.OffsetPolygon(claimedPoly, 0);
+        if (cleanPolys.Count > 0) claimedPoly = cleanPolys[0];
+
+        if (!DestroyTrappedBlobs(claimedPoly))
+        {
+            // Player "died" due to trapping wrong color. Destroy line and cancel.
+            KillPlayer();
+            return;
+        }
+
+        ApplyNewPerimeter(newPerimeter);
+        CreateClaimVisuals(claimedPoly);
+        CreateClaimPhysics(claimedPoly);
+
+        CancelDrawing();
+        UpdateProgressAndCheckWin(claimedArea);
+    }
+
+    private (Vector2[] ClaimedPoly, Vector2[] NewPerimeter, float ClaimedArea) DetermineClaimedPolygon(
+        int hitSegmentIndex, Vector2[] activeArray)
+    {
+        var poly1 = GeometryUtils.BuildPolygon(_perimeter, _startSegmentIndex, hitSegmentIndex, activeArray,
+            forward: true);
+        var poly2 = GeometryUtils.BuildPolygon(_perimeter, _startSegmentIndex, hitSegmentIndex, activeArray,
+            forward: false);
+
+        float area1 = GeometryUtils.GetPolygonArea(poly1);
+        float area2 = GeometryUtils.GetPolygonArea(poly2);
+
+        // The smaller area is claimed, the larger area becomes the new safe perimeter
+        return area1 < area2 ? (poly1, poly2, area1) : (poly2, poly1, area2);
+    }
+
+    private void ApplyNewPerimeter(Vector2[] newPerimeter)
+    {
+        var newPerimeterList = new List<Vector2>(newPerimeter) { newPerimeter[0] };
+        _perimeter = newPerimeterList.ToArray();
+        _perimeterLine.Points = newPerimeter;
+    }
+
+    private bool DestroyTrappedBlobs(Vector2[] claimedPoly)
+    {
+        bool lethalTrapFound = false;
+        var trappedBlobs = new List<BlobEnemy>();
+
+        foreach (var child in _painting.GetChildren())
+        {
+            if (child is BlobEnemy blob && Geometry2D.IsPointInPolygon(blob.Position, claimedPoly))
+            {
+                // Polarity rules: Trapping the SAME color is lethal. You can only destroy OPPOSITE colors.
+                if (blob.BlobEnergy.CurrentTint == _arrow.CurrentEnergy.CurrentTint)
+                {
+                    lethalTrapFound = true;
+                    break;
+                }
+
+                trappedBlobs.Add(blob);
+            }
+        }
+
+        if (lethalTrapFound)
+        {
+            return false;
+        }
+
+        foreach (var blob in trappedBlobs)
+        {
+            blob.QueueFree();
+        }
+
+        return true;
+    }
+
+    private void CreateClaimVisuals(Vector2[] claimedPoly)
+    {
+        Polygon2D claimNode = new Polygon2D
+        {
+            Polygon = ConvertToMaskCoordinates(claimedPoly),
+            Color = _arrow.CurrentEnergy.Fill with { A = 0.0f }
+        };
+        _maskRoot.AddChild(claimNode);
+
+        var tween = CreateTween();
+        tween.TweenProperty(claimNode, "color:a", 1.0f, 0.5f);
+    }
+
+    private void CreateClaimPhysics(Vector2[] claimedPoly)
+    {
+        var claimPhysics = new StaticBody2D();
+        var collisionPoly = new CollisionPolygon2D { Polygon = claimedPoly };
+        claimPhysics.AddChild(collisionPoly);
+        _painting.AddChild(claimPhysics);
+    }
+
+    private void UpdateProgressAndCheckWin(float claimedArea)
+    {
+        if (_arrow.CurrentEnergy.Primary)
+            _claimedAreaA += claimedArea;
+        else
+            _claimedAreaB += claimedArea;
+
+        _totalClaimedArea = _claimedAreaA + _claimedAreaB;
+
+        _progressBar.UpdateProgress(_claimedAreaA / _totalArea, _claimedAreaB / _totalArea);
+
+        // Win condition: both colors must reach the 35% goal
+        if (_claimedAreaA / _totalArea >= 0.35f && _claimedAreaB / _totalArea >= 0.35f)
+            Reveal();
+    }
+
     private void CancelDrawing()
     {
         _playerState = PlayerState.OnPerimeter;
@@ -529,44 +600,21 @@ public partial class Game : Node2D
         _drawingLine.ClearPoints();
     }
 
-    private Vector2[] BuildPolygon(int startSeg, int endSeg, Vector2[] activeLine, bool forward)
+    private void KillPlayer()
     {
-        int totalUnique = _perimeter.Length - 1;
-        var poly = new List<Vector2>(activeLine);
-
-        bool startBeforeEnd = _perimeter[startSeg].DistanceSquaredTo(activeLine[0]) <
-                              _perimeter[startSeg].DistanceSquaredTo(activeLine[^1]);
-
-        if (startSeg == endSeg)
-            if (forward && !startBeforeEnd || !forward && startBeforeEnd)
-                return poly.ToArray();
-
-        int curr = forward ? (endSeg + 1) % totalUnique : endSeg;
-        int target = forward ? startSeg : (startSeg + 1) % totalUnique;
-        int step = forward ? 1 : -1;
-
-        while (true)
+        if (_activeLine.Count > 0)
         {
-            poly.Add(_perimeter[curr]);
-            if (curr == target) break;
-            curr = (curr + step + totalUnique) % totalUnique;
+            _arrow.Position = _activeLine[0]; // Snap back to where drawing started
         }
 
-        return poly.ToArray();
-    }
+        CancelDrawing();
 
-    private static float GetPolygonArea(Vector2[] polygon)
-    {
-        float area = 0;
-        int j = polygon.Length - 1;
-        for (int i = 0; i < polygon.Length; i++)
+        if (!_arrow.IsImmune)
         {
-            area += (polygon[j].X + polygon[i].X) * (polygon[j].Y - polygon[i].Y);
-            j = i;
+            _arrow.Die();
         }
-
-        return Math.Abs(area / 2.0f);
     }
+
 
     private Vector2[] ConvertToMaskCoordinates(Vector2[] poly)
     {
@@ -581,27 +629,10 @@ public partial class Game : Node2D
     {
         _segmentsOnPoint.Clear();
         for (int i = 0; i < _perimeter.Length - 1; i++)
-            if (DistanceToSegment(pt, _perimeter[i], _perimeter[i + 1]) < 0.1f)
+            if (GeometryUtils.DistanceToSegment(pt, _perimeter[i], _perimeter[i + 1]) < 0.1f)
                 _segmentsOnPoint.Add(i);
     }
 
-    private static float DistanceToSegment(Vector2 p, Vector2 a, Vector2 b)
-    {
-        Vector2 ab = b - a;
-        float lengthSq = ab.LengthSquared();
-        if (lengthSq == 0) return (p - a).Length();
-        float t = Math.Clamp((p - a).Dot(ab) / lengthSq, 0f, 1f);
-        return (p - (a + t * ab)).Length();
-    }
-
-    public static Vector2 ClampPointToSegment(Vector2 p, Vector2 a, Vector2 b)
-    {
-        Vector2 ab = b - a;
-        float lengthSq = ab.LengthSquared();
-        if (lengthSq == 0) return a;
-        float t = Math.Clamp((p - a).Dot(ab) / lengthSq, 0f, 1f);
-        return a + t * ab;
-    }
 
     private void HandleFatalError(string errorMessage)
     {

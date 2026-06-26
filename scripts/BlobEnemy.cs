@@ -4,7 +4,7 @@ namespace Chromonia.Scripts;
 
 public partial class BlobEnemy : RigidBody2D
 {
-    private Energy BlobEnergy { get; } = new();
+    public Energy BlobEnergy { get; } = new();
     private float Radius { get; set; } = 40f;
     private float _speed;
 

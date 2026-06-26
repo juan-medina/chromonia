@@ -23,6 +23,7 @@ public partial class Arrow : Sprite2D
     public void Cycle()
     {
         CurrentEnergy.Cycle();
+        SelfModulate = CurrentEnergy.Marker * PulsateMinGlow;
         _timePassed = 0f; // Reset the pulse phase, just like restarting the tween
     }
 
@@ -43,19 +44,28 @@ public partial class Arrow : Sprite2D
         _targetRotation = currentRotation + angleDiff;
     }
 
+    public bool IsImmune { get; private set; }
+
+    public void Die()
+    {
+        IsImmune = true;
+        var tween = CreateTween();
+        // 8 loops of 0.25s = 2.0 seconds total immunity
+        tween.SetLoops(8);
+        tween.TweenProperty(this, "self_modulate:a", 0.1f, 0.125f);
+        tween.TweenProperty(this, "self_modulate:a", 1.0f, 0.125f);
+        tween.Finished += () => IsImmune = false;
+    }
+
     public override void _Process(double delta)
     {
         base._Process(delta);
 
-        // Handle Pulsate
+        // Handle Pulsate (Scale only, as color pulsate interferes with death blink)
         _timePassed += (float)delta;
         float progress = (-Mathf.Cos(_timePassed * Mathf.Pi / PulsateDuration) + 1.0f) / 2.0f;
 
         Scale = _baseScale * Mathf.Lerp(1.0f, PulsateScale, progress);
-
-        var minColor = CurrentEnergy.Marker * PulsateMinGlow;
-        var maxColor = CurrentEnergy.Line * PulsateMaxGlow;
-        SelfModulate = minColor.Lerp(maxColor, progress);
 
         // Handle Rotation
         if (float.IsNaN(_targetRotation)) return;
