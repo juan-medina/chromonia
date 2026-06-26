@@ -42,6 +42,7 @@ public partial class Game : Node2D
     private int _paintingWidth = ViewportWidth;
     private int _paintingHeight = ViewportHeight;
     private Vector2[] _perimeter = []; // represent all the points that create the safe perimeter of the safe area
+    public Vector2[] Perimeter => _perimeter;
     private readonly List<int> _segmentsOnPoint = new(4); // Pre-allocated list to prevent GC pressure
     private Line2D _perimeterLine = null!;
     private PlayerState _playerState = PlayerState.OnPerimeter;
@@ -214,7 +215,7 @@ public partial class Game : Node2D
         for (int i = 0; i < 6; i++)
         {
             var tint = (i % 2 == 0) ? Energy.Tint.A : Energy.Tint.B;
-            var blob = new BlobEnemy(tint, bounds, 250f);
+            var blob = new BlobEnemy(tint, 250f);
 
             // Random start position within bounds (leaving some margin for the radius)
             float px = (float)GD.RandRange(bounds.Position.X + 70f, bounds.End.X - 70f);
@@ -256,6 +257,17 @@ public partial class Game : Node2D
             ZIndex = 1
         };
         _painting.AddChild(_drawingLine);
+
+        var borderPhysics = new StaticBody2D { Name = "BorderPhysics" };
+        for (int i = 0; i < _perimeter.Length - 1; i++)
+        {
+            var shape = new CollisionShape2D
+            {
+                Shape = new SegmentShape2D { A = _perimeter[i], B = _perimeter[i+1] }
+            };
+            borderPhysics.AddChild(shape);
+        }
+        _painting.AddChild(borderPhysics);
     }
 
     private void SetupArrow()
@@ -459,12 +471,25 @@ public partial class Game : Node2D
 
             _perimeterLine.Points = newPerimeter;
 
+            foreach (var child in _painting.GetChildren())
+            {
+                if (child is BlobEnemy blob && Geometry2D.IsPointInPolygon(blob.Position, claimedPoly))
+                {
+                    blob.QueueFree();
+                }
+            }
+
             Polygon2D claimNode = new Polygon2D
             {
                 Polygon = ConvertToMaskCoordinates(claimedPoly),
                 Color = _arrow.CurrentEnergy.Fill with { A = 0.0f }
             };
             _maskRoot.AddChild(claimNode);
+
+            var claimPhysics = new StaticBody2D();
+            var collisionPoly = new CollisionPolygon2D { Polygon = claimedPoly };
+            claimPhysics.AddChild(collisionPoly);
+            _painting.AddChild(claimPhysics);
 
             var tween = CreateTween();
             tween.TweenProperty(claimNode, "color:a", 1.0f, 0.5f);
@@ -569,7 +594,7 @@ public partial class Game : Node2D
         return (p - (a + t * ab)).Length();
     }
 
-    private static Vector2 ClampPointToSegment(Vector2 p, Vector2 a, Vector2 b)
+    public static Vector2 ClampPointToSegment(Vector2 p, Vector2 a, Vector2 b)
     {
         Vector2 ab = b - a;
         float lengthSq = ab.LengthSquared();

@@ -2,58 +2,48 @@ using Godot;
 
 namespace Chromonia.Scripts;
 
-public partial class BlobEnemy : Node2D
+public partial class BlobEnemy : RigidBody2D
 {
     private Energy BlobEnergy { get; } = new();
     private float Radius { get; set; } = 40f;
-    private Vector2 Velocity { get; set; }
-    private Rect2 Bounds { get; set; }
+    private float _speed;
 
-    public BlobEnemy(Energy.Tint tint, Rect2 bounds, float speed)
+    public BlobEnemy(Energy.Tint tint, float speed)
     {
         BlobEnergy.CurrentTint = tint;
-        Bounds = bounds;
+        _speed = speed;
+
+        // Collision layers:
+        // Layer 2 = Blob layer (what I am)
+        // Mask 1 = Default environment layer (what I bounce against)
+        CollisionLayer = 2;
+        CollisionMask = 1;
+
+        GravityScale = 0;
+        LinearDampMode = DampMode.Replace;
+        LinearDamp = 0;
+        AngularDampMode = DampMode.Replace;
+        AngularDamp = 0;
+
+        PhysicsMaterialOverride = new PhysicsMaterial
+        {
+            Bounce = 1.0f,
+            Friction = 0.0f
+        };
+
+        var shape = new CollisionShape2D
+        {
+            Shape = new CircleShape2D { Radius = this.Radius }
+        };
+        AddChild(shape);
 
         // Randomize initial direction
         float angle = (float)GD.RandRange(0, Mathf.Tau);
-        Velocity = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * speed;
+        LinearVelocity = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * speed;
     }
 
     public BlobEnemy()
     {
-    }
-
-    public override void _Process(double delta)
-    {
-        Vector2 pos = Position;
-        pos += Velocity * (float)delta;
-
-        // Bounce horizontally
-        if (pos.X - Radius < Bounds.Position.X)
-        {
-            pos.X = Bounds.Position.X + Radius;
-            Velocity = new Vector2(Mathf.Abs(Velocity.X), Velocity.Y);
-        }
-        else if (pos.X + Radius > Bounds.End.X)
-        {
-            pos.X = Bounds.End.X - Radius;
-            Velocity = new Vector2(-Mathf.Abs(Velocity.X), Velocity.Y);
-        }
-
-        // Bounce vertically
-        if (pos.Y - Radius < Bounds.Position.Y)
-        {
-            pos.Y = Bounds.Position.Y + Radius;
-            Velocity = new Vector2(Velocity.X, Mathf.Abs(Velocity.Y));
-        }
-        else if (pos.Y + Radius > Bounds.End.Y)
-        {
-            pos.Y = Bounds.End.Y - Radius;
-            Velocity = new Vector2(Velocity.X, -Mathf.Abs(Velocity.Y));
-        }
-
-        Position = pos;
-        QueueRedraw();
     }
 
     public override void _Draw()
