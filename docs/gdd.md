@@ -328,6 +328,13 @@ Stored via Godot's `ConfigFile` to `user://settings.cfg`:
 
 Velopack handles automatic updates on Windows. On launch, the app checks for a new release on GitHub. If available, it downloads in the background and prompts the player to restart to apply. macOS and Linux updates are manual via the GitHub releases page.
 
+### 6.6 Performance & Garbage Collection
+
+Because the game uses C# (.NET), careful management of Garbage Collection (GC) pressure is required to maintain a smooth, stutter-free meditative experience. The general rule for animations and transitions is:
+
+- **Continuous State (`_Process`):** For continuous, looping, or frame-dependent calculations (such as an entity constantly rotating or pulsating while moving), use mathematical interpolations (like `Mathf.Cos`, `Mathf.MoveToward`, or `Mathf.Lerp`) inside the `_Process` loop. This avoids generating C# wrapper objects and ensures zero GC allocations.
+- **Discrete Events (Tweens):** For distinct, infrequent events (such as an enemy dying, UI sliding in, or a level transition), use Godot's built-in `CreateTween()`. While instantiating Tweens in C# does create small wrapper objects for the GC to clean up, the code readability and robust easing functions make it the optimal choice for non-continuous actions.
+
 ---
 
 ## 7. Suggested Godot Scene Structure
