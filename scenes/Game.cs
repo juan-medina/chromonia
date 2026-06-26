@@ -259,7 +259,11 @@ public partial class Game : Node2D
 
         var velocity = new Vector2(vx, vy) * speed;
         var inputDir = new Vector2(vx, vy);
-        
+
+        if (_playerState == PlayerState.Drawing)
+            if (inputDir != -_lastDrawDirection && IsOnSelfLine())
+                return;
+
         _arrow.SetDirection(inputDir);
 
         switch (_playerState)
@@ -270,9 +274,26 @@ public partial class Game : Node2D
             case PlayerState.Drawing:
                 ProcessDrawing(velocity, inputDir);
                 break;
+            case PlayerState.Won:
+                // Do nothing, there is no visible arrow
+                break;
             default:
                 throw new ArgumentOutOfRangeException();
         }
+    }
+
+    private bool IsOnSelfLine()
+    {
+        if (_activeLine.Count < 4) return false;
+        for (int i = 0; i < _activeLine.Count - 3; i++)
+        {
+            if (DistanceToSegment(_arrow.Position, _activeLine[i], _activeLine[i + 1]) < 0.05f)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void ProcessOnPerimeter(Vector2 velocity, Vector2 inputDir, float vy)
