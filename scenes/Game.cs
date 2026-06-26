@@ -80,6 +80,40 @@ public partial class Game : Node2D
     {
         base._Process(delta);
         MoveArrow(delta);
+        CheckCollisions();
+    }
+
+    private void CheckCollisions()
+    {
+        if (_arrow.IsImmune || _playerState == PlayerState.Won) return;
+
+        const float arrowRadius = 15f; // Estimated hitbox radius for Arrow
+        const float lineThicknessRadius = 4f; // _drawingLine thickness is 8, so radius is 4
+
+        foreach (var child in _painting.GetChildren())
+        {
+            if (child is not BlobEnemy blob) continue;
+
+            // Polarity rule: Same color is SAFE, Opposite color is LETHAL
+            if (blob.BlobEnergy.CurrentTint == _arrow.CurrentEnergy.CurrentTint) continue;
+
+            // Check collision with Player
+            if (blob.Position.DistanceTo(_arrow.Position) < blob.Radius + arrowRadius)
+            {
+                KillPlayer();
+                return;
+            }
+
+            // Check collision with the actively drawn line
+            if (_playerState != PlayerState.Drawing || _activeLine.Count < 2) continue;
+            for (int i = 0; i < _activeLine.Count - 1; i++)
+            {
+                if (!(GeometryUtils.DistanceToSegment(blob.Position, _activeLine[i], _activeLine[i + 1]) <
+                      blob.Radius + lineThicknessRadius)) continue;
+                KillPlayer();
+                return;
+            }
+        }
     }
 
     public override void _UnhandledInput(InputEvent @event)
@@ -91,10 +125,7 @@ public partial class Game : Node2D
 
         _arrow.Cycle();
 
-        if (_playerState == PlayerState.Drawing)
-        {
-            _drawingLine.DefaultColor = _arrow.CurrentEnergy.Line;
-        }
+        if (_playerState == PlayerState.Drawing) _drawingLine.DefaultColor = _arrow.CurrentEnergy.Line;
     }
 
 
@@ -104,9 +135,8 @@ public partial class Game : Node2D
 
         // Kill all remaining blobs
         foreach (var child in _painting.GetChildren())
-        {
-            if (child is BlobEnemy blob) blob.QueueFree();
-        }
+            if (child is BlobEnemy blob)
+                blob.QueueFree();
 
         // Run all these animations simultaneously
         var tween = CreateTween();
@@ -143,18 +173,14 @@ public partial class Game : Node2D
     {
         var (texture, texErr) = PaintingLibrary.LoadTexture(painting);
         if (!texErr.Success)
-        {
             return (false, texErr.Message);
-        }
 
         _paintingWidth = texture!.GetWidth();
         _paintingHeight = texture.GetHeight();
         _totalArea = _paintingWidth * _paintingHeight;
 
         if (_paintingWidth <= 0 || _paintingHeight <= 0)
-        {
             return (false, $"Invalid painting dimensions: {_paintingWidth}x{_paintingHeight}");
-        }
 
         _painting.Texture = texture;
 
@@ -325,12 +351,8 @@ public partial class Game : Node2D
     {
         if (_activeLine.Count < 4) return false;
         for (int i = 0; i < _activeLine.Count - 3; i++)
-        {
             if (GeometryUtils.DistanceToSegment(_arrow.Position, _activeLine[i], _activeLine[i + 1]) < 0.05f)
-            {
                 return true;
-            }
-        }
 
         return false;
     }
@@ -480,12 +502,6 @@ public partial class Game : Node2D
 
         var (claimedPoly, newPerimeter, claimedArea) = DetermineClaimedPolygon(hitSegmentIndex, activeArray);
 
-        // Pass the mathematical polygon through Godot's Clipper library (OffsetPolygon with delta 0).
-        // This is the standard "Godot way" to instantly eliminate self-intersections and duplicate
-        // points that cause "Convex decomposing failed".
-        var cleanPolys = Geometry2D.OffsetPolygon(claimedPoly, 0);
-        if (cleanPolys.Count > 0) claimedPoly = cleanPolys[0];
-
         if (!DestroyTrappedBlobs(claimedPoly))
         {
             // Player "died" due to trapping wrong color. Destroy line and cancel.
@@ -544,14 +560,9 @@ public partial class Game : Node2D
         }
 
         if (lethalTrapFound)
-        {
             return false;
-        }
 
-        foreach (var blob in trappedBlobs)
-        {
-            blob.QueueFree();
-        }
+        foreach (var blob in trappedBlobs) blob.QueueFree();
 
         return true;
     }
@@ -572,8 +583,20 @@ public partial class Game : Node2D
     private void CreateClaimPhysics(Vector2[] claimedPoly)
     {
         var claimPhysics = new StaticBody2D();
-        var collisionPoly = new CollisionPolygon2D { Polygon = claimedPoly };
-        claimPhysics.AddChild(collisionPoly);
+
+        // Instead of a single solid CollisionPolygon2D (which triggers Godot's unstable convex decomposer),
+        // we use a hollow chain of SegmentShape2D. This perfectly bypasses the engine bug and guarantees
+        // no crashes, while still providing completely solid walls for the blobs to bounce off of.
+        for (int i = 0; i < claimedPoly.Length; i++)
+        {
+            var p1 = claimedPoly[i];
+            var p2 = claimedPoly[(i + 1) % claimedPoly.Length];
+
+            var segmentShape = new SegmentShape2D { A = p1, B = p2 };
+            var collisionShape = new CollisionShape2D { Shape = segmentShape };
+            claimPhysics.AddChild(collisionShape);
+        }
+
         _painting.AddChild(claimPhysics);
     }
 
@@ -602,17 +625,11 @@ public partial class Game : Node2D
 
     private void KillPlayer()
     {
-        if (_activeLine.Count > 0)
-        {
-            _arrow.Position = _activeLine[0]; // Snap back to where drawing started
-        }
+        if (_activeLine.Count > 0) _arrow.Position = _activeLine[0]; // Snap back to where drawing started
 
         CancelDrawing();
 
-        if (!_arrow.IsImmune)
-        {
-            _arrow.Die();
-        }
+        if (!_arrow.IsImmune) _arrow.Die();
     }
 
 
