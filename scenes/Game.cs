@@ -259,6 +259,8 @@ public partial class Game : Node2D
 
         var velocity = new Vector2(vx, vy) * speed;
         var inputDir = new Vector2(vx, vy);
+        
+        _arrow.SetDirection(inputDir);
 
         switch (_playerState)
         {
