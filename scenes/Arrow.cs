@@ -16,26 +16,12 @@ public partial class Arrow : Sprite2D
     private Tween _pulsateTween = null!;
     private Vector2 _baseScale;
 
-    private Energy.Tint CurrentTint
-    {
-        get => CurrentEnergy.CurrentTint;
-        set
-        {
-            CurrentEnergy.CurrentTint = value;
-            RestartPulsate();
-        }
-    }
-
     public Energy CurrentEnergy { get; } = new();
 
     public void Cycle()
     {
-        CurrentTint = CurrentTint switch
-        {
-            Energy.Tint.A => Energy.Tint.B,
-            Energy.Tint.B => Energy.Tint.A,
-            _ => CurrentTint
-        };
+        CurrentEnergy.Cycle();
+        RestartPulsate();
     }
 
     public override void _Ready()
