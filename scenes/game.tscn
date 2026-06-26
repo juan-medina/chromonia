@@ -11,6 +11,7 @@
 shader = ExtResource("2_lnu2h")
 shader_parameter/bg_min_brightness = 0.1
 shader_parameter/bg_max_brightness = 0.35
+shader_parameter/reveal_progress = 0.0
 
 [sub_resource type="Environment" id="Environment_lbhrr"]
 background_mode = 3

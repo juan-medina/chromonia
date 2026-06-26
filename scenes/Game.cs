@@ -99,7 +99,11 @@ public partial class Game : Node2D
     private void Reveal()
     {
         _playerState = PlayerState.Won;
-        _painting.Material = null;
+
+        var tween = CreateTween();
+        tween.TweenProperty(_painting.Material, "shader_parameter/reveal_progress", 1.0f, 1.0f);
+        tween.TweenCallback(Callable.From(() => _painting.Material = null));
+
         _title.Visible = true;
         _artist.Visible = true;
         _arrow.Visible = false;

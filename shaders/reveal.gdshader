@@ -3,6 +3,7 @@ shader_type canvas_item;
 uniform float bg_min_brightness : hint_range(0.0, 1.0) = 0.1;
 uniform float bg_max_brightness : hint_range(0.0, 1.0) = 0.35;
 uniform sampler2D mask_texture : hint_default_transparent;
+uniform float reveal_progress : hint_range(0.0, 1.0) = 0.0;
 
 const vec3 LUMINANCE_WEIGHTS = vec3(0.299, 0.587, 0.114);
 
@@ -21,5 +22,6 @@ void fragment() {
 
     vec3 result = mix(grayscale, tinted, mask.a);
 
-    COLOR = vec4(result, painting.a);
+    vec4 final_color = vec4(result, painting.a);
+    COLOR = mix(final_color, painting, reveal_progress);
 }
