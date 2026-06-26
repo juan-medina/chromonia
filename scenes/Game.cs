@@ -202,7 +202,28 @@ public partial class Game : Node2D
         // Create a border with a given color and thickness
         CreateBorder(_paintingWidth, _paintingHeight, BorderColor, BorderThickness);
 
+        SpawnEnemies(_paintingWidth, _paintingHeight);
+
         return (true, string.Empty);
+    }
+
+    private void SpawnEnemies(float width, float height)
+    {
+        var bounds = new Rect2(-width / 2f, -height / 2f, width, height);
+
+        for (int i = 0; i < 6; i++)
+        {
+            var tint = (i % 2 == 0) ? Energy.Tint.A : Energy.Tint.B;
+            var blob = new BlobEnemy(tint, bounds, 250f);
+
+            // Random start position within bounds (leaving some margin for the radius)
+            float px = (float)GD.RandRange(bounds.Position.X + 70f, bounds.End.X - 70f);
+            float py = (float)GD.RandRange(bounds.Position.Y + 70f, bounds.End.Y - 70f);
+            blob.Position = new Vector2(px, py);
+            blob.ZIndex = 2;
+
+            _painting.AddChild(blob);
+        }
     }
 
     private void CreateBorder(float width, float height, Color color, float thickness)
