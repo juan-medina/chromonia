@@ -14,6 +14,8 @@ public partial class SharedProgressBar : Control
     [Export] private Panel _fillB = null!;
     [Export] private ColorRect _markerA = null!;
     [Export] private ColorRect _markerB = null!;
+    [Export] private Label _labelA = null!;
+    [Export] private Label _labelB = null!;
 
     private float _targetA;
     private float _targetB;
@@ -44,6 +46,7 @@ public partial class SharedProgressBar : Control
             currentA = Mathf.Lerp(currentA, _targetA, 5f * (float)delta);
             _fillA.AnchorRight = currentA;
             _fillA.OffsetRight = 0;
+            _labelA.Text = $"{Mathf.RoundToInt(currentA * 100)}%";
         }
 
         if (!Mathf.IsEqualApprox(currentB, _targetB))
@@ -51,6 +54,7 @@ public partial class SharedProgressBar : Control
             currentB = Mathf.Lerp(currentB, _targetB, 5f * (float)delta);
             _fillB.AnchorLeft = 1.0f - currentB;
             _fillB.OffsetLeft = 0;
+            _labelB.Text = $"{Mathf.RoundToInt(currentB * 100)}%";
         }
     }
 }

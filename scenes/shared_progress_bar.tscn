@@ -25,7 +25,7 @@ corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
 
-[node name="SharedProgressBar" type="Control" unique_id=167902735 node_paths=PackedStringArray("_fillA", "_fillB", "_markerA", "_markerB")]
+[node name="SharedProgressBar" type="Control" unique_id=167902735 node_paths=PackedStringArray("_fillA", "_fillB", "_markerA", "_markerB", "_labelA", "_labelB")]
 custom_minimum_size = Vector2(800, 40)
 layout_mode = 3
 anchors_preset = 8
@@ -44,6 +44,8 @@ _fillA = NodePath("FillA")
 _fillB = NodePath("FillB")
 _markerA = NodePath("MarkerA")
 _markerB = NodePath("MarkerB")
+_labelA = NodePath("LabelA")
+_labelB = NodePath("LabelB")
 
 [node name="Background" type="Panel" parent="." unique_id=201136774]
 layout_mode = 1
@@ -95,3 +97,37 @@ offset_left = -2.0
 offset_right = 2.0
 grow_horizontal = 0
 grow_vertical = 2
+
+[node name="LabelA" type="Label" parent="." unique_id=1419029131]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_left = 15.0
+offset_right = 65.0
+grow_vertical = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 20
+text = "0%"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LabelB" type="Label" parent="." unique_id=1057103071]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -65.0
+offset_right = -15.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 20
+text = "0%"
+horizontal_alignment = 1
+vertical_alignment = 1
+

@@ -78,7 +78,5 @@ expand_mode = 1
 stretch_mode = 6
 
 [node name="SharedProgressBar" parent="." unique_id=1012471350 instance=ExtResource("6_p57ef")]
-offset_left = -400.0
 offset_top = -505.0
-offset_right = 400.0
 offset_bottom = -465.0
