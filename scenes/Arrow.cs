@@ -45,12 +45,26 @@ public partial class Arrow : Sprite2D
     }
 
     public bool IsImmune { get; private set; }
+    public bool IsStunned { get; private set; }
 
-    public void Die()
+    public async void Die()
     {
         IsImmune = true;
+        IsStunned = true;
+        
+        // Turn Neon Red to indicate stunned/damaged state
+        SelfModulate = new Color(2.5f, 0.2f, 0.2f);
+        
+        // Wait 2 seconds for the stun to wear off
+        await ToSignal(GetTree().CreateTimer(2.0f), SceneTreeTimer.SignalName.Timeout);
+        
+        IsStunned = false;
+        
+        // Restore base color but start blinking to indicate remaining 2s of immunity
+        SelfModulate = CurrentEnergy.Marker * PulsateMinGlow;
+        
         var tween = CreateTween();
-        // 8 loops of 0.25s = 2.0 seconds total immunity
+        // 8 loops of 0.25s = 2.0 seconds total blinking
         tween.SetLoops(8);
         tween.TweenProperty(this, "self_modulate:a", 0.1f, 0.125f);
         tween.TweenProperty(this, "self_modulate:a", 1.0f, 0.125f);

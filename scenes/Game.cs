@@ -52,6 +52,7 @@ public partial class Game : Node2D
     private PlayerState _playerState = PlayerState.OnPerimeter;
     private readonly List<Vector2> _activeLine = [];
     private Vector2 _lastDrawDirection = Vector2.Zero;
+    private Vector2 _initialDrawDirection = Vector2.Zero;
     private int _startSegmentIndex = -1;
     private Line2D _drawingLine = null!;
     private float _totalClaimedArea;
@@ -139,18 +140,27 @@ public partial class Game : Node2D
             // Check collision with Player
             if (blob.GlobalPosition.DistanceTo(_arrow.GlobalPosition) < blob.Radius + arrowRadius)
             {
-                KillPlayer();
-                return;
+                if (!_arrow.IsImmune)
+                {
+                    KillPlayer();
+                    return;
+                }
             }
 
             // Check collision with the actively drawn line
             if (_playerState != PlayerState.Drawing || _activeLine.Count < 2) continue;
+
+            Vector2 localBlobPos = _painting.ToLocal(blob.GlobalPosition);
             for (int i = 0; i < _activeLine.Count - 1; i++)
             {
-                if (!(GeometryUtils.DistanceToSegment(blob.GlobalPosition, _activeLine[i], _activeLine[i + 1]) <
+                if (!(GeometryUtils.DistanceToSegment(localBlobPos, _activeLine[i], _activeLine[i + 1]) <
                       blob.Radius + lineThicknessRadius)) continue;
-                KillPlayer();
-                return;
+
+                if (!_arrow.IsImmune)
+                {
+                    KillPlayer();
+                    return;
+                }
             }
         }
     }
@@ -234,7 +244,7 @@ public partial class Game : Node2D
         float scale = Math.Min(AvailableWidth / _paintingWidth, AvailableHeight / _paintingHeight);
         _painting.Scale = new Vector2(scale, scale);
 
-        float offsetY = (TopMargin - BottomMargin) / 2f;
+        const float offsetY = (TopMargin - BottomMargin) / 2f;
         _painting.Position = new Vector2(0, offsetY);
 
         // Create a drop shadow using Godot's highly optimized StyleBoxFlat
@@ -360,6 +370,7 @@ public partial class Game : Node2D
     private void MoveArrow(double delta)
     {
         if (_playerState == PlayerState.Won) return;
+        if (_arrow.IsStunned) return; // Completely freeze the player while stunned
 
         var speed = ArrowSpeed * (float)delta;
         var vx = Input.GetAxis("ui_left", "ui_right");
@@ -439,6 +450,7 @@ public partial class Game : Node2D
 
         _playerState = PlayerState.Drawing;
         _lastDrawDirection = inputDir;
+        _initialDrawDirection = inputDir;
         _startSegmentIndex = _segmentsOnPoint[0];
 
         _drawingLine.DefaultColor = _arrow.CurrentEnergy.Line;
@@ -550,12 +562,16 @@ public partial class Game : Node2D
 
         var (claimedPoly, newPerimeter, claimedArea) = DetermineClaimedPolygon(hitSegmentIndex, activeArray);
 
-        if (!DestroyTrappedBlobs(claimedPoly))
+        var trappedBlobs = GetTrappedBlobs(claimedPoly);
+
+        if (IsLethalTrap(trappedBlobs))
         {
-            // Player "died" due to trapping wrong color. Destroy line and cancel.
+            // Player trapped the wrong color. Destroy line and cancel.
             KillPlayer();
             return;
         }
+
+        DestroyBlobs(trappedBlobs);
 
         ApplyNewPerimeter(newPerimeter);
         CreateClaimVisuals(claimedPoly);
@@ -587,40 +603,43 @@ public partial class Game : Node2D
         _perimeterLine.Points = newPerimeter;
     }
 
-    private bool DestroyTrappedBlobs(Vector2[] claimedPoly)
+    private List<BlobEnemy> GetTrappedBlobs(Vector2[] claimedPoly)
     {
-        bool lethalTrapFound = false;
         var trappedBlobs = new List<BlobEnemy>();
-
         var nodes = GetTree().GetNodesInGroup("Blobs");
+
         foreach (var node in nodes)
         {
-            if (node is BlobEnemy blob && Geometry2D.IsPointInPolygon(blob.GlobalPosition, claimedPoly))
-            {
-                // Polarity rules: Trapping the SAME color is lethal. A Combined blob counts as BOTH colors.
-                if (blob.BlobEnergy.CurrentTint == _arrow.CurrentEnergy.CurrentTint ||
-                    blob.BlobEnergy.CurrentTint == Energy.Tint.Combined)
-                {
-                    lethalTrapFound = true;
-                    break;
-                }
-
-                trappedBlobs.Add(blob);
-            }
+            if (node is not BlobEnemy blob) continue;
+            Vector2 localBlobPos = _painting.ToLocal(blob.GlobalPosition);
+            if (Geometry2D.IsPointInPolygon(localBlobPos, claimedPoly)) trappedBlobs.Add(blob);
         }
 
-        if (lethalTrapFound)
-            return false;
+        return trappedBlobs;
+    }
 
+    private bool IsLethalTrap(List<BlobEnemy> trappedBlobs)
+    {
         foreach (var blob in trappedBlobs)
+        {
+            // Polarity rules: Trapping the SAME color is lethal. A Combined blob counts as BOTH colors.
+            if (blob.BlobEnergy.CurrentTint == _arrow.CurrentEnergy.CurrentTint ||
+                blob.BlobEnergy.CurrentTint == Energy.Tint.Combined)
+                return true;
+        }
+
+        return false;
+    }
+
+    private void DestroyBlobs(List<BlobEnemy> blobsToDestroy)
+    {
+        foreach (var blob in blobsToDestroy)
         {
             if (blob.GetParent() is BlobCluster cluster)
                 cluster.QueueFree();
             else
                 blob.QueueFree();
         }
-
-        return true;
     }
 
     private void CreateClaimVisuals(Vector2[] claimedPoly)
@@ -681,11 +700,18 @@ public partial class Game : Node2D
 
     private void KillPlayer()
     {
-        if (_activeLine.Count > 0) _arrow.Position = _activeLine[0]; // Snap back to where drawing started
+        if (_activeLine.Count > 0)
+        {
+            _arrow.Position = _activeLine[0]; // Snap back to where drawing started
+            if (_initialDrawDirection != Vector2.Zero)
+                _arrow.SetDirection(_initialDrawDirection); // Restore the arrow's facing direction
+        }
 
         CancelDrawing();
 
-        if (!_arrow.IsImmune) _arrow.Die();
+        // If KillPlayer is called, you ALWAYS die and get stunned.
+        // Immunity protects you by preventing KillPlayer from being called in the first place (during physical collisions).
+        _arrow.Die();
     }
 
 
