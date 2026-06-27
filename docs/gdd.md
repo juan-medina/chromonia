@@ -334,6 +334,7 @@ Because the game uses C# (.NET), careful management of Garbage Collection (GC) p
 
 - **Continuous State (`_Process`):** For continuous, looping, or frame-dependent calculations (such as an entity constantly rotating or pulsating while moving), use mathematical interpolations (like `Mathf.Cos`, `Mathf.MoveToward`, or `Mathf.Lerp`) inside the `_Process` loop. This avoids generating C# wrapper objects and ensures zero GC allocations.
 - **Discrete Events (Tweens):** For distinct, infrequent events (such as an enemy dying, UI sliding in, or a level transition), use Godot's built-in `CreateTween()`. While instantiating Tweens in C# does create small wrapper objects for the GC to clean up, the code readability and robust easing functions make it the optimal choice for non-continuous actions.
+- **Loops (`for` vs `foreach`):** `foreach` loops are permitted for clean sequential traversal of strongly-typed collections like `List<T>` and `T[]`, as modern .NET struct enumerators guarantee zero heap allocations. However, use standard `for` loops when index manipulation or collection modification is needed. Avoid `foreach` over `IEnumerable<T>` or untyped Godot arrays in gameplay loops, as this forces enumerator boxing and causes GC pressure.
 
 ---
 
