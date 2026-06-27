@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Juan Medina
+// SPDX-License-Identifier: MIT
+
 using Godot;
 
 namespace Chromonia.Scripts;

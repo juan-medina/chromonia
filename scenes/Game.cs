@@ -39,10 +39,9 @@ public partial class Game : Node2D
     private const float AvailableWidth = ViewportWidth - (SideMargin * 2);
     private const float AvailableHeight = ViewportHeight - (TopMargin + BottomMargin);
     private const float RevealTime = 1.0F;
-    private const float MergeDistance = 120f;
-    private const int InitialBlobCount = 8;
     private const float MinBlobSpeed = 50f;
     private const float MaxBlobSpeed = 350f;
+    private const int ClusterCount = 8;
 
     private int _paintingWidth = ViewportWidth;
     private int _paintingHeight = ViewportHeight;
@@ -96,15 +95,13 @@ public partial class Game : Node2D
     private void UpdateBlobMergeStates()
     {
         var blobs = new List<BlobEnemy>();
-        foreach (var child in _blobsLayer.GetChildren())
-            if (child is BlobEnemy blob)
+        var nodes = GetTree().GetNodesInGroup("Blobs");
+        foreach (var node in nodes)
+            if (node is BlobEnemy blob)
                 blobs.Add(blob);
 
         // Reset to base tint
-        foreach (var blob in blobs)
-        {
-            blob.BlobEnergy.CurrentTint = blob.BaseTint;
-        }
+        foreach (var blob in blobs) blob.BlobEnergy.CurrentTint = blob.BaseTint;
 
         // Check for merges between different base colors
         for (int i = 0; i < blobs.Count; i++)
@@ -112,7 +109,11 @@ public partial class Game : Node2D
             for (int j = i + 1; j < blobs.Count; j++)
             {
                 if (blobs[i].BaseTint == blobs[j].BaseTint) continue;
-                if (!(blobs[i].Position.DistanceTo(blobs[j].Position) < MergeDistance)) continue;
+
+                // They merge if they are physically touching or extremely close
+                float dynamicMergeDistance = blobs[i].Radius + blobs[j].Radius + 15f;
+                if (!(blobs[i].GlobalPosition.DistanceTo(blobs[j].GlobalPosition) < dynamicMergeDistance)) continue;
+
                 blobs[i].BlobEnergy.CurrentTint = Energy.Tint.Combined;
                 blobs[j].BlobEnergy.CurrentTint = Energy.Tint.Combined;
             }
@@ -126,16 +127,17 @@ public partial class Game : Node2D
         const float arrowRadius = 15f; // Estimated hitbox radius for Arrow
         const float lineThicknessRadius = 4f; // _drawingLine thickness is 8, so radius is 4
 
-        foreach (var child in _blobsLayer.GetChildren())
+        var nodes = GetTree().GetNodesInGroup("Blobs");
+        foreach (var node in nodes)
         {
-            if (child is not BlobEnemy blob) continue;
+            if (node is not BlobEnemy blob) continue;
 
             // Polarity rule: Same color is SAFE. Opposite color (or Combined) is LETHAL.
             if (blob.BlobEnergy.CurrentTint == _arrow.CurrentEnergy.CurrentTint &&
                 blob.BlobEnergy.CurrentTint != Energy.Tint.Combined) continue;
 
             // Check collision with Player
-            if (blob.Position.DistanceTo(_arrow.Position) < blob.Radius + arrowRadius)
+            if (blob.GlobalPosition.DistanceTo(_arrow.GlobalPosition) < blob.Radius + arrowRadius)
             {
                 KillPlayer();
                 return;
@@ -145,7 +147,7 @@ public partial class Game : Node2D
             if (_playerState != PlayerState.Drawing || _activeLine.Count < 2) continue;
             for (int i = 0; i < _activeLine.Count - 1; i++)
             {
-                if (!(GeometryUtils.DistanceToSegment(blob.Position, _activeLine[i], _activeLine[i + 1]) <
+                if (!(GeometryUtils.DistanceToSegment(blob.GlobalPosition, _activeLine[i], _activeLine[i + 1]) <
                       blob.Radius + lineThicknessRadius)) continue;
                 KillPlayer();
                 return;
@@ -170,10 +172,18 @@ public partial class Game : Node2D
     {
         _playerState = PlayerState.Won;
 
-        // Kill all remaining blobs
-        foreach (var child in _blobsLayer.GetChildren())
-            if (child is BlobEnemy blob)
+        // Kill all remaining blobs and their clusters
+        var nodes = GetTree().GetNodesInGroup("Blobs");
+        foreach (var node in nodes)
+        {
+            if (node is not BlobEnemy blob) continue;
+
+            // If it belongs to a cluster, free the whole cluster. Otherwise free just the blob.
+            if (blob.GetParent() is BlobCluster cluster)
+                cluster.QueueFree();
+            else
                 blob.QueueFree();
+        }
 
         // Run all these animations simultaneously
         var tween = CreateTween();
@@ -280,19 +290,19 @@ public partial class Game : Node2D
     {
         var bounds = new Rect2(-width / 2f, -height / 2f, width, height);
 
-        for (int i = 0; i < InitialBlobCount; i++)
+        for (int i = 0; i < ClusterCount; i++)
         {
             var tint = (i % 2 == 0) ? Energy.Tint.A : Energy.Tint.B;
             float speed = (float)GD.RandRange(MinBlobSpeed, MaxBlobSpeed);
-            var blob = new BlobEnemy(tint, speed);
+            var cluster = new BlobCluster(tint, speed);
 
             // Random start position within bounds (leaving some margin for the radius)
             float px = (float)GD.RandRange(bounds.Position.X + 70f, bounds.End.X - 70f);
             float py = (float)GD.RandRange(bounds.Position.Y + 70f, bounds.End.Y - 70f);
-            blob.Position = new Vector2(px, py);
-            blob.ZIndex = 2;
+            cluster.Position = new Vector2(px, py);
+            cluster.ZIndex = 2;
 
-            _blobsLayer.AddChild(blob);
+            _blobsLayer.AddChild(cluster);
         }
     }
 
@@ -582,9 +592,10 @@ public partial class Game : Node2D
         bool lethalTrapFound = false;
         var trappedBlobs = new List<BlobEnemy>();
 
-        foreach (var child in _blobsLayer.GetChildren())
+        var nodes = GetTree().GetNodesInGroup("Blobs");
+        foreach (var node in nodes)
         {
-            if (child is BlobEnemy blob && Geometry2D.IsPointInPolygon(blob.Position, claimedPoly))
+            if (node is BlobEnemy blob && Geometry2D.IsPointInPolygon(blob.GlobalPosition, claimedPoly))
             {
                 // Polarity rules: Trapping the SAME color is lethal. A Combined blob counts as BOTH colors.
                 if (blob.BlobEnergy.CurrentTint == _arrow.CurrentEnergy.CurrentTint ||
@@ -601,7 +612,13 @@ public partial class Game : Node2D
         if (lethalTrapFound)
             return false;
 
-        foreach (var blob in trappedBlobs) blob.QueueFree();
+        foreach (var blob in trappedBlobs)
+        {
+            if (blob.GetParent() is BlobCluster cluster)
+                cluster.QueueFree();
+            else
+                blob.QueueFree();
+        }
 
         return true;
     }

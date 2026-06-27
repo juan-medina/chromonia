@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Juan Medina
+// SPDX-License-Identifier: MIT
+
 using Godot;
 
 namespace Chromonia.Scripts;
@@ -6,14 +9,15 @@ public partial class BlobEnemy : RigidBody2D
 {
     public Energy BlobEnergy { get; } = new();
     public Energy.Tint BaseTint { get; private set; }
-    public float Radius { get; private set; } = 40f;
-    private float _speed;
+    public float Radius { get; private set; }
 
-    public BlobEnemy(Energy.Tint tint, float speed)
+    public BlobEnemy(Energy.Tint tint, float radius)
     {
         BaseTint = tint;
         BlobEnergy.CurrentTint = tint;
-        _speed = speed;
+        Radius = radius;
+
+        AddToGroup("Blobs");
 
         // Collision layers:
         // Layer 2 = Blob layer (what I am)
@@ -38,10 +42,6 @@ public partial class BlobEnemy : RigidBody2D
             Shape = new CircleShape2D { Radius = this.Radius }
         };
         AddChild(shape);
-
-        // Randomize initial direction
-        float angle = (float)GD.RandRange(0, Mathf.Tau);
-        LinearVelocity = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * speed;
     }
 
     public Color DisplayColor { get; set; }

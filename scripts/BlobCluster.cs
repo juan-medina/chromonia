@@ -1,0 +1,102 @@
+// SPDX-FileCopyrightText: 2026 Juan Medina
+// SPDX-License-Identifier: MIT
+
+using Godot;
+
+namespace Chromonia.Scripts;
+
+public partial class BlobCluster : Node2D
+{
+    private RigidBody2D _core = null!;
+    private float _speed;
+    private Energy.Tint _tint;
+
+    private const int MinBlobs = 4;
+    private const int MaxBlobs = 6;
+    private const int MinRadius = 10;
+    private const int MaxRadius = 20;
+
+    // Noise to create erratic movement
+    private FastNoiseLite _noise = null!;
+    private double _timePassed;
+
+    public BlobCluster()
+    {
+    }
+
+    public BlobCluster(Energy.Tint tint, float speed)
+    {
+        _tint = tint;
+        _speed = speed;
+        _noise = new FastNoiseLite { Seed = (int)GD.Randi(), Frequency = 0.5f };
+    }
+
+    public override void _Ready()
+    {
+        // Create the invisible Core physics body that drives the cluster
+        _core = new RigidBody2D
+        {
+            GravityScale = 0,
+            LinearDampMode = RigidBody2D.DampMode.Replace,
+            LinearDamp = 0.5f,
+            CollisionLayer = 2,
+            CollisionMask = 1,
+            PhysicsMaterialOverride = new PhysicsMaterial { Bounce = 1.0f, Friction = 0.0f }
+        };
+
+        // The core needs a collision shape to bounce off walls. We keep it small.
+        _core.AddChild(new CollisionShape2D { Shape = new CircleShape2D { Radius = 10f } });
+        AddChild(_core);
+
+        // Give it an initial push
+        float angle = (float)GD.RandRange(0, Mathf.Tau);
+        _core.LinearVelocity = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * _speed;
+
+        // Create the satellite sub-blobs
+        int subBlobs = GD.RandRange(MinBlobs, MaxBlobs);
+        for (int i = 0; i < subBlobs; i++)
+        {
+            float radius = GD.RandRange(MinRadius, MaxRadius);
+            var blob = new BlobEnemy(_tint, radius);
+
+            // Random offset so they don't spawn exactly inside each other
+            float spawnAngle = (float)GD.RandRange(0, Mathf.Tau);
+            blob.Position = new Vector2(Mathf.Cos(spawnAngle), Mathf.Sin(spawnAngle)) * 30f;
+
+            AddChild(blob);
+
+            // Connect sub-blob to core using a spring joint
+            var spring = new DampedSpringJoint2D
+            {
+                NodeA = _core.GetPath(),
+                NodeB = blob.GetPath(),
+                Length = 5f,
+                RestLength = 0f,
+                Stiffness = 150f,
+                Damping = 2f,
+                // Sub-blobs in the same cluster won't physically collide with the core
+                // (though they might collide with each other depending on physics layers)
+                DisableCollision = true
+            };
+            AddChild(spring);
+        }
+    }
+
+    public override void _PhysicsProcess(double delta)
+    {
+        _timePassed += delta;
+
+        // Use noise to smoothly steer the cluster instead of pushing it
+        // The noise value is between -1 and 1. We multiply by a turning speed (e.g., 3.0 radians/sec).
+        float turnRate = _noise.GetNoise1D((float)_timePassed * 50f) * 3.0f;
+
+        // Rotate the velocity
+        _core.LinearVelocity = _core.LinearVelocity.Rotated(turnRate * (float)delta);
+
+        // Strictly enforce the exact speed at all times so it never slows down or speeds up
+        if (_core.LinearVelocity.LengthSquared() > 0.1f)
+        {
+            _core.LinearVelocity = _core.LinearVelocity.Normalized() * _speed;
+        }
+    }
+}
