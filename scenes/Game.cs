@@ -170,7 +170,11 @@ public partial class Game : Node2D
         if (@event.IsActionPressed("ui_cancel")) GetTree().Quit();
         if (!@event.IsActionPressed("ui_accept")) return;
 
-        if (_playerState == PlayerState.Won) GetTree().ReloadCurrentScene();
+        if (_playerState == PlayerState.Won)
+        {
+            _library.MoveNext();
+            GetTree().ReloadCurrentScene();
+        }
 
         _arrow.Cycle();
 
