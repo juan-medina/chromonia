@@ -19,6 +19,8 @@ public partial class SharedProgressBar : Control
 
     private float _targetA;
     private float _targetB;
+    private int _lastPercentA = -1;
+    private int _lastPercentB = -1;
 
     public override void _Ready()
     {
@@ -46,15 +48,21 @@ public partial class SharedProgressBar : Control
             currentA = Mathf.Lerp(currentA, _targetA, 5f * (float)delta);
             _fillA.AnchorRight = currentA;
             _fillA.OffsetRight = 0;
-            _labelA.Text = $"{Mathf.RoundToInt(currentA * 100)}%";
+            int percentA = Mathf.RoundToInt(currentA * 100);
+            if (percentA != _lastPercentA)
+            {
+                _labelA.Text = $"{percentA}%";
+                _lastPercentA = percentA;
+            }
         }
 
-        if (!Mathf.IsEqualApprox(currentB, _targetB))
-        {
-            currentB = Mathf.Lerp(currentB, _targetB, 5f * (float)delta);
-            _fillB.AnchorLeft = 1.0f - currentB;
-            _fillB.OffsetLeft = 0;
-            _labelB.Text = $"{Mathf.RoundToInt(currentB * 100)}%";
-        }
+        if (Mathf.IsEqualApprox(currentB, _targetB)) return;
+        currentB = Mathf.Lerp(currentB, _targetB, 5f * (float)delta);
+        _fillB.AnchorLeft = 1.0f - currentB;
+        _fillB.OffsetLeft = 0;
+        int percentB = Mathf.RoundToInt(currentB * 100);
+        if (percentB == _lastPercentB) return;
+        _labelB.Text = $"{percentB}%";
+        _lastPercentB = percentB;
     }
 }

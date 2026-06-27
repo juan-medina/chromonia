@@ -59,6 +59,7 @@ public partial class Game : Node2D
     private float _claimedAreaA;
     private float _claimedAreaB;
     private float _totalArea;
+    private readonly List<BlobEnemy> _activeBlobs = [];
 
     public override void _Ready()
     {
@@ -95,28 +96,32 @@ public partial class Game : Node2D
 
     private void UpdateBlobMergeStates()
     {
-        var blobs = new List<BlobEnemy>();
-        var nodes = GetTree().GetNodesInGroup("Blobs");
-        foreach (var node in nodes)
-            if (node is BlobEnemy blob)
-                blobs.Add(blob);
+        // Clean up dead blobs without allocations
+        for (int i = _activeBlobs.Count - 1; i >= 0; i--)
+        {
+            if (_activeBlobs[i].IsDissolving || !GodotObject.IsInstanceValid(_activeBlobs[i]))
+            {
+                _activeBlobs.RemoveAt(i);
+            }
+        }
 
         // Reset to base tint
-        foreach (var blob in blobs) blob.BlobEnergy.CurrentTint = blob.BaseTint;
+        foreach (var blob in _activeBlobs) blob.BlobEnergy.CurrentTint = blob.BaseTint;
 
         // Check for merges between different base colors
-        for (int i = 0; i < blobs.Count; i++)
+        for (int i = 0; i < _activeBlobs.Count; i++)
         {
-            for (int j = i + 1; j < blobs.Count; j++)
+            for (int j = i + 1; j < _activeBlobs.Count; j++)
             {
-                if (blobs[i].BaseTint == blobs[j].BaseTint) continue;
+                if (_activeBlobs[i].BaseTint == _activeBlobs[j].BaseTint) continue;
 
                 // They merge if they are physically touching or extremely close
-                float dynamicMergeDistance = blobs[i].Radius + blobs[j].Radius + 15f;
-                if (!(blobs[i].GlobalPosition.DistanceTo(blobs[j].GlobalPosition) < dynamicMergeDistance)) continue;
+                float dynamicMergeDistance = _activeBlobs[i].Radius + _activeBlobs[j].Radius + 15f;
+                if (!(_activeBlobs[i].GlobalPosition.DistanceTo(_activeBlobs[j].GlobalPosition) <
+                      dynamicMergeDistance)) continue;
 
-                blobs[i].BlobEnergy.CurrentTint = Energy.Tint.Combined;
-                blobs[j].BlobEnergy.CurrentTint = Energy.Tint.Combined;
+                _activeBlobs[i].BlobEnergy.CurrentTint = Energy.Tint.Combined;
+                _activeBlobs[j].BlobEnergy.CurrentTint = Energy.Tint.Combined;
             }
         }
     }
@@ -128,11 +133,8 @@ public partial class Game : Node2D
         const float arrowRadius = 15f; // Estimated hitbox radius for Arrow
         const float lineThicknessRadius = 4f; // _drawingLine thickness is 8, so radius is 4
 
-        var nodes = GetTree().GetNodesInGroup("Blobs");
-        foreach (var node in nodes)
+        foreach (var blob in _activeBlobs)
         {
-            if (node is not BlobEnemy blob) continue;
-
             // Polarity rule: Same color is SAFE. Opposite color (or Combined) is LETHAL.
             if (blob.BlobEnergy.CurrentTint == _arrow.CurrentEnergy.CurrentTint &&
                 blob.BlobEnergy.CurrentTint != Energy.Tint.Combined) continue;
@@ -187,11 +189,8 @@ public partial class Game : Node2D
         _playerState = PlayerState.Won;
 
         // Kill all remaining blobs and their clusters
-        var nodes = GetTree().GetNodesInGroup("Blobs");
-        foreach (var node in nodes)
+        foreach (var blob in _activeBlobs)
         {
-            if (node is not BlobEnemy blob) continue;
-
             // If it belongs to a cluster, free the whole cluster. Otherwise free just the blob.
             if (blob.GetParent() is BlobCluster cluster)
                 cluster.Dissolve();
@@ -296,6 +295,13 @@ public partial class Game : Node2D
         CreateBorder(_paintingWidth, _paintingHeight, BorderColor, BorderThickness);
 
         SpawnEnemies(_paintingWidth, _paintingHeight);
+
+        var nodes = GetTree().GetNodesInGroup("Blobs");
+        foreach (var node in nodes)
+        {
+            if (node is BlobEnemy blob)
+                _activeBlobs.Add(blob);
+        }
 
         return (true, string.Empty);
     }
@@ -610,11 +616,9 @@ public partial class Game : Node2D
     private List<BlobEnemy> GetTrappedBlobs(Vector2[] claimedPoly)
     {
         var trappedBlobs = new List<BlobEnemy>();
-        var nodes = GetTree().GetNodesInGroup("Blobs");
 
-        foreach (var node in nodes)
+        foreach (var blob in _activeBlobs)
         {
-            if (node is not BlobEnemy blob) continue;
             Vector2 localBlobPos = _painting.ToLocal(blob.GlobalPosition);
             if (Geometry2D.IsPointInPolygon(localBlobPos, claimedPoly)) trappedBlobs.Add(blob);
         }
@@ -635,7 +639,7 @@ public partial class Game : Node2D
         return false;
     }
 
-    private void DestroyBlobs(List<BlobEnemy> blobsToDestroy)
+    private static void DestroyBlobs(List<BlobEnemy> blobsToDestroy)
     {
         foreach (var blob in blobsToDestroy)
         {
