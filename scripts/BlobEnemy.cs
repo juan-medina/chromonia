@@ -10,6 +10,8 @@ public partial class BlobEnemy : RigidBody2D
     public Energy BlobEnergy { get; } = new();
     public Energy.Tint BaseTint { get; private set; }
     public float Radius { get; private set; }
+    public bool IsDissolving { get; private set; }
+
 
     public BlobEnemy(Energy.Tint tint, float radius)
     {
@@ -60,9 +62,31 @@ public partial class BlobEnemy : RigidBody2D
 
     public override void _Process(double delta)
     {
+        if (IsDissolving) return;
         // Smoothly transition the display color towards the target logical color
         DisplayColor = DisplayColor.Lerp(BlobEnergy.Fill, (float)delta * 10.0f);
         QueueRedraw();
+    }
+
+    public void Dissolve()
+    {
+        if (IsDissolving) return;
+        IsDissolving = true;
+
+        RemoveFromGroup("Blobs");
+
+        SetDeferred(CollisionObject2D.PropertyName.CollisionLayer, 0);
+        SetDeferred(CollisionObject2D.PropertyName.CollisionMask, 0);
+
+        var tween = CreateTween();
+        tween.TweenProperty(this, "scale", Vector2.Zero, 0.5f)
+            .SetTrans(Tween.TransitionType.Back)
+            .SetEase(Tween.EaseType.In);
+        
+        if (GetParent() is not BlobCluster)
+        {
+            tween.TweenCallback(Callable.From(QueueFree));
+        }
     }
 
     public override void _Draw()

@@ -10,6 +10,8 @@ public partial class BlobCluster : Node2D
     private RigidBody2D _core = null!;
     private float _speed;
     private Energy.Tint _tint;
+    public bool IsDissolving { get; private set; }
+
 
     private const int MinBlobs = 4;
     private const int MaxBlobs = 6;
@@ -84,6 +86,8 @@ public partial class BlobCluster : Node2D
 
     public override void _PhysicsProcess(double delta)
     {
+        if (IsDissolving) return;
+
         _timePassed += delta;
 
         // Use noise to smoothly steer the cluster instead of pushing it
@@ -98,5 +102,27 @@ public partial class BlobCluster : Node2D
         {
             _core.LinearVelocity = _core.LinearVelocity.Normalized() * _speed;
         }
+    }
+
+    public void Dissolve()
+    {
+        if (IsDissolving) return;
+        IsDissolving = true;
+
+        SetPhysicsProcess(false);
+        _core.SetDeferred(CollisionObject2D.PropertyName.CollisionLayer, 0);
+        _core.SetDeferred(CollisionObject2D.PropertyName.CollisionMask, 0);
+
+        foreach (var child in GetChildren())
+        {
+            if (child is BlobEnemy blob)
+            {
+                blob.Dissolve();
+            }
+        }
+
+        var tween = CreateTween();
+        tween.TweenInterval(0.5f);
+        tween.TweenCallback(Callable.From(QueueFree));
     }
 }

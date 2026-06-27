@@ -190,9 +190,9 @@ public partial class Game : Node2D
 
             // If it belongs to a cluster, free the whole cluster. Otherwise free just the blob.
             if (blob.GetParent() is BlobCluster cluster)
-                cluster.QueueFree();
+                cluster.Dissolve();
             else
-                blob.QueueFree();
+                blob.Dissolve();
         }
 
         // Run all these animations simultaneously
@@ -636,9 +636,9 @@ public partial class Game : Node2D
         foreach (var blob in blobsToDestroy)
         {
             if (blob.GetParent() is BlobCluster cluster)
-                cluster.QueueFree();
+                cluster.Dissolve();
             else
-                blob.QueueFree();
+                blob.Dissolve();
         }
     }
 
