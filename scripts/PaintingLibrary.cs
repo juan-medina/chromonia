@@ -67,12 +67,12 @@ public partial class PaintingLibrary : Node
         _index = 0;
     }
 
-    public static (ImageTexture? Texture, PaintingError Err) LoadTexture(PaintingEntry entry)
+    public static (Texture2D? Texture, PaintingError Err) LoadTexture(PaintingEntry entry)
     {
         var path = FolderPath + entry.File;
-        var image = Image.LoadFromFile(ProjectSettings.GlobalizePath(path));
-        return image is not null
-            ? (ImageTexture.CreateFromImage(image), PaintingError.Ok())
+        var texture = ResourceLoader.Load<Texture2D>(path);
+        return texture is not null
+            ? (texture, PaintingError.Ok())
             : (null, PaintingError.Fail($"Could not load image: {path}"));
     }
 
