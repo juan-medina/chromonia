@@ -30,6 +30,7 @@ public partial class Game : Node2D
     [Export] private Arrow _arrow = null!;
     [Export] private SharedProgressBar _progressBar = null!;
     private PaintingLibrary _library = null!;
+    private MusicPlayer _music = null!;
     private CanvasGroup _blobsLayer = null!;
 
     private const int ViewportWidth = 1920;
@@ -68,7 +69,8 @@ public partial class Game : Node2D
 
     public override void _Ready()
     {
-        // 1. Resolve Autoload explicitly
+        // Resolve Autoloads explicitly
+
         _library = GetNodeOrNull<PaintingLibrary>("/root/PaintingLibrary");
         if (_library is null)
         {
@@ -76,11 +78,21 @@ public partial class Game : Node2D
             return;
         }
 
+        _music = GetNode<MusicPlayer>("/root/MusicPlayer");
+        if (_music is null)
+        {
+            HandleFatalError("MusicPlayer global autoload is missing.");
+            return;
+        }
+
+        _music.PlayMusic();
+
+        // Set up the shader and canvas for our blobs
         var blobShader = ResourceLoader.Load<Shader>("res://shaders/blob_merge.gdshader");
         _blobsLayer = new CanvasGroup { ZIndex = 2, Material = new ShaderMaterial { Shader = blobShader } };
         _painting.AddChild(_blobsLayer);
 
-        // 2. Load game data using explicit value checking
+        // Load game data using explicit value checking
         var (success, error) = TryLoadCurrentPainting();
         if (!success)
         {
@@ -103,12 +115,8 @@ public partial class Game : Node2D
     {
         // Clean up dead blobs without allocations
         for (int i = _activeBlobs.Count - 1; i >= 0; i--)
-        {
             if (_activeBlobs[i].IsDissolving || !GodotObject.IsInstanceValid(_activeBlobs[i]))
-            {
                 _activeBlobs.RemoveAt(i);
-            }
-        }
 
         // Reset to base tint
         foreach (var blob in _activeBlobs) blob.BlobEnergy.CurrentTint = blob.BaseTint;
@@ -174,7 +182,12 @@ public partial class Game : Node2D
 
     public override void _UnhandledInput(InputEvent @event)
     {
-        if (@event.IsActionPressed("ui_cancel")) GetTree().Quit();
+        if (@event.IsActionPressed("ui_cancel"))
+        {
+            _music.Stop();
+            GetTree().Quit();
+        }
+
         if (!@event.IsActionPressed("ui_accept")) return;
 
         if (_playerState == PlayerState.Won)
