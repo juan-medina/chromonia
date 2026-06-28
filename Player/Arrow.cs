@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Juan Medina
 // SPDX-License-Identifier: MIT
 
-using Chromonia.Scripts;
+using Chromonia.Game;
 using Godot;
 
-namespace Chromonia.Scenes;
+namespace Chromonia.Player;
 
 public partial class Arrow : Sprite2D
 {
@@ -51,18 +51,18 @@ public partial class Arrow : Sprite2D
     {
         IsImmune = true;
         IsStunned = true;
-        
+
         // Turn Neon Red to indicate stunned/damaged state
         SelfModulate = new Color(2.5f, 0.2f, 0.2f);
-        
+
         // Wait 2 seconds for the stun to wear off
         await ToSignal(GetTree().CreateTimer(2.0f), SceneTreeTimer.SignalName.Timeout);
-        
+
         IsStunned = false;
-        
+
         // Restore base color but start blinking to indicate remaining 2s of immunity
         SelfModulate = CurrentEnergy.Marker * PulsateMinGlow;
-        
+
         var tween = CreateTween();
         // 8 loops of 0.25s = 2.0 seconds total blinking
         tween.SetLoops(8);

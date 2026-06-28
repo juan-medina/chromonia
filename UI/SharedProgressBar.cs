@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Juan Medina
 // SPDX-License-Identifier: MIT
 
-using Chromonia.Scripts;
+using Chromonia.Game;
 using Godot;
 
-namespace Chromonia.Scenes;
+namespace Chromonia.UI;
 
 public partial class SharedProgressBar : Control
 {

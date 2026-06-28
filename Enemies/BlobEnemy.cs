@@ -1,9 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Juan Medina
 // SPDX-License-Identifier: MIT
 
+using Chromonia.Game;
 using Godot;
 
-namespace Chromonia.Scripts;
+namespace Chromonia.Enemies;
 
 public partial class BlobEnemy : RigidBody2D
 {
@@ -82,8 +83,8 @@ public partial class BlobEnemy : RigidBody2D
         tween.TweenProperty(this, "scale", Vector2.Zero, 0.5f)
             .SetTrans(Tween.TransitionType.Back)
             .SetEase(Tween.EaseType.In);
-        
-        if (GetParent() is not BlobCluster)
+
+        if (GetParent() is not Enemies.BlobCluster)
         {
             tween.TweenCallback(Callable.From(QueueFree));
         }

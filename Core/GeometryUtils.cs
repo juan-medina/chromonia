@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
-namespace Chromonia.Scripts;
+namespace Chromonia.Core;
 
 public static class GeometryUtils
 {

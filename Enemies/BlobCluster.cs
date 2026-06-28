@@ -1,9 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Juan Medina
 // SPDX-License-Identifier: MIT
 
+using Chromonia.Game;
 using Godot;
 
-namespace Chromonia.Scripts;
+namespace Chromonia.Enemies;
 
 public partial class BlobCluster : Node2D
 {

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Juan Medina
+// SPDX-License-Identifier: MIT
+
 shader_type canvas_item;
 
 uniform float bg_min_brightness : hint_range(0.0, 1.0) = 0.1;

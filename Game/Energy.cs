@@ -3,7 +3,7 @@
 
 using Godot;
 
-namespace Chromonia.Scripts;
+namespace Chromonia.Game;
 
 public class Energy(Energy.Tint tint = Energy.Tint.A)
 {

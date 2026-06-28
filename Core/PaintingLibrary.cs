@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using Godot;
 
-namespace Chromonia.Scripts;
+namespace Chromonia.Core;
 
 public record PaintingEntry(
     string File,

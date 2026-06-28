@@ -3,10 +3,15 @@
 
 using System;
 using System.Collections.Generic;
+using Chromonia.Core;
 using Godot;
-using Chromonia.Scripts;
+using Arrow = Chromonia.Player.Arrow;
+using BlobCluster = Chromonia.Enemies.BlobCluster;
+using BlobEnemy = Chromonia.Enemies.BlobEnemy;
+using PaintingLibrary = Chromonia.Core.PaintingLibrary;
+using SharedProgressBar = Chromonia.UI.SharedProgressBar;
 
-namespace Chromonia.Scenes;
+namespace Chromonia.Game;
 
 public enum PlayerState
 {
