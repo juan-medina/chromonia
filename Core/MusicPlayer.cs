@@ -14,6 +14,7 @@ public record MusicEntry(
     string Performer,
     string PerformerUrl);
 
+
 public partial class MusicPlayer : AudioStreamPlayer
 {
     private const string JsonPath = "res://music/music.json";
@@ -22,54 +23,61 @@ public partial class MusicPlayer : AudioStreamPlayer
     private readonly List<MusicEntry> _entries = [];
     private int _index;
 
+    public event System.Action<AppError>? OnPlaybackFailed;
+
     public override void _Ready()
     {
-        var success = TryLoadEntries();
+        var (success, error) = TryLoadEntries();
         if (!success)
         {
-            GD.PrintErr("MusicPlayer Initialization Failure");
+            GD.PrintErr($"MusicPlayer Critical Initialization Failure: {error}");
             return;
         }
 
         Shuffle();
 
-        // Connect to the Finished signal to play the next song automatically
         Finished += OnFinished;
     }
+
+    private (MusicEntry? Entry, AppError Err) Current()
+    {
+        return _entries.Count != 0
+            ? (_entries[_index], AppError.Ok())
+            : (null, AppError.Fail("MusicPlayer has no music loaded."));
+    }
+
+    private static (AudioStream? Stream, AppError Err) LoadStream(MusicEntry entry)
+    {
+        var path = FolderPath + entry.File;
+        var stream = ResourceLoader.Load<AudioStream>(path);
+        return stream is not null
+            ? (stream, AppError.Ok())
+            : (null, AppError.Fail($"Could not load audio stream: {path}"));
+    }
+
+    public AppError TryPlayMusic() => IsPlaying() ? AppError.Ok() : PlayCurrent();
 
     private void OnFinished()
     {
         MoveNext();
-        PlayCurrent();
+
+        var err = PlayCurrent();
+        if (err.Success) return;
+        GD.PrintErr(err.Message);
+        OnPlaybackFailed?.Invoke(err);
     }
 
-    public void PlayMusic()
+    private AppError PlayCurrent()
     {
-        if (IsPlaying())
-            return;
+        var (entry, err) = Current();
+        if (!err.Success) return err;
 
-        PlayCurrent();
-    }
+        var (stream, loadErr) = LoadStream(entry!);
+        if (!loadErr.Success) return loadErr;
 
-    private void PlayCurrent()
-    {
-        if (_entries.Count == 0) return;
-
-        var entry = _entries[_index];
-        var path = FolderPath + entry.File;
-        var stream = ResourceLoader.Load<AudioStream>(path);
-
-        if (stream is not null)
-        {
-            Stream = stream;
-            Play();
-        }
-        else
-        {
-            GD.PrintErr($"Could not load audio stream: {path}");
-            // Skip to next if failed
-            OnFinished();
-        }
+        Stream = stream;
+        Play();
+        return AppError.Ok();
     }
 
     private void MoveNext()
@@ -86,14 +94,11 @@ public partial class MusicPlayer : AudioStreamPlayer
         _index = 0;
     }
 
-    private bool TryLoadEntries()
+    private (bool Success, string Error) TryLoadEntries()
     {
         using var file = FileAccess.Open(JsonPath, FileAccess.ModeFlags.Read);
         if (file is null)
-        {
-            GD.PrintErr($"Could not open {JsonPath}: {FileAccess.GetOpenError()}");
-            return false;
-        }
+            return (false, $"Could not open {JsonPath}: {FileAccess.GetOpenError()}");
 
         try
         {
@@ -102,7 +107,9 @@ public partial class MusicPlayer : AudioStreamPlayer
             {
                 var fileProp = element.GetProperty("file").GetString()!;
                 if (string.IsNullOrWhiteSpace(fileProp))
+                {
                     continue; // Skip tracks without an mp3 file
+                }
 
                 _entries.Add(new MusicEntry(
                     fileProp,
@@ -115,11 +122,12 @@ public partial class MusicPlayer : AudioStreamPlayer
         }
         catch (JsonException ex)
         {
-            GD.PrintErr($"Failed to parse JSON configuration: {ex.Message}");
-            return false;
+            return (false, $"Failed to parse JSON configuration: {ex.Message}");
         }
 
-        return _entries.Count > 0;
+        return _entries.Count == 0
+            ? (false, $"No music tracks found in the parsed configuration file {JsonPath}")
+            : (true, string.Empty);
     }
 
     private void Shuffle()

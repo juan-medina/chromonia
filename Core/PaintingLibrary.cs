@@ -14,11 +14,6 @@ public record PaintingEntry(
     string Artist,
     string Nationality);
 
-public record PaintingError(bool Success, string Message)
-{
-    public static PaintingError Ok() => new(true, string.Empty);
-    public static PaintingError Fail(string msg) => new(false, msg);
-}
 
 public partial class PaintingLibrary : Node
 {
@@ -40,11 +35,11 @@ public partial class PaintingLibrary : Node
         Shuffle();
     }
 
-    public (PaintingEntry? Entry, PaintingError Err) Current()
+    public (PaintingEntry? Entry, AppError Err) Current()
     {
         return _entries.Count != 0
-            ? (_entries[_index], PaintingError.Ok())
-            : (null, PaintingError.Fail("PaintingLibrary has no paintings loaded."));
+            ? (_entries[_index], AppError.Ok())
+            : (null, AppError.Fail("PaintingLibrary has no paintings loaded."));
     }
 
     public void MoveNext()
@@ -65,13 +60,13 @@ public partial class PaintingLibrary : Node
         _index = 0;
     }
 
-    public static (Texture2D? Texture, PaintingError Err) LoadTexture(PaintingEntry entry)
+    public static (Texture2D? Texture, AppError Err) LoadTexture(PaintingEntry entry)
     {
         var path = FolderPath + entry.File;
         var texture = ResourceLoader.Load<Texture2D>(path);
         return texture is not null
-            ? (texture, PaintingError.Ok())
-            : (null, PaintingError.Fail($"Could not load image: {path}"));
+            ? (texture, AppError.Ok())
+            : (null, AppError.Fail($"Could not load image: {path}"));
     }
 
     private (bool Success, string Error) TryLoadEntries()

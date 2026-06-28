@@ -85,7 +85,14 @@ public partial class Game : Node2D
             return;
         }
 
-        _music.PlayMusic();
+        var musicErr = _music.TryPlayMusic();
+        if (!musicErr.Success)
+        {
+            HandleFatalError(musicErr.Message);
+            return;
+        }
+
+        _music.OnPlaybackFailed += HandleMusicError;
 
         // Set up the shader and canvas for our blobs
         var blobShader = ResourceLoader.Load<Shader>("res://shaders/blob_merge.gdshader");
@@ -764,5 +771,16 @@ public partial class Game : Node2D
         GD.PrintErr($"Game Initialization Failed: {errorMessage}");
         OS.Alert("Something went wrong loading Chromonia.", "Initialization Error");
         GetTree().Quit();
+    }
+
+    private void HandleMusicError(AppError err)
+    {
+        HandleFatalError(err.Message);
+    }
+
+    public override void _ExitTree()
+    {
+        if (IsInstanceValid(_music)) _music.OnPlaybackFailed -= HandleMusicError;
+        base._ExitTree();
     }
 }
