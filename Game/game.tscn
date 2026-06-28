@@ -1,11 +1,11 @@
 [gd_scene format=3 uid="uid://bujvwvf4xmwo0"]
 
-[ext_resource type="Script" uid="uid://d0xga6khg0hq6" path="res://scenes/Game.cs" id="1_uwrxv"]
+[ext_resource type="Script" uid="uid://d0xga6khg0hq6" path="res://Game/Game.cs" id="1_uwrxv"]
 [ext_resource type="Shader" uid="uid://bbsil6a6ejpo2" path="res://shaders/reveal.gdshader" id="2_lnu2h"]
 [ext_resource type="Texture2D" uid="uid://b77ugmqq5e4fx" path="res://paitings/508676ldsdl.webp" id="2_yqjtg"]
-[ext_resource type="PackedScene" uid="uid://dxhwomcmo5bio" path="res://scenes/arrow.tscn" id="4_lbhrr"]
+[ext_resource type="PackedScene" uid="uid://dxhwomcmo5bio" path="res://Player/arrow.tscn" id="4_lbhrr"]
 [ext_resource type="Texture2D" uid="uid://da27hv6rxfri3" path="res://background/canvas.jpg" id="5_iywne"]
-[ext_resource type="PackedScene" uid="uid://bfytw5fks6f4w" path="res://scenes/shared_progress_bar.tscn" id="6_p57ef"]
+[ext_resource type="PackedScene" uid="uid://bfytw5fks6f4w" path="res://UI/shared_progress_bar.tscn" id="6_p57ef"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_lbhrr"]
 shader = ExtResource("2_lnu2h")

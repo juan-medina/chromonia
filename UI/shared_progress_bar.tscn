@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bfytw5fks6f4w"]
 
-[ext_resource type="Script" uid="uid://b8g1gsb63a8sw" path="res://scenes/SharedProgressBar.cs" id="1_ptfiv"]
+[ext_resource type="Script" uid="uid://b8g1gsb63a8sw" path="res://UI/SharedProgressBar.cs" id="1_ptfiv"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0.2, 0.2, 0.2, 1)

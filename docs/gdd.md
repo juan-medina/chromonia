@@ -338,44 +338,24 @@ Because the game uses C# (.NET), careful management of Garbage Collection (GC) p
 
 ---
 
-## 7. Suggested Godot Scene Structure
+## 7. Project Structure
 
-> This is a starting point, not a strict requirement. Adjust as implementation evolves.
+The project follows a **Feature-Based Hybrid** approach, prioritizing cohesion and modularity.
 
-### Scenes
+### 7.1 Feature-Based Organization
+Rather than grouping files by their type (e.g., all scripts in one folder, all scenes in another), the project is organized around **features or entities**. 
+When a C# script is specifically tied to a Godot Scene (Node), both the `.tscn` and `.cs` files (along with any exclusively related assets) reside together in the same feature folder.
+For example, the Player scene and the Player script live together in a `Player` directory.
 
-| Path | Purpose |
-|---|---|
-| `res://scenes/main_menu.tscn` | Main menu |
-| `res://scenes/play_setup.tscn` | Difficulty and collection selection |
-| `res://scenes/game.tscn` | Main playfield — painting, polygons, player, enemies, HUD |
-| `res://scenes/round_complete.tscn` | Full-colour painting reveal with title and artist |
-| `res://scenes/credits.tscn` | Credits screen |
-| `res://scenes/eula.tscn` | EULA on first launch |
-| `res://scenes/pause_menu.tscn` | Overlay pause menu |
+**Benefits:**
+- **High Cohesion:** Everything related to a specific feature is in one place, reducing the need to jump between distant directories.
+- **Scalability:** As the project grows, feature folders prevent massive, unmanageable lists of scripts or scenes.
 
-### Scripts
+### 7.2 Hybrid Core Code
+Not all C# scripts are attached to specific scenes. The project utilizes a "hybrid" aspect by keeping pure C# logic (such as data models, interfaces, services, and singletons) in dedicated core directories (e.g., `Core` or `Systems`). This separates underlying game logic and data management from scene-specific behaviours.
 
-| Path | Responsibility |
-|---|---|
-| `res://scripts/GameManager.cs` | Session state: current painting, enemy list, fill %, win condition check |
-| `res://scripts/Player.cs` | Movement, line drawing, colour switching, line cancellation |
-| `res://scripts/Enemy.cs` | Drift movement, colour property, collision with active line |
-| `res://scripts/PolygonManager.cs` | Polygon creation, Shoelace area, point-in-polygon, Polygon2D spawning |
-| `res://scripts/ImageLoader.cs` | Load bundled and custom paintings, shuffle list, provide next image |
-| `res://scripts/SettingsManager.cs` | Read/write ConfigFile, expose settings to UI |
-| `res://scripts/MusicPlayer.cs` | Shuffle and cycle music tracks, manage playback |
-| `res://scripts/AudioManager.cs` | Play painting and music sound effects by event name |
-
-### Resources
-
-| Path | Contents |
-|---|---|
-| `res://paintings/bundled/` | Pre-processed 1920×1080 JPEG paintings |
-| `res://music/` | OGG classical tracks from Musopen |
-| `res://sfx/paint/` | Brush, drip, sweep sound effects |
-| `res://sfx/music/` | Piano keys, string plucks, chords, glissandos |
-| `res://shaders/reveal.gdshader` | Desaturation shader — blends full-colour painting with greyscale based on mask_texture state |
+### 7.3 Shared Resources
+Assets that are shared across multiple features (such as paintings, common UI textures, audio files, and shaders) are stored in dedicated resource directories, rather than being nested within specific feature folders.
 
 ---
 
