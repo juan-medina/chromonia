@@ -254,9 +254,9 @@ public partial class Game : Node2D
         return !err.Success ? (false, err.Message) : TryLoadPainting(painting!);
     }
 
-    private (bool Success, string Error) TryLoadPainting(PaintingEntry painting)
+    private (bool Success, string Error) TryLoadPainting(ResourceEntry painting)
     {
-        var (texture, texErr) = PaintingLibrary.LoadTexture(painting);
+        var (texture, texErr) = _library.LoadCurrentResource();
         if (!texErr.Success)
             return (false, texErr.Message);
 
@@ -297,11 +297,11 @@ public partial class Game : Node2D
         // Position labels in the top-left corner of the image in Sprite2D local space
         var topLeft = new Vector2(-_paintingWidth / 2f + LabelPadding, -_paintingHeight / 2f + LabelPadding);
         _title.Position = topLeft;
-        _title.Text = $"{painting.Title} ({painting.Years})";
+        _title.Text = $"{painting.Name} ({painting.Metadata.GetValueOrDefault("years", "")})";
         _title.AddThemeColorOverride("font_color", new Color(1.5F, 1.5F, 1.5F));
 
         _artist.Position = topLeft + new Vector2(0, _title.Size.Y > 0 ? _title.Size.Y : 24f);
-        _artist.Text = $"{painting.Artist} ({painting.Nationality})";
+        _artist.Text = $"{painting.Author} ({painting.Metadata.GetValueOrDefault("nationality", "")})";
         _artist.AddThemeColorOverride("font_color", new Color(1.5F, 1.5F, 1.5F));
 
         // Size the viewport after setting scale/position

@@ -1,144 +1,184 @@
 {
-  "music": [
+  "items": [
     {
       "file": "Gymnopedie_no_1.ogg",
-      "title": "Gymnopédie No. 1",
-      "composer": "Erik Satie",
-      "performer": "Edward Rosser",
-      "performer_url": "https://musopen.org/music/performer/edward-rosser/"
+      "name": "Gymnopédie No. 1",
+      "author": "Erik Satie",
+      "metadata": {
+        "performer": "Edward Rosser",
+        "performer_url": "https://musopen.org/music/performer/edward-rosser/"
+      }
     },
     {
       "file": "Suite_Bergamasque_-_III_Claire_de_Lune.ogg",
-      "title": "Clair de Lune",
-      "composer": "Claude Debussy",
-      "performer": "Simone Renzi",
-      "performer_url": "https://musopen.org/music/performer/simone-renzi/"
+      "name": "Clair de Lune",
+      "author": "Claude Debussy",
+      "metadata": {
+        "performer": "Simone Renzi",
+        "performer_url": "https://musopen.org/music/performer/simone-renzi/"
+      }
     },
     {
       "file": "Reverie.ogg",
-      "title": "Rêverie",
-      "composer": "Claude Debussy",
-      "performer": "Simone Renzi",
-      "performer_url": "https://musopen.org/music/performer/simone-renzi/"
+      "name": "Rêverie",
+      "author": "Claude Debussy",
+      "metadata": {
+        "performer": "Simone Renzi",
+        "performer_url": "https://musopen.org/music/performer/simone-renzi/"
+      }
     },
     {
       "file": "Arabesque_No_1_Andantino_con_moto.ogg",
-      "title": "Arabesque No. 1",
-      "composer": "Claude Debussy",
-      "performer": "Simone Renzi",
-      "performer_url": "https://musopen.org/music/performer/simone-renzi/"
+      "name": "Arabesque No. 1",
+      "author": "Claude Debussy",
+      "metadata": {
+        "performer": "Simone Renzi",
+        "performer_url": "https://musopen.org/music/performer/simone-renzi/"
+      }
     },
     {
       "file": "Nocturne_in_E_flat_major_Op_9_no_2.ogg",
-      "title": "Nocturne in E-flat major, Op. 9 No. 2",
-      "composer": "Frédéric Chopin",
-      "performer": "Aya Higuchi",
-      "performer_url": "https://musopen.org/music/performer/aya-higuchi/"
+      "name": "Nocturne in E-flat major, Op. 9 No. 2",
+      "author": "Frédéric Chopin",
+      "metadata": {
+        "performer": "Aya Higuchi",
+        "performer_url": "https://musopen.org/music/performer/aya-higuchi/"
+      }
     },
     {
       "file": "Nocturne_in_D_flat_major_Op_27_no_2.ogg",
-      "title": "Nocturne in D-flat major, Op. 27 No. 2",
-      "composer": "Frédéric Chopin",
-      "performer": "Paul Pitman",
-      "performer_url": "https://musopen.org/music/performer/paul-pitman/"
+      "name": "Nocturne in D-flat major, Op. 27 No. 2",
+      "author": "Frédéric Chopin",
+      "metadata": {
+        "performer": "Paul Pitman",
+        "performer_url": "https://musopen.org/music/performer/paul-pitman/"
+      }
     },
     {
       "file": "Moonlight_Sonata_Op_27_No_2 _I_Adagio_sostenuto.ogg",
-      "title": "Moonlight Sonata (1st Movement - Adagio Sostenuto)",
-      "composer": "Ludwig van Beethoven",
-      "performer": "Paul Pitman",
-      "performer_url": "https://musopen.org/music/performer/paul-pitman/"
+      "name": "Moonlight Sonata (1st Movement - Adagio Sostenuto)",
+      "author": "Ludwig van Beethoven",
+      "metadata": {
+        "performer": "Paul Pitman",
+        "performer_url": "https://musopen.org/music/performer/paul-pitman/"
+      }
     },
     {
       "file": "",
-      "title": "Consolation No. 3 in D-flat major",
-      "composer": "Franz Liszt",
-      "performer": "",
-      "performer_url": ""
+      "name": "Consolation No. 3 in D-flat major",
+      "author": "Franz Liszt",
+      "metadata": {
+        "performer": "",
+        "performer_url": ""
+      }
     },
     {
       "file": "",
-      "title": "Goldberg Variations, BWV 988: Aria",
-      "composer": "Johann Sebastian Bach",
-      "performer": "",
-      "performer_url": ""
+      "name": "Goldberg Variations, BWV 988: Aria",
+      "author": "Johann Sebastian Bach",
+      "metadata": {
+        "performer": "",
+        "performer_url": ""
+      }
     },
     {
       "file": "",
-      "title": "Cello Suite No. 1 in G Major (Prelude)",
-      "composer": "Johann Sebastian Bach",
-      "performer": "",
-      "performer_url": ""
+      "name": "Cello Suite No. 1 in G Major (Prelude)",
+      "author": "Johann Sebastian Bach",
+      "metadata": {
+        "performer": "",
+        "performer_url": ""
+      }
     },
     {
       "file": "",
-      "title": "Air on the G String",
-      "composer": "Johann Sebastian Bach",
-      "performer": "",
-      "performer_url": ""
+      "name": "Air on the G String",
+      "author": "Johann Sebastian Bach",
+      "metadata": {
+        "performer": "",
+        "performer_url": ""
+      }
     },
     {
       "file": "",
-      "title": "The Swan (Le Cygne) from The Carnival of the Animals",
-      "composer": "Camille Saint-Saëns",
-      "performer": "",
-      "performer_url": ""
+      "name": "The Swan (Le Cygne) from The Carnival of the Animals",
+      "author": "Camille Saint-Saëns",
+      "metadata": {
+        "performer": "",
+        "performer_url": ""
+      }
     },
     {
       "file": "",
-      "title": "Méditation from Thaïs",
-      "composer": "Jules Massenet",
-      "performer": "",
-      "performer_url": ""
+      "name": "Méditation from Thaïs",
+      "author": "Jules Massenet",
+      "metadata": {
+        "performer": "",
+        "performer_url": ""
+      }
     },
     {
       "file": "",
-      "title": "Élégie for Cello and Piano, Op. 24",
-      "composer": "Gabriel Fauré",
-      "performer": "",
-      "performer_url": ""
+      "name": "Élégie for Cello and Piano, Op. 24",
+      "author": "Gabriel Fauré",
+      "metadata": {
+        "performer": "",
+        "performer_url": ""
+      }
     },
     {
       "file": "",
-      "title": "String Quartet No. 2 in D Major (Notturno)",
-      "composer": "Alexander Borodin",
-      "performer": "",
-      "performer_url": ""
+      "name": "String Quartet No. 2 in D Major (Notturno)",
+      "author": "Alexander Borodin",
+      "metadata": {
+        "performer": "",
+        "performer_url": ""
+      }
     },
     {
       "file": "",
-      "title": "Clarinet Quintet in A major, K. 581 (Larghetto)",
-      "composer": "Wolfgang Amadeus Mozart",
-      "performer": "",
-      "performer_url": ""
+      "name": "Clarinet Quintet in A major, K. 581 (Larghetto)",
+      "author": "Wolfgang Amadeus Mozart",
+      "metadata": {
+        "performer": "",
+        "performer_url": ""
+      }
     },
     {
       "file": "",
-      "title": "Pathétique Sonata (2nd Movement - Adagio cantabile)",
-      "composer": "Ludwig van Beethoven",
-      "performer": "",
-      "performer_url": ""
+      "name": "Pathétique Sonata (2nd Movement - Adagio cantabile)",
+      "author": "Ludwig van Beethoven",
+      "metadata": {
+        "performer": "",
+        "performer_url": ""
+      }
     },
     {
       "file": "",
-      "title": "Andante Cantabile (from String Quartet No. 1)",
-      "composer": "Pyotr Ilyich Tchaikovsky",
-      "performer": "",
-      "performer_url": ""
+      "name": "Andante Cantabile (from String Quartet No. 1)",
+      "author": "Pyotr Ilyich Tchaikovsky",
+      "metadata": {
+        "performer": "",
+        "performer_url": ""
+      }
     },
     {
       "file": "",
-      "title": "The Lark Ascending",
-      "composer": "Ralph Vaughan Williams",
-      "performer": "",
-      "performer_url": ""
+      "name": "The Lark Ascending",
+      "author": "Ralph Vaughan Williams",
+      "metadata": {
+        "performer": "",
+        "performer_url": ""
+      }
     },
     {
       "file": "",
-      "title": "Pavane pour une infante défunte",
-      "composer": "Maurice Ravel",
-      "performer": "",
-      "performer_url": ""
+      "name": "Pavane pour une infante défunte",
+      "author": "Maurice Ravel",
+      "metadata": {
+        "performer": "",
+        "performer_url": ""
+      }
     }
   ]
 }
