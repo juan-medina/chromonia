@@ -10,7 +10,7 @@ public partial class BlobCluster : Node2D
     private RigidBody2D _core = null!;
     private float _speed;
     private Energy.Tint _tint;
-    public bool IsDissolving { get; private set; }
+    private bool IsDissolving { get; set; }
 
 
     private const int MinBlobs = 4;
@@ -50,11 +50,9 @@ public partial class BlobCluster : Node2D
         _core.AddChild(new CollisionShape2D { Shape = new CircleShape2D { Radius = 10f } });
         AddChild(_core);
 
-        // Give it an initial push
         float angle = (float)GD.RandRange(0, Mathf.Tau);
         _core.LinearVelocity = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * _speed;
 
-        // Create the satellite sub-blobs
         int subBlobs = GD.RandRange(MinBlobs, MaxBlobs);
         for (int i = 0; i < subBlobs; i++)
         {
@@ -67,7 +65,6 @@ public partial class BlobCluster : Node2D
 
             AddChild(blob);
 
-            // Connect sub-blob to core using a spring joint
             var spring = new DampedSpringJoint2D
             {
                 NodeA = _core.GetPath(),
@@ -94,14 +91,11 @@ public partial class BlobCluster : Node2D
         // The noise value is between -1 and 1. We multiply by a turning speed (e.g., 3.0 radians/sec).
         float turnRate = _noise.GetNoise1D((float)_timePassed * 50f) * 3.0f;
 
-        // Rotate the velocity
         _core.LinearVelocity = _core.LinearVelocity.Rotated(turnRate * (float)delta);
 
         // Strictly enforce the exact speed at all times so it never slows down or speeds up
         if (_core.LinearVelocity.LengthSquared() > 0.1f)
-        {
             _core.LinearVelocity = _core.LinearVelocity.Normalized() * _speed;
-        }
     }
 
     public void Dissolve()
@@ -114,12 +108,8 @@ public partial class BlobCluster : Node2D
         _core.SetDeferred(CollisionObject2D.PropertyName.CollisionMask, 0);
 
         foreach (var child in GetChildren())
-        {
             if (child is BlobEnemy blob)
-            {
                 blob.Dissolve();
-            }
-        }
 
         var tween = CreateTween();
         tween.TweenInterval(0.5f);

@@ -55,14 +55,12 @@ public partial class PaintingLibrary : Node
             return;
         }
 
-        // If we don't reach the end just advance
         if (_index + 1 < _entries.Count)
         {
             _index++;
             return;
         }
 
-        // Shuffle and start over
         Shuffle();
         _index = 0;
     }
@@ -110,13 +108,10 @@ public partial class PaintingLibrary : Node
 
     private void Shuffle()
     {
-        // We don't shuffle if there is only 1 entry
         if (_entries.Count <= 1) return;
 
-        // Where we are now
         var at = _entries[_index];
 
-        // Shuffle the entries
         for (int i = _entries.Count - 1; i > 0; i--)
         {
             int j = GD.RandRange(0, i);
