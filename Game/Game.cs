@@ -30,6 +30,7 @@ public partial class Game : Node2D
     [Export] private Arrow _arrow = null!;
     [Export] private SharedProgressBar _progressBar = null!;
     private PaintingLibrary _library = null!;
+    private MusicPlayer _music = null!;
     private CanvasGroup _blobsLayer = null!;
 
     private const int ViewportWidth = 1920;
@@ -68,7 +69,8 @@ public partial class Game : Node2D
 
     public override void _Ready()
     {
-        // 1. Resolve Autoload explicitly
+        // Resolve Autoloads explicitly
+
         _library = GetNodeOrNull<PaintingLibrary>("/root/PaintingLibrary");
         if (_library is null)
         {
@@ -76,11 +78,19 @@ public partial class Game : Node2D
             return;
         }
 
+        _music  = GetNode<MusicPlayer>("/root/MusicPlayer");
+        if (_music is null)
+        {
+            HandleFatalError("MusicPlayer global autoload is missing.");
+            return;
+        }
+
+        // Set up the shader and canvas for our blobs
         var blobShader = ResourceLoader.Load<Shader>("res://shaders/blob_merge.gdshader");
         _blobsLayer = new CanvasGroup { ZIndex = 2, Material = new ShaderMaterial { Shader = blobShader } };
         _painting.AddChild(_blobsLayer);
 
-        // 2. Load game data using explicit value checking
+        // Load game data using explicit value checking
         var (success, error) = TryLoadCurrentPainting();
         if (!success)
         {
