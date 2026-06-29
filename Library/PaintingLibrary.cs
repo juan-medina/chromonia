@@ -3,7 +3,7 @@
 
 using Godot;
 
-namespace Chromonia.Core;
+namespace Chromonia.Library;
 
 public partial class PaintingLibrary : ResourceLibrary<Texture2D>
 {

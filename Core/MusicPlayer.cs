@@ -5,31 +5,31 @@ using Godot;
 
 namespace Chromonia.Core;
 
-public partial class MusicPlayer : ResourceLibrary<AudioStream>
+public partial class MusicPlayer : AudioStreamPlayer
 {
-    protected override string JsonPath => "res://music/music.json";
-    protected override string FolderPath => "res://music/";
-
-    private AudioStreamPlayer _player = null!;
+    private Library.MusicLibrary? _library;
     public event System.Action<AppError>? OnPlaybackFailed;
 
-    protected override void OnLibraryReady()
+    public override void _Ready()
     {
-        _player = new AudioStreamPlayer();
-        AddChild(_player);
-        _player.Finished += OnFinished;
+        Finished += OnFinished;
     }
-
-    private bool IsPlaying() => _player.Playing;
-
-    public void Stop() => _player.Stop();
 
     public AppError TryPlayMusic() => IsPlaying() ? AppError.Ok() : PlayCurrent();
 
     private void OnFinished()
     {
-        MoveNext();
-        var err = PlayCurrent();
+        AppError err;
+        if (_library == null)
+        {
+            err = new AppError(false, "MusicLibrary is null on music finished");
+            OnPlaybackFailed?.Invoke(err);
+            GD.PrintErr(err.Message);
+            return;
+        }
+
+        _library.MoveNext();
+        err = PlayCurrent();
         if (err.Success) return;
 
         GD.PrintErr(err.Message);
@@ -38,11 +38,20 @@ public partial class MusicPlayer : ResourceLibrary<AudioStream>
 
     private AppError PlayCurrent()
     {
-        var (stream, err) = LoadCurrentResource();
+        _library ??= GetNodeOrNull<Library.MusicLibrary>("/root/MusicLibrary");
+        AppError err;
+        if (_library == null)
+        {
+            err = new AppError(false, "MusicLibrary is null on PlayCurrent");
+            OnPlaybackFailed?.Invoke(err);
+            GD.PrintErr(err.Message);
+            return err;
+        }
+
+        (Stream, err) = _library.LoadCurrentResource();
         if (!err.Success) return err;
 
-        _player.Stream = stream;
-        _player.Play();
+        Play();
         return AppError.Ok();
     }
 }

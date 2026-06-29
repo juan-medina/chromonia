@@ -4,11 +4,12 @@
 using System;
 using System.Collections.Generic;
 using Chromonia.Core;
+using Chromonia.Library;
 using Godot;
 using Arrow = Chromonia.Player.Arrow;
 using BlobCluster = Chromonia.Enemies.BlobCluster;
 using BlobEnemy = Chromonia.Enemies.BlobEnemy;
-using PaintingLibrary = Chromonia.Core.PaintingLibrary;
+using PaintingLibrary = Chromonia.Library.PaintingLibrary;
 using SharedProgressBar = Chromonia.UI.SharedProgressBar;
 
 namespace Chromonia.Game;

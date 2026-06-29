@@ -3,9 +3,10 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
+using Chromonia.Core;
 using Godot;
 
-namespace Chromonia.Core;
+namespace Chromonia.Library;
 
 public record ResourceEntry(
     string File,
