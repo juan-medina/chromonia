@@ -14,6 +14,7 @@ public partial class MusicPlayer : AudioStreamPlayer
     public override void _Ready()
     {
         Finished += OnFinished;
+        Bus = "Music";
     }
 
     public AppError TryPlayMusic() => IsPlaying() ? AppError.Ok() : PlayCurrent();

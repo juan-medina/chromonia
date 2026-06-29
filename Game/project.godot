@@ -11,11 +11,15 @@ config_version=5
 [application]
 
 config/name="Chromonia"
-config/version="0.1.1410"
+config/version="0.1.1517"
 run/main_scene="uid://bujvwvf4xmwo0"
 config/features=PackedStringArray("4.6", "C#", "Forward Plus")
 boot_splash/bg_color=Color(0, 0, 0, 1)
 config/icon="res://icon.svg"
+
+[audio]
+
+buses/default_bus_layout="uid://drsl4y4op4opw"
 
 [autoload]
 

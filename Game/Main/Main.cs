@@ -37,6 +37,10 @@ public partial class Main : Node2D
     [Export] private Line2D _drawingLine = null!;
     [Export] private Panel _dropShadow = null!;
     [Export] private StaticBody2D _borderPhysics = null!;
+    [Export] private AudioStreamPlayer2D _sfxDrawLoop = null!;
+    [Export] private AudioStreamPlayer2D _sfxSafeLoop = null!;
+    [Export] private AudioStreamPlayer2D _sfxErase = null!;
+
     private const int ViewportWidth = 1920;
     private const int ViewportHeight = 1080;
     private const float LabelPadding = 10f;
@@ -110,9 +114,43 @@ public partial class Main : Node2D
     public override void _Process(double delta)
     {
         base._Process(delta);
+
+        Vector2 posBefore = _arrow.Position;
         MoveArrow(delta);
+        Vector2 posAfter = _arrow.Position;
+
         UpdateBlobMergeStates();
         CheckCollisions();
+
+        UpdateAudioState(posBefore != posAfter);
+    }
+
+    private void UpdateAudioState(bool actuallyMoved)
+    {
+        bool shouldPlayDraw = _playerState == PlayerState.Drawing && actuallyMoved;
+        bool shouldPlaySafe = _playerState == PlayerState.OnPerimeter && actuallyMoved;
+
+        if (shouldPlayDraw)
+        {
+            if (!_sfxDrawLoop.Playing)
+                _sfxDrawLoop.Play();
+            _sfxDrawLoop.StreamPaused = false;
+        }
+        else
+        {
+            _sfxDrawLoop.StreamPaused = true;
+        }
+
+        if (shouldPlaySafe)
+        {
+            if (!_sfxSafeLoop.Playing)
+                _sfxSafeLoop.Play();
+            _sfxSafeLoop.StreamPaused = false;
+        }
+        else
+        {
+            _sfxSafeLoop.StreamPaused = true;
+        }
     }
 
     private void UpdateBlobMergeStates()
@@ -707,6 +745,8 @@ public partial class Main : Node2D
             _arrow.Position = _activeLine[0]; // Snap back to where drawing started
             if (_initialDrawDirection != Vector2.Zero)
                 _arrow.SetDirection(_initialDrawDirection); // Restore the arrow's facing direction
+            
+            _sfxErase.Play();
         }
 
         CancelDrawing();

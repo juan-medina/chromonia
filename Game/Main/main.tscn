@@ -7,6 +7,8 @@
 [ext_resource type="Texture2D" uid="uid://da27hv6rxfri3" path="res://Background/canvas.jpg" id="5_qac2q"]
 [ext_resource type="PackedScene" uid="uid://bfytw5fks6f4w" path="res://UI/shared_progress_bar.tscn" id="6_o60nc"]
 [ext_resource type="Shader" uid="uid://dwmn3qansqxuf" path="res://Enemies/blob_merge.gdshader" id="7_blob"]
+[ext_resource type="AudioStream" uid="uid://brxsb307tc6yi" path="res://Main/Sounds/pencil_continue_loop.wav" id="8_f6fdm"]
+[ext_resource type="AudioStream" uid="uid://bjm36kbgx1i62" path="res://Main/Sounds/pencil_eraser.wav" id="9_rj11h"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_lbhrr"]
 shader = ExtResource("2_ib3t1")
@@ -28,7 +30,7 @@ background_mode = 3
 glow_enabled = true
 glow_blend_mode = 0
 
-[node name="Main" type="Node2D" unique_id=1676047802 node_paths=PackedStringArray("_maskViewport", "_maskRoot", "_painting", "_title", "_artist", "_arrow", "_progressBar", "_blobsLayer", "_perimeterLine", "_drawingLine", "_dropShadow", "_borderPhysics")]
+[node name="Main" type="Node2D" unique_id=1676047802 node_paths=PackedStringArray("_maskViewport", "_maskRoot", "_painting", "_title", "_artist", "_arrow", "_progressBar", "_blobsLayer", "_perimeterLine", "_drawingLine", "_dropShadow", "_borderPhysics", "_sfxDrawLoop", "_sfxSafeLoop", "_sfxErase")]
 script = ExtResource("1_liyct")
 _maskViewport = NodePath("SubViewport")
 _maskRoot = NodePath("SubViewport/MaskRoot")
@@ -42,6 +44,9 @@ _perimeterLine = NodePath("Painting/PerimeterLine")
 _drawingLine = NodePath("Painting/DrawingLine")
 _dropShadow = NodePath("Painting/DropShadow")
 _borderPhysics = NodePath("Painting/BorderPhysics")
+_sfxDrawLoop = NodePath("SfxDrawLoop")
+_sfxSafeLoop = NodePath("SfxSafeLoop")
+_sfxErase = NodePath("SfxErase")
 
 [node name="Painting" type="Sprite2D" parent="." unique_id=1516573035]
 material = SubResource("ShaderMaterial_lbhrr")
@@ -114,3 +119,17 @@ stretch_mode = 6
 [node name="SharedProgressBar" parent="." unique_id=1012471350 instance=ExtResource("6_o60nc")]
 offset_top = -505.0
 offset_bottom = -465.0
+
+[node name="SfxDrawLoop" type="AudioStreamPlayer2D" parent="." unique_id=4766154]
+stream = ExtResource("8_f6fdm")
+bus = &"Sfx"
+
+[node name="SfxSafeLoop" type="AudioStreamPlayer2D" parent="." unique_id=468208134]
+stream = ExtResource("8_f6fdm")
+volume_db = -3.0
+pitch_scale = 0.6
+bus = &"Sfx"
+
+[node name="SfxErase" type="AudioStreamPlayer2D" parent="." unique_id=1366338616]
+stream = ExtResource("9_rj11h")
+bus = &"Sfx"
