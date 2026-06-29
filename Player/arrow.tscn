@@ -1,8 +1,0 @@
-[gd_scene format=3 uid="uid://dxhwomcmo5bio"]
-
-[ext_resource type="Texture2D" uid="uid://l4y52l8yg6dq" path="res://sprites/arrow.png" id="1_umosx"]
-[ext_resource type="Script" uid="uid://cci53qihbr6ib" path="res://Player/Arrow.cs" id="2_23jat"]
-
-[node name="Arrow" type="Sprite2D" unique_id=54182347]
-texture = ExtResource("1_umosx")
-script = ExtResource("2_23jat")

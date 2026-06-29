@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://1xbdf8gusxvg"
+path="res://.godot/imported/moonlight_sonata_op_27_No_2 _I_Adagio_sostenuto.ogg-881868496c5b114ddb420e3e01295e15.oggvorbisstr"
+
+[deps]
+
+source_file="res://Music/Songs/moonlight_sonata_op_27_No_2 _I_Adagio_sostenuto.ogg"
+dest_files=["res://.godot/imported/moonlight_sonata_op_27_No_2 _I_Adagio_sostenuto.ogg-881868496c5b114ddb420e3e01295e15.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
