@@ -32,8 +32,11 @@ public partial class Main : Node2D
     [Export] private SharedProgressBar _progressBar = null!;
     private PaintingLibrary _library = null!;
     private MusicPlayer _music = null!;
-    private CanvasGroup _blobsLayer = null!;
-
+    [Export] private CanvasGroup _blobsLayer = null!;
+    [Export] private Line2D _perimeterLine = null!;
+    [Export] private Line2D _drawingLine = null!;
+    [Export] private Panel _dropShadow = null!;
+    [Export] private StaticBody2D _borderPhysics = null!;
     private const int ViewportWidth = 1920;
     private const int ViewportHeight = 1080;
     private const float LabelPadding = 10f;
@@ -55,13 +58,11 @@ public partial class Main : Node2D
     private Vector2[] Perimeter { get; set; } = [];
 
     private readonly List<int> _segmentsOnPoint = new(4); // Pre-allocated list to prevent GC pressure
-    private Line2D _perimeterLine = null!;
     private PlayerState _playerState = PlayerState.OnPerimeter;
     private readonly List<Vector2> _activeLine = [];
     private Vector2 _lastDrawDirection = Vector2.Zero;
     private Vector2 _initialDrawDirection = Vector2.Zero;
     private int _startSegmentIndex = -1;
-    private Line2D _drawingLine = null!;
     private float _totalClaimedArea;
     private float _claimedAreaA;
     private float _claimedAreaB;
@@ -94,11 +95,6 @@ public partial class Main : Node2D
         }
 
         _music.OnPlaybackFailed += HandleMusicError;
-
-        // Set up the shader and canvas for our blobs
-        var blobShader = ResourceLoader.Load<Shader>("res://Enemies/blob_merge.gdshader");
-        _blobsLayer = new CanvasGroup { ZIndex = 2, Material = new ShaderMaterial { Shader = blobShader } };
-        _painting.AddChild(_blobsLayer);
 
         // Load game data using explicit value checking
         var (success, error) = TryLoadCurrentPainting();
@@ -179,11 +175,9 @@ public partial class Main : Node2D
                 if (!(GeometryUtils.DistanceToSegment(localBlobPos, _activeLine[i], _activeLine[i + 1]) <
                       blob.Radius + lineThicknessRadius)) continue;
 
-                if (!_arrow.IsImmune)
-                {
-                    KillPlayer();
-                    return;
-                }
+                if (_arrow.IsImmune) continue;
+                KillPlayer();
+                return;
             }
         }
     }
@@ -276,24 +270,9 @@ public partial class Main : Node2D
         const float offsetY = (TopMargin - BottomMargin) / 2f;
         _painting.Position = new Vector2(0, offsetY);
 
-        // Create a drop shadow using Godot's highly optimized StyleBoxFlat
-        var shadowPanel = _painting.GetNodeOrNull<Panel>("DropShadow");
-        if (shadowPanel == null)
-        {
-            shadowPanel = new Panel { Name = "DropShadow", ShowBehindParent = true };
-            var styleBox = new StyleBoxFlat
-            {
-                BgColor = Colors.Transparent,
-                ShadowColor = new Color(0, 0, 0, 0.7f),
-                ShadowSize = 60,
-                ShadowOffset = new Vector2(0, 30)
-            };
-            shadowPanel.AddThemeStyleboxOverride("panel", styleBox);
-            _painting.AddChild(shadowPanel);
-        }
-
-        shadowPanel.Size = new Vector2(_paintingWidth, _paintingHeight);
-        shadowPanel.Position = new Vector2(-_paintingWidth / 2f, -_paintingHeight / 2f);
+        // Resize and position the Drop Shadow
+        _dropShadow.Size = new Vector2(_paintingWidth, _paintingHeight);
+        _dropShadow.Position = new Vector2(-_paintingWidth / 2f, -_paintingHeight / 2f);
 
         // Position labels in the top-left corner of the image in Sprite2D local space
         var topLeft = new Vector2(-_paintingWidth / 2f + LabelPadding, -_paintingHeight / 2f + LabelPadding);
@@ -364,36 +343,25 @@ public partial class Main : Node2D
 
         Perimeter = [topLeft, topRight, bottomRight, bottomLeft, topLeft];
 
-        _perimeterLine = new Line2D
-        {
-            Points = [topLeft, topRight, bottomRight, bottomLeft],
-            DefaultColor = color,
-            Width = thickness,
-            Closed = true,
-            ZIndex = 1
-        };
-        _painting.AddChild(_perimeterLine);
+        _perimeterLine.Points = [topLeft, topRight, bottomRight, bottomLeft];
+        _perimeterLine.DefaultColor = color;
+        _perimeterLine.Width = thickness;
 
-        _drawingLine = new Line2D
-        {
-            DefaultColor = Colors.HotPink,
-            Width = thickness,
-            Closed = false,
-            ZIndex = 1
-        };
-        _painting.AddChild(_drawingLine);
+        _drawingLine.DefaultColor = Colors.HotPink;
+        _drawingLine.Width = thickness;
 
-        var borderPhysics = new StaticBody2D { Name = "BorderPhysics" };
+        // Clear any old shapes if we reload a painting
+        foreach (var child in _borderPhysics.GetChildren())
+            child.QueueFree();
+
         for (int i = 0; i < Perimeter.Length - 1; i++)
         {
             var shape = new CollisionShape2D
             {
                 Shape = new SegmentShape2D { A = Perimeter[i], B = Perimeter[i + 1] }
             };
-            borderPhysics.AddChild(shape);
+            _borderPhysics.AddChild(shape);
         }
-
-        _painting.AddChild(borderPhysics);
     }
 
     private void SetupArrow()

@@ -356,6 +356,23 @@ Not all C# scripts are attached to specific scenes. The project utilizes a "hybr
 ### 7.3 Shared Resources
 Assets that are shared across multiple features are stored in dedicated resource directories, rather than being nested within specific feature folders.
 
+### 7.4 Nodes: Editor Scenes vs. Pure Code
+To maintain a clean and manageable project, the following rules dictate how Godot Nodes and Scenes should be created:
+
+1. **Use the Godot Editor (`.tscn`) for Static Structure and Visuals**
+   - **Rule:** If a Node (or group of Nodes) is guaranteed to exist for the entire lifecycle of a scene, or requires visual tuning, create it in the Godot Editor and reference it in C# via `[Export]`.
+   - **Examples:** Core UI layers, backgrounds, static physics containers, static line drawing containers, and entities with complex Sprite layers, particles, or animations.
+   - **Why:** This leverages Godot's WYSIWYG capabilities, allowing designers to tweak visuals, Z-indexes, and materials without recompiling C# code. It reduces `_Ready()` boilerplate and ensures the scene tree in the editor matches runtime reality as closely as possible.
+
+2. **Use Pure C# Classes for Highly Dynamic or Procedural Entities**
+   - **Rule:** Use `new Node()` or inherit directly from Godot Node classes in pure C# when the entity is completely procedural, mathematically generated, or its node hierarchy structure is randomized at runtime.
+   - **Examples:** The `BlobCluster` (which randomly creates 4-6 `BlobEnemy` sub-nodes and wires them together with physics joints on the fly), dynamically generated polygons for claimed area physics.
+   - **Why:** Building highly randomized node structures (especially those requiring physics joint `NodePath` assignments between dynamically created siblings) is much cleaner and safer in pure code. 
+
+3. **Use Code Instantiation (`ResourceLoader.Load<PackedScene>`) for Prefabs**
+   - **Rule:** If an entity has a fixed visual/node structure but needs to be spawned dynamically in varying quantities, create it as a `.tscn` and instantiate it via C#.
+   - **Examples:** Bullets, visual effects, standard enemies (if they had specific sprite hierarchies).
+
 ---
 
 ## 8. Out of Scope (v1.0)

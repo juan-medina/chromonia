@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://dxhwomcmo5bio" path="res://Arrow/arrow.tscn" id="4_rj11h"]
 [ext_resource type="Texture2D" uid="uid://da27hv6rxfri3" path="res://Background/canvas.jpg" id="5_qac2q"]
 [ext_resource type="PackedScene" uid="uid://bfytw5fks6f4w" path="res://UI/shared_progress_bar.tscn" id="6_o60nc"]
+[ext_resource type="Shader" uid="uid://dwmn3qansqxuf" path="res://Enemies/blob_merge.gdshader" id="7_blob"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_lbhrr"]
 shader = ExtResource("2_ib3t1")
@@ -13,12 +14,21 @@ shader_parameter/bg_min_brightness = 0.1
 shader_parameter/bg_max_brightness = 0.35
 shader_parameter/reveal_progress = 0.0
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_shadow"]
+bg_color = Color(0, 0, 0, 0)
+shadow_color = Color(0, 0, 0, 0.7)
+shadow_size = 60
+shadow_offset = Vector2(0, 30)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_blob"]
+shader = ExtResource("7_blob")
+
 [sub_resource type="Environment" id="Environment_lbhrr"]
 background_mode = 3
 glow_enabled = true
 glow_blend_mode = 0
 
-[node name="Main" type="Node2D" unique_id=1676047802 node_paths=PackedStringArray("_maskViewport", "_maskRoot", "_painting", "_title", "_artist", "_arrow", "_progressBar")]
+[node name="Main" type="Node2D" unique_id=1676047802 node_paths=PackedStringArray("_maskViewport", "_maskRoot", "_painting", "_title", "_artist", "_arrow", "_progressBar", "_blobsLayer", "_perimeterLine", "_drawingLine", "_dropShadow", "_borderPhysics")]
 script = ExtResource("1_liyct")
 _maskViewport = NodePath("SubViewport")
 _maskRoot = NodePath("SubViewport/MaskRoot")
@@ -27,6 +37,11 @@ _title = NodePath("Painting/Title")
 _artist = NodePath("Painting/Artist")
 _arrow = NodePath("Painting/Arrow")
 _progressBar = NodePath("SharedProgressBar")
+_blobsLayer = NodePath("Painting/BlobsLayer")
+_perimeterLine = NodePath("Painting/PerimeterLine")
+_drawingLine = NodePath("Painting/DrawingLine")
+_dropShadow = NodePath("Painting/DropShadow")
+_borderPhysics = NodePath("Painting/BorderPhysics")
 
 [node name="Painting" type="Sprite2D" parent="." unique_id=1516573035]
 material = SubResource("ShaderMaterial_lbhrr")
@@ -52,6 +67,24 @@ theme_override_font_sizes/font_size = 22
 text = "This is the artist name"
 
 [node name="Arrow" parent="Painting" unique_id=54182347 instance=ExtResource("4_rj11h")]
+
+[node name="DropShadow" type="Panel" parent="Painting" unique_id=26677036]
+show_behind_parent = true
+theme_override_styles/panel = SubResource("StyleBoxFlat_shadow")
+
+[node name="BlobsLayer" type="CanvasGroup" parent="Painting" unique_id=254393958]
+z_index = 2
+material = SubResource("ShaderMaterial_blob")
+
+[node name="PerimeterLine" type="Line2D" parent="Painting" unique_id=1917871821]
+z_index = 1
+closed = true
+
+[node name="DrawingLine" type="Line2D" parent="Painting" unique_id=294222425]
+z_index = 1
+default_color = Color(1, 0.411765, 0.705882, 1)
+
+[node name="BorderPhysics" type="StaticBody2D" parent="Painting" unique_id=455321318]
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=178768570]
 
