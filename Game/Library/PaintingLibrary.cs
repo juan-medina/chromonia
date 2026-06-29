@@ -7,6 +7,6 @@ namespace Chromonia.Library;
 
 public partial class PaintingLibrary : ResourceLibrary<Texture2D>
 {
-    protected override string JsonPath => "res://Paitings/paintings.json";
-    protected override string FolderPath => "res://Paitings/";
+    protected override string JsonPath => "res://Paintings/paintings.json";
+    protected override string FolderPath => "res://Paintings/";
 }
