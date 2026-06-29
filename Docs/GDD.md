@@ -344,18 +344,17 @@ The project follows a **Feature-Based Hybrid** approach, prioritizing cohesion a
 
 ### 7.1 Feature-Based Organization
 Rather than grouping files by their type (e.g., all scripts in one folder, all scenes in another), the project is organized around **features or entities**. 
-When a C# script is specifically tied to a Godot Scene (Node), both the `.tscn` and `.cs` files (along with any exclusively related assets) reside together in the same feature folder.
-For example, the Player scene and the Player script live together in a `Player` directory.
+When a C# script is specifically tied to a Godot Scene (Node), both the `.tscn` and `.cs` files (along with any exclusively related assets) reside together in the same feature folder. Check the file tree directly for the current structure.
 
 **Benefits:**
 - **High Cohesion:** Everything related to a specific feature is in one place, reducing the need to jump between distant directories.
 - **Scalability:** As the project grows, feature folders prevent massive, unmanageable lists of scripts or scenes.
 
 ### 7.2 Hybrid Core Code
-Not all C# scripts are attached to specific scenes. The project utilizes a "hybrid" aspect by keeping pure C# logic (such as data models, interfaces, services, and singletons) in dedicated core directories (e.g., `Core` or `Systems`). This separates underlying game logic and data management from scene-specific behaviours.
+Not all C# scripts are attached to specific scenes. The project utilizes a "hybrid" aspect by keeping pure C# logic (such as data models, interfaces, services, and singletons) in dedicated core directories. This separates underlying game logic and data management from scene-specific behaviours.
 
 ### 7.3 Shared Resources
-Assets that are shared across multiple features (such as paintings, common UI textures, audio files, and shaders) are stored in dedicated resource directories, rather than being nested within specific feature folders.
+Assets that are shared across multiple features are stored in dedicated resource directories, rather than being nested within specific feature folders.
 
 ---
 
