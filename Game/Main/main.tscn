@@ -9,6 +9,12 @@
 [ext_resource type="Shader" uid="uid://dwmn3qansqxuf" path="res://Enemies/blob_merge.gdshader" id="7_blob"]
 [ext_resource type="AudioStream" uid="uid://brxsb307tc6yi" path="res://Main/Sounds/pencil_continue_loop.wav" id="8_f6fdm"]
 [ext_resource type="AudioStream" uid="uid://bjm36kbgx1i62" path="res://Main/Sounds/pencil_eraser.wav" id="9_rj11h"]
+[ext_resource type="AudioStream" uid="uid://bb2su3baa5yuw" path="res://Main/Sounds/snap.wav" id="10_qac2q"]
+[ext_resource type="AudioStream" uid="uid://7ax41q1vq5ej" path="res://Main/Sounds/water_drop_1.wav" id="11_o60nc"]
+[ext_resource type="AudioStream" uid="uid://b2apl20lng3uc" path="res://Main/Sounds/water_drop_2.wav" id="12_uhr2j"]
+[ext_resource type="AudioStream" uid="uid://bm0d8k313412l" path="res://Main/Sounds/water_drop_3.wav" id="13_l5bfp"]
+[ext_resource type="AudioStream" uid="uid://1p0dls4yx42x" path="res://Main/Sounds/water_drop_4.wav" id="14_guo5i"]
+[ext_resource type="AudioStream" uid="uid://wcjppkue661g" path="res://Main/Sounds/water_drop_5.wav" id="15_0gq1e"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_lbhrr"]
 shader = ExtResource("2_ib3t1")
@@ -30,7 +36,15 @@ background_mode = 3
 glow_enabled = true
 glow_blend_mode = 0
 
-[node name="Main" type="Node2D" unique_id=1676047802 node_paths=PackedStringArray("_maskViewport", "_maskRoot", "_painting", "_title", "_artist", "_arrow", "_progressBar", "_blobsLayer", "_perimeterLine", "_drawingLine", "_dropShadow", "_borderPhysics", "_sfxDrawLoop", "_sfxSafeLoop", "_sfxErase")]
+[sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_wbdht"]
+streams_count = 5
+stream_0/stream = ExtResource("11_o60nc")
+stream_1/stream = ExtResource("12_uhr2j")
+stream_2/stream = ExtResource("13_l5bfp")
+stream_3/stream = ExtResource("14_guo5i")
+stream_4/stream = ExtResource("15_0gq1e")
+
+[node name="Main" type="Node2D" unique_id=1676047802 node_paths=PackedStringArray("_maskViewport", "_maskRoot", "_painting", "_title", "_artist", "_arrow", "_progressBar", "_blobsLayer", "_perimeterLine", "_drawingLine", "_dropShadow", "_borderPhysics", "_sfxDrawLoop", "_sfxSafeLoop", "_sfxErase", "_sfxSnap", "_sfxWaterDrop")]
 script = ExtResource("1_liyct")
 _maskViewport = NodePath("SubViewport")
 _maskRoot = NodePath("SubViewport/MaskRoot")
@@ -47,6 +61,8 @@ _borderPhysics = NodePath("Painting/BorderPhysics")
 _sfxDrawLoop = NodePath("SfxDrawLoop")
 _sfxSafeLoop = NodePath("SfxSafeLoop")
 _sfxErase = NodePath("SfxErase")
+_sfxSnap = NodePath("SfxSnap")
+_sfxWaterDrop = NodePath("SfxWaterDrop")
 
 [node name="Painting" type="Sprite2D" parent="." unique_id=1516573035]
 material = SubResource("ShaderMaterial_lbhrr")
@@ -132,4 +148,12 @@ bus = &"Sfx"
 
 [node name="SfxErase" type="AudioStreamPlayer2D" parent="." unique_id=1366338616]
 stream = ExtResource("9_rj11h")
+bus = &"Sfx"
+
+[node name="SfxSnap" type="AudioStreamPlayer2D" parent="." unique_id=2121598107]
+stream = ExtResource("10_qac2q")
+bus = &"Sfx"
+
+[node name="SfxWaterDrop" type="AudioStreamPlayer2D" parent="." unique_id=570315960]
+stream = SubResource("AudioStreamRandomizer_wbdht")
 bus = &"Sfx"

@@ -40,6 +40,8 @@ public partial class Main : Node2D
     [Export] private AudioStreamPlayer2D _sfxDrawLoop = null!;
     [Export] private AudioStreamPlayer2D _sfxSafeLoop = null!;
     [Export] private AudioStreamPlayer2D _sfxErase = null!;
+    [Export] private AudioStreamPlayer2D _sfxSnap = null!;
+    [Export] private AudioStreamPlayer2D _sfxWaterDrop = null!;
 
     private const int ViewportWidth = 1920;
     private const int ViewportHeight = 1080;
@@ -614,6 +616,10 @@ public partial class Main : Node2D
         }
 
         DestroyBlobs(trappedBlobs);
+        if (trappedBlobs.Count > 0)
+        {
+            _sfxWaterDrop.Play();
+        }
 
         ApplyNewPerimeter(newPerimeter);
         CreateClaimVisuals(claimedPoly);
@@ -745,8 +751,12 @@ public partial class Main : Node2D
             _arrow.Position = _activeLine[0]; // Snap back to where drawing started
             if (_initialDrawDirection != Vector2.Zero)
                 _arrow.SetDirection(_initialDrawDirection); // Restore the arrow's facing direction
-            
+
             _sfxErase.Play();
+        }
+        else
+        {
+            _sfxSnap.Play();
         }
 
         CancelDrawing();

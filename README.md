@@ -10,7 +10,8 @@ TBC
 
 pencil_continue_loop.wav by sseletskyy -- https://freesound.org/s/180441/ -- License: Creative Commons 0
 Pencil Eraser Erasing by deleted_user_7146007 -- https://freesound.org/s/383861/ -- License: Creative Commons 0
-
+Stick Snap 1.wav by worthahep88 -- https://freesound.org/s/319231/ -- License: Creative Commons 0
+Water drop by Elfman-Rox -- https://freesound.org/s/156907/ -- License: Creative Commons 0
 ---
 
 **License**
