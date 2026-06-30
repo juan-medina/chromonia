@@ -35,6 +35,7 @@ public partial class Main : Node2D
     [Export] private AudioStreamPlayer2D _sfxErase = null!;
     [Export] private AudioStreamPlayer2D _sfxSnap = null!;
     [Export] private AudioStreamPlayer2D _sfxWaterDrop = null!;
+    [Export] private AudioStreamPlayer2D _sfxPaintStroke = null!;
 
     private const int ViewportWidth = 1920;
     private const int ViewportHeight = 1080;
@@ -132,6 +133,8 @@ public partial class Main : Node2D
         {
             _sfxWaterDrop.Play();
         }
+
+        _sfxPaintStroke.Play();
 
         _claimSystem.ApplyNewPerimeter(newPerimeter, out var updatedPerimeter);
         Perimeter = updatedPerimeter;

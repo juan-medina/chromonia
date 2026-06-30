@@ -15,6 +15,7 @@
 [ext_resource type="AudioStream" uid="uid://bm0d8k313412l" path="res://Main/Sounds/water_drop_3.wav" id="13_l5bfp"]
 [ext_resource type="AudioStream" uid="uid://1p0dls4yx42x" path="res://Main/Sounds/water_drop_4.wav" id="14_guo5i"]
 [ext_resource type="AudioStream" uid="uid://wcjppkue661g" path="res://Main/Sounds/water_drop_5.wav" id="15_0gq1e"]
+[ext_resource type="AudioStream" uid="uid://c6eeadg1almjq" path="res://Main/Sounds/paint_stroke.wav" id="16_l5bfp"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_lbhrr"]
 shader = ExtResource("2_ib3t1")
@@ -44,7 +45,7 @@ stream_2/stream = ExtResource("13_l5bfp")
 stream_3/stream = ExtResource("14_guo5i")
 stream_4/stream = ExtResource("15_0gq1e")
 
-[node name="Main" type="Node2D" unique_id=1676047802 node_paths=PackedStringArray("_maskViewport", "_maskRoot", "_painting", "_playfield", "_title", "_artist", "_arrow", "_progressBar", "_blobsLayer", "_perimeterLine", "_drawingLine", "_dropShadow", "_borderPhysics", "_sfxDrawLoop", "_sfxSafeLoop", "_sfxErase", "_sfxSnap", "_sfxWaterDrop")]
+[node name="Main" type="Node2D" unique_id=1676047802 node_paths=PackedStringArray("_maskViewport", "_maskRoot", "_painting", "_playfield", "_title", "_artist", "_arrow", "_progressBar", "_blobsLayer", "_perimeterLine", "_drawingLine", "_dropShadow", "_borderPhysics", "_sfxDrawLoop", "_sfxSafeLoop", "_sfxErase", "_sfxSnap", "_sfxWaterDrop", "_sfxPaintStroke")]
 script = ExtResource("1_liyct")
 _maskViewport = NodePath("SubViewport")
 _maskRoot = NodePath("SubViewport/MaskRoot")
@@ -64,6 +65,7 @@ _sfxSafeLoop = NodePath("SfxSafeLoop")
 _sfxErase = NodePath("SfxErase")
 _sfxSnap = NodePath("SfxSnap")
 _sfxWaterDrop = NodePath("SfxWaterDrop")
+_sfxPaintStroke = NodePath("SfxPaintStroke")
 
 [node name="Painting" type="Sprite2D" parent="." unique_id=1516573035]
 material = SubResource("ShaderMaterial_lbhrr")
@@ -159,4 +161,8 @@ bus = &"Sfx"
 
 [node name="SfxWaterDrop" type="AudioStreamPlayer2D" parent="." unique_id=570315960]
 stream = SubResource("AudioStreamRandomizer_wbdht")
+bus = &"Sfx"
+
+[node name="SfxPaintStroke" type="AudioStreamPlayer2D" parent="." unique_id=1440768441]
+stream = ExtResource("16_l5bfp")
 bus = &"Sfx"
