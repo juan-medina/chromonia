@@ -63,9 +63,17 @@ public partial class Arrow : Sprite2D
         // Restore base color but start blinking to indicate remaining 2s of immunity
         SelfModulate = CurrentEnergy.Marker * PulsateMinGlow;
 
+        StartImmunity(2.0f);
+    }
+
+    public void StartImmunity(float duration)
+    {
+        IsImmune = true;
         var tween = CreateTween();
-        // 8 loops of 0.25s = 2.0 seconds total blinking
-        tween.SetLoops(8);
+        
+        int loops = Mathf.Max(1, Mathf.RoundToInt(duration / 0.25f));
+        tween.SetLoops(loops);
+        
         tween.TweenProperty(this, "self_modulate:a", 0.1f, 0.125f);
         tween.TweenProperty(this, "self_modulate:a", 1.0f, 0.125f);
         tween.Finished += () => IsImmune = false;

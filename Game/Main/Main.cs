@@ -58,6 +58,7 @@ public partial class Main : Node2D
     private const float MinBlobSpeed = 50f;
     private const float MaxBlobSpeed = 350f;
     private const int ClusterCount = 8;
+    private const float StartImmunityDuration = 3.0f;
 
     private int _paintingWidth = ViewportWidth;
     private int _paintingHeight = ViewportHeight;
@@ -409,6 +410,7 @@ public partial class Main : Node2D
         // Start exactly on the bottom segment at x=0, since we have a center camera this is screen center
         _arrow.SetPosition(new Vector2(0, _paintingHeight / 2f));
         _arrow.ZIndex = 2;
+        _arrow.StartImmunity(StartImmunityDuration);
     }
 
     private void MoveArrow(double delta)
