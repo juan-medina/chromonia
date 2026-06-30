@@ -3,10 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using Chromonia.Core;
 using Chromonia.Library;
 using Godot;
-using BlobCluster = Chromonia.Enemies.BlobCluster;
 using BlobEnemy = Chromonia.Enemies.BlobEnemy;
 using MusicPlayer = Chromonia.Music.MusicPlayer;
 using PaintingLibrary = Chromonia.Library.PaintingLibrary;
@@ -14,24 +12,19 @@ using SharedProgressBar = Chromonia.UI.SharedProgressBar;
 
 namespace Chromonia.Main;
 
-public enum PlayerState
-{
-    OnPerimeter,
-    Drawing,
-    Won
-}
-
 public partial class Main : Node2D
 {
+    private PaintingLibrary _library = null!;
+    private MusicPlayer _music = null!;
+
     [Export] private SubViewport _maskViewport = null!;
     [Export] private Node2D _maskRoot = null!;
     [Export] private Sprite2D _painting = null!;
+    [Export] private Node2D _playfield = null!;
     [Export] private Label _title = null!;
     [Export] private Label _artist = null!;
     [Export] private Arrow.Arrow _arrow = null!;
     [Export] private SharedProgressBar _progressBar = null!;
-    private PaintingLibrary _library = null!;
-    private MusicPlayer _music = null!;
     [Export] private CanvasGroup _blobsLayer = null!;
     [Export] private Line2D _perimeterLine = null!;
     [Export] private Line2D _drawingLine = null!;
@@ -62,24 +55,23 @@ public partial class Main : Node2D
 
     private int _paintingWidth = ViewportWidth;
     private int _paintingHeight = ViewportHeight;
+    private float _scaledWidth;
+    private float _scaledHeight;
     private Vector2[] Perimeter { get; set; } = [];
 
-    private readonly List<int> _segmentsOnPoint = new(4); // Pre-allocated list to prevent GC pressure
-    private PlayerState _playerState = PlayerState.OnPerimeter;
-    private readonly List<Vector2> _activeLine = [];
-    private Vector2 _lastDrawDirection = Vector2.Zero;
-    private Vector2 _initialDrawDirection = Vector2.Zero;
-    private int _startSegmentIndex = -1;
     private float _totalClaimedArea;
     private float _claimedAreaA;
     private float _claimedAreaB;
     private float _totalArea;
-    private readonly List<BlobEnemy> _activeBlobs = [];
+
+    private PlayerController _playerController = null!;
+    private CollisionSystem _collisionSystem = null!;
+    private ClaimSystem _claimSystem = null!;
+
+    private readonly List<BlobEnemy> _trappedBlobsBuffer = new(32);
 
     public override void _Ready()
     {
-        // Resolve Autoloads explicitly
-
         _library = GetNodeOrNull<PaintingLibrary>("/root/PaintingLibrary");
         if (_library is null)
         {
@@ -101,9 +93,15 @@ public partial class Main : Node2D
             return;
         }
 
-        _music.OnPlaybackFailed += HandleMusicError;
+        _music.OnPlaybackFailed += err => HandleFatalError(err.Message);
 
-        // Load game data using explicit value checking
+        _playerController = new PlayerController(_arrow, _drawingLine);
+        _playerController.OnClaimTriggered += HandleClaimTriggered;
+
+        _collisionSystem = new CollisionSystem(_playfield, _arrow);
+
+        _claimSystem = new ClaimSystem(_playfield, _maskRoot, _perimeterLine, _arrow);
+
         var (success, error) = TryLoadCurrentPainting();
         if (!success)
         {
@@ -114,113 +112,86 @@ public partial class Main : Node2D
         SetupArrow();
     }
 
+    private void HandleClaimTriggered(int hitSegmentIndex)
+    {
+        var activeArray = _playerController.ActiveLine.ToArray();
+
+        var (claimedPoly, newPerimeter, claimedArea) = _claimSystem.DetermineClaimedPolygon(
+            Perimeter, _playerController.StartSegmentIndex, hitSegmentIndex, activeArray);
+
+        _collisionSystem.GetTrappedBlobs(claimedPoly, _trappedBlobsBuffer);
+
+        if (_collisionSystem.IsLethalTrap(_trappedBlobsBuffer))
+        {
+            KillPlayer();
+            return;
+        }
+
+        DestroyBlobs(_trappedBlobsBuffer);
+        if (_trappedBlobsBuffer.Count > 0)
+        {
+            _sfxWaterDrop.Play();
+        }
+
+        _claimSystem.ApplyNewPerimeter(newPerimeter, out var updatedPerimeter);
+        Perimeter = updatedPerimeter;
+
+        _claimSystem.CreateClaimVisuals(claimedPoly, GetTree());
+        _claimSystem.CreateClaimPhysics(claimedPoly);
+
+        _playerController.CancelDrawing();
+        UpdateProgressAndCheckWin(claimedArea);
+    }
+
+    private static void DestroyBlobs(List<BlobEnemy> blobsToDestroy)
+    {
+        for (int i = 0; i < blobsToDestroy.Count; i++)
+        {
+            var blob = blobsToDestroy[i];
+            if (blob.GetParent() is Enemies.BlobCluster cluster)
+                cluster.Dissolve();
+            else
+                blob.Dissolve();
+        }
+    }
+
     public override void _Process(double delta)
     {
         base._Process(delta);
 
         Vector2 posBefore = _arrow.Position;
-        MoveArrow(delta);
+
+        _playerController.MoveArrow(delta, ArrowSpeed, Perimeter);
+
         Vector2 posAfter = _arrow.Position;
 
-        UpdateBlobMergeStates();
-        CheckCollisions();
+        _collisionSystem.UpdateBlobMergeStates();
+
+        if (_collisionSystem.CheckCollisions(_playerController.State, _playerController.ActiveLine)) KillPlayer();
 
         UpdateAudioState(posBefore != posAfter);
     }
 
     private void UpdateAudioState(bool actuallyMoved)
     {
-        bool shouldPlayDraw = _playerState == PlayerState.Drawing && actuallyMoved;
-        bool shouldPlaySafe = _playerState == PlayerState.OnPerimeter && actuallyMoved;
+        bool shouldPlayDraw = _playerController.State == PlayerState.Drawing && actuallyMoved;
+        bool shouldPlaySafe = _playerController.State == PlayerState.OnPerimeter && actuallyMoved;
 
         if (shouldPlayDraw)
         {
-            if (!_sfxDrawLoop.Playing)
-                _sfxDrawLoop.Play();
+            if (!_sfxDrawLoop.Playing) _sfxDrawLoop.Play();
             _sfxDrawLoop.StreamPaused = false;
         }
         else
-        {
             _sfxDrawLoop.StreamPaused = true;
-        }
 
         if (shouldPlaySafe)
         {
-            if (!_sfxSafeLoop.Playing)
-                _sfxSafeLoop.Play();
+            if (!_sfxSafeLoop.Playing) _sfxSafeLoop.Play();
             _sfxSafeLoop.StreamPaused = false;
         }
         else
-        {
             _sfxSafeLoop.StreamPaused = true;
-        }
-    }
-
-    private void UpdateBlobMergeStates()
-    {
-        // Clean up dead blobs without allocations
-        for (int i = _activeBlobs.Count - 1; i >= 0; i--)
-            if (_activeBlobs[i].IsDissolving || !GodotObject.IsInstanceValid(_activeBlobs[i]))
-                _activeBlobs.RemoveAt(i);
-
-        // Reset to base tint
-        foreach (var blob in _activeBlobs) blob.BlobEnergy.CurrentTint = blob.BaseTint;
-
-        // Check for merges between different base colors
-        for (int i = 0; i < _activeBlobs.Count; i++)
-        {
-            for (int j = i + 1; j < _activeBlobs.Count; j++)
-            {
-                if (_activeBlobs[i].BaseTint == _activeBlobs[j].BaseTint) continue;
-
-                // They merge if they are physically touching or extremely close
-                float dynamicMergeDistance = _activeBlobs[i].Radius + _activeBlobs[j].Radius + 15f;
-                if (!(_activeBlobs[i].GlobalPosition.DistanceTo(_activeBlobs[j].GlobalPosition) <
-                      dynamicMergeDistance)) continue;
-
-                _activeBlobs[i].BlobEnergy.CurrentTint = Energy.Tint.Combined;
-                _activeBlobs[j].BlobEnergy.CurrentTint = Energy.Tint.Combined;
-            }
-        }
-    }
-
-    private void CheckCollisions()
-    {
-        if (_arrow.IsImmune || _playerState == PlayerState.Won) return;
-
-        const float arrowRadius = 15f; // Estimated hitbox radius for Arrow
-        const float lineThicknessRadius = 4f; // _drawingLine thickness is 8, so radius is 4
-
-        foreach (var blob in _activeBlobs)
-        {
-            // Polarity rule: Same color is SAFE. Opposite color (or Combined) is LETHAL.
-            if (blob.BlobEnergy.CurrentTint == _arrow.CurrentEnergy.CurrentTint &&
-                blob.BlobEnergy.CurrentTint != Energy.Tint.Combined) continue;
-
-            // Check collision with Player
-            if (blob.GlobalPosition.DistanceTo(_arrow.GlobalPosition) < blob.Radius + arrowRadius)
-            {
-                if (!_arrow.IsImmune)
-                {
-                    KillPlayer();
-                    return;
-                }
-            }
-
-            // Check collision with the actively drawn line
-            if (_playerState != PlayerState.Drawing || _activeLine.Count < 2) continue;
-
-            Vector2 localBlobPos = _painting.ToLocal(blob.GlobalPosition);
-            for (int i = 0; i < _activeLine.Count - 1; i++)
-            {
-                if (!(GeometryUtils.DistanceToSegment(localBlobPos, _activeLine[i], _activeLine[i + 1]) <
-                      blob.Radius + lineThicknessRadius)) continue;
-
-                if (_arrow.IsImmune) continue;
-                KillPlayer();
-                return;
-            }
-        }
     }
 
     public override void _UnhandledInput(InputEvent @event)
@@ -229,50 +200,37 @@ public partial class Main : Node2D
         {
             _music.Stop();
             GetTree().Quit();
+            return;
         }
 
         if (!@event.IsActionPressed("ui_accept")) return;
 
-        if (_playerState == PlayerState.Won)
+        if (_playerController.State == PlayerState.Won)
         {
             _library.MoveNext();
             GetTree().ReloadCurrentScene();
+            return;
         }
 
-        _arrow.Cycle();
-
-        if (_playerState == PlayerState.Drawing) _drawingLine.DefaultColor = _arrow.CurrentEnergy.Line;
+        _playerController.CycleColor();
     }
-
 
     private void Reveal()
     {
-        _playerState = PlayerState.Won;
+        _playerController.State = PlayerState.Won;
+        _collisionSystem.DestroyAllBlobs();
 
-        // Kill all remaining blobs and their clusters
-        foreach (var blob in _activeBlobs)
-        {
-            // If it belongs to a cluster, free the whole cluster. Otherwise free just the blob.
-            if (blob.GetParent() is BlobCluster cluster)
-                cluster.Dissolve();
-            else
-                blob.Dissolve();
-        }
-
-        // Run all these animations simultaneously
         var tween = CreateTween();
         tween.SetParallel();
         tween.TweenProperty(_painting.Material, "shader_parameter/reveal_progress", 1.0f, RevealTime);
         tween.TweenProperty(_progressBar, "modulate:a", 0.0f, RevealTime / 3);
 
-        // Calculate new scale and position as if TopMargin was 35f
         const float newAvailableHeight = ViewportHeight - (35f + BottomMargin);
         float newScale = Math.Min(AvailableWidth / _paintingWidth, newAvailableHeight / _paintingHeight);
 
         tween.TweenProperty(_painting, "scale", new Vector2(newScale, newScale), RevealTime);
-        tween.TweenProperty(_painting, "position", Vector2.Zero, RevealTime); // (35 - 35) / 2 = 0
+        tween.TweenProperty(_painting, "position", Vector2.Zero, RevealTime);
 
-        // Wait for animations to finish before removing material
         tween.SetParallel(false);
         tween.TweenCallback(Callable.From(() => _painting.Material = null));
 
@@ -283,7 +241,6 @@ public partial class Main : Node2D
         _drawingLine.Visible = false;
     }
 
-
     private (bool Success, string Error) TryLoadCurrentPainting()
     {
         var (painting, err) = _library.Current();
@@ -293,30 +250,53 @@ public partial class Main : Node2D
     private (bool Success, string Error) TryLoadPainting(ResourceEntry painting)
     {
         var (texture, texErr) = _library.LoadCurrentResource();
-        if (!texErr.Success)
-            return (false, texErr.Message);
+        if (!texErr.Success) return (false, texErr.Message);
 
         _paintingWidth = texture!.GetWidth();
         _paintingHeight = texture.GetHeight();
-        _totalArea = _paintingWidth * _paintingHeight;
 
         if (_paintingWidth <= 0 || _paintingHeight <= 0)
             return (false, $"Invalid painting dimensions: {_paintingWidth}x{_paintingHeight}");
 
         _painting.Texture = texture;
 
-        float scale = Math.Min(AvailableWidth / _paintingWidth, AvailableHeight / _paintingHeight);
-        _painting.Scale = new Vector2(scale, scale);
+        CalculateDimensionsAndScale();
+        PositionElements();
+        SetupLabels(painting);
+        SetupShaderMask();
 
+        CreateBorder(_scaledWidth, _scaledHeight, BorderColor, BorderThickness);
+        SpawnEnemies(_scaledWidth, _scaledHeight);
+        RegisterSpawnedBlobs();
+
+        return (true, string.Empty);
+    }
+
+    private void CalculateDimensionsAndScale()
+    {
+        float scale = Math.Min(AvailableWidth / _paintingWidth, AvailableHeight / _paintingHeight);
+        _scaledWidth = _paintingWidth * scale;
+        _scaledHeight = _paintingHeight * scale;
+        _totalArea = _scaledWidth * _scaledHeight;
+
+        _claimSystem.UpdateDimensions(_scaledWidth, _scaledHeight);
+        _painting.Scale = new Vector2(scale, scale);
+    }
+
+    private void PositionElements()
+    {
         const float offsetY = (TopMargin - BottomMargin) / 2f;
         _painting.Position = new Vector2(0, offsetY);
+        _playfield.Position = new Vector2(0, offsetY);
 
-        // Resize and position the Drop Shadow
         _dropShadow.Size = new Vector2(_paintingWidth, _paintingHeight);
         _dropShadow.Position = new Vector2(-_paintingWidth / 2f, -_paintingHeight / 2f);
+    }
 
-        // Position labels in the top-left corner of the image in Sprite2D local space
+    private void SetupLabels(ResourceEntry painting)
+    {
         var topLeft = new Vector2(-_paintingWidth / 2f + LabelPadding, -_paintingHeight / 2f + LabelPadding);
+
         _title.Position = topLeft;
         _title.Text = $"{painting.Name} ({painting.Metadata.GetValueOrDefault("years", "")})";
         _title.AddThemeColorOverride("font_color", new Color(1.5F, 1.5F, 1.5F));
@@ -324,9 +304,11 @@ public partial class Main : Node2D
         _artist.Position = topLeft + new Vector2(0, _title.Size.Y > 0 ? _title.Size.Y : 24f);
         _artist.Text = $"{painting.Author} ({painting.Metadata.GetValueOrDefault("nationality", "")})";
         _artist.AddThemeColorOverride("font_color", new Color(1.5F, 1.5F, 1.5F));
+    }
 
-        // Size the viewport after setting scale/position
-        _maskViewport.Size = new Vector2I(_paintingWidth, _paintingHeight);
+    private void SetupShaderMask()
+    {
+        _maskViewport.Size = new Vector2I((int)_scaledWidth, (int)_scaledHeight);
 
         if (_painting.Material is ShaderMaterial material)
         {
@@ -336,20 +318,21 @@ public partial class Main : Node2D
         else
             HandleFatalError(
                 "Painting material is not a ShaderMaterial. Please ensure the painting uses the correct shader.");
+    }
 
-        // Create a border with a given color and thickness
-        CreateBorder(_paintingWidth, _paintingHeight, BorderColor, BorderThickness);
-
-        SpawnEnemies(_paintingWidth, _paintingHeight);
-
+    private void RegisterSpawnedBlobs()
+    {
         var nodes = GetTree().GetNodesInGroup("Blobs");
-        foreach (var node in nodes)
+        var blobs = new List<BlobEnemy>();
+        for (int i = 0; i < nodes.Count; i++)
         {
-            if (node is BlobEnemy blob)
-                _activeBlobs.Add(blob);
+            if (nodes[i] is BlobEnemy blob)
+            {
+                blobs.Add(blob);
+            }
         }
 
-        return (true, string.Empty);
+        _collisionSystem.AddBlobs(blobs);
     }
 
     private void SpawnEnemies(float width, float height)
@@ -360,9 +343,8 @@ public partial class Main : Node2D
         {
             var tint = (i % 2 == 0) ? Energy.Tint.A : Energy.Tint.B;
             float speed = (float)GD.RandRange(MinBlobSpeed, MaxBlobSpeed);
-            var cluster = new BlobCluster(tint, speed);
+            var cluster = new Enemies.BlobCluster(tint, speed);
 
-            // Random start position within bounds (leaving some margin for the radius)
             float px = (float)GD.RandRange(bounds.Position.X + 70f, bounds.End.X - 70f);
             float py = (float)GD.RandRange(bounds.Position.Y + 70f, bounds.End.Y - 70f);
             cluster.Position = new Vector2(px, py);
@@ -391,9 +373,7 @@ public partial class Main : Node2D
         _drawingLine.DefaultColor = Colors.HotPink;
         _drawingLine.Width = thickness;
 
-        // Clear any old shapes if we reload a painting
-        foreach (var child in _borderPhysics.GetChildren())
-            child.QueueFree();
+        foreach (var child in _borderPhysics.GetChildren()) child.QueueFree();
 
         for (int i = 0; i < Perimeter.Length - 1; i++)
         {
@@ -407,320 +387,9 @@ public partial class Main : Node2D
 
     private void SetupArrow()
     {
-        // Start exactly on the bottom segment at x=0, since we have a center camera this is screen center
-        _arrow.SetPosition(new Vector2(0, _paintingHeight / 2f));
+        _arrow.SetPosition(new Vector2(0, _scaledHeight / 2f));
         _arrow.ZIndex = 2;
         _arrow.StartImmunity(StartImmunityDuration);
-    }
-
-    private void MoveArrow(double delta)
-    {
-        if (_playerState == PlayerState.Won) return;
-        if (_arrow.IsStunned) return; // Completely freeze the player while stunned
-
-        var speed = ArrowSpeed * (float)delta;
-        var vx = Input.GetAxis("ui_left", "ui_right");
-        var vy = Input.GetAxis("ui_up", "ui_down");
-
-        if (vx == 0 && vy == 0) return;
-
-        if (Math.Abs(vx) >= Math.Abs(vy)) vy = 0;
-        else vx = 0;
-
-        var velocity = new Vector2(vx, vy) * speed;
-        var inputDir = new Vector2(vx, vy);
-
-        if (_playerState == PlayerState.Drawing)
-            if (inputDir != -_lastDrawDirection && IsOnSelfLine())
-                return;
-
-        _arrow.SetDirection(inputDir);
-
-        switch (_playerState)
-        {
-            case PlayerState.OnPerimeter:
-                ProcessOnPerimeter(velocity, inputDir, vy);
-                break;
-            case PlayerState.Drawing:
-                ProcessDrawing(velocity, inputDir);
-                break;
-            case PlayerState.Won:
-                // Do nothing, there is no visible arrow
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
-    }
-
-    private bool IsOnSelfLine()
-    {
-        if (_activeLine.Count < 4) return false;
-        for (int i = 0; i < _activeLine.Count - 3; i++)
-            if (GeometryUtils.DistanceToSegment(_arrow.Position, _activeLine[i], _activeLine[i + 1]) < 0.05f)
-                return true;
-
-        return false;
-    }
-
-    private void ProcessOnPerimeter(Vector2 velocity, Vector2 inputDir, float vy)
-    {
-        Vector2 current = _arrow.Position;
-        UpdateSegmentsOnPoint(current);
-        bool movedOnPerimeter = false;
-
-        for (int i = 0; i < _segmentsOnPoint.Count; i++)
-        {
-            int idx = _segmentsOnPoint[i];
-            Vector2 a = Perimeter[idx];
-            Vector2 b = Perimeter[idx + 1];
-            Vector2 dir = (b - a).Normalized();
-
-            bool isWallHorizontal = dir.Y == 0;
-            bool isInputHorizontal = vy == 0;
-
-            if (isWallHorizontal != isInputHorizontal) continue;
-
-            Vector2 target = GeometryUtils.ClampPointToSegment(current + velocity, a, b);
-
-            if (target.IsEqualApprox(current)) continue;
-
-            _arrow.Position = target;
-            movedOnPerimeter = true;
-            break;
-        }
-
-        if (movedOnPerimeter) return;
-
-        Vector2 testPoint = current + inputDir * 1.0f;
-        if (!Geometry2D.IsPointInPolygon(testPoint, Perimeter)) return;
-
-        _playerState = PlayerState.Drawing;
-        _lastDrawDirection = inputDir;
-        _initialDrawDirection = inputDir;
-        _startSegmentIndex = _segmentsOnPoint[0];
-
-        _drawingLine.DefaultColor = _arrow.CurrentEnergy.Line;
-
-        _activeLine.Clear();
-        _activeLine.Add(current);
-        _activeLine.Add(current);
-
-        _drawingLine.ClearPoints();
-        _drawingLine.AddPoint(current);
-        _drawingLine.AddPoint(current);
-    }
-
-    private void ProcessDrawing(Vector2 velocity, Vector2 inputDir)
-    {
-        bool backtracking = inputDir == -_lastDrawDirection;
-
-        if (backtracking)
-            HandleBacktracking(velocity);
-        else
-            HandleAdvancing(velocity, inputDir);
-
-        if (_playerState != PlayerState.Drawing) return;
-
-        _activeLine[^1] = _arrow.Position;
-        _drawingLine.SetPointPosition(_drawingLine.GetPointCount() - 1, _arrow.Position);
-    }
-
-    private void HandleBacktracking(Vector2 velocity)
-    {
-        _arrow.Position += velocity;
-        Vector2 corner = _activeLine[^2];
-
-        if (!((_arrow.Position - corner).Dot(_lastDrawDirection) <= 0)) return;
-
-        _arrow.Position = corner;
-        _activeLine.RemoveAt(_activeLine.Count - 1);
-        _drawingLine.RemovePoint(_drawingLine.GetPointCount() - 1);
-
-        if (_activeLine.Count == 1)
-            CancelDrawing();
-        else
-        {
-            Vector2 prevCorner = _activeLine[^2];
-            _lastDrawDirection = (corner - prevCorner).Normalized();
-        }
-    }
-
-    private void HandleAdvancing(Vector2 velocity, Vector2 inputDir)
-    {
-        Vector2 moveA = _arrow.Position;
-        Vector2 moveB = _arrow.Position + velocity;
-        Vector2? hitPoint = null;
-        bool hitPerimeter = false;
-        int hitSegmentIndex = -1;
-
-        for (int i = 0; i < Perimeter.Length - 1; i++)
-        {
-            var inter = Geometry2D.SegmentIntersectsSegment(moveA, moveB, Perimeter[i], Perimeter[i + 1]);
-            if (inter.VariantType == Variant.Type.Nil) continue;
-            Vector2 pt = inter.AsVector2();
-
-            // Ignore collision with our own starting anchor to prevent instant termination
-            if (pt.DistanceTo(_activeLine[0]) <= 1.0f) continue;
-
-            hitPoint = pt;
-            hitPerimeter = true;
-            hitSegmentIndex = i;
-            break;
-        }
-
-        // Check self-collision against tail. Ignore the 3 most recent segments to prevent trivial vertex intersections.
-        if (!hitPoint.HasValue && _activeLine.Count >= 4)
-        {
-            for (int i = 0; i < _activeLine.Count - 3; i++)
-            {
-                var inter = Geometry2D.SegmentIntersectsSegment(moveA, moveB, _activeLine[i], _activeLine[i + 1]);
-                if (inter.VariantType == Variant.Type.Nil) continue;
-                hitPoint = inter.AsVector2();
-                break;
-            }
-        }
-
-        if (hitPoint.HasValue)
-        {
-            _arrow.Position = hitPoint.Value;
-
-            if (!hitPerimeter) return;
-
-            _activeLine[^1] = hitPoint.Value;
-            ProcessClaim(hitSegmentIndex);
-        }
-        else
-        {
-            if (inputDir != _lastDrawDirection)
-            {
-                _activeLine.Insert(_activeLine.Count - 1, _arrow.Position);
-                _drawingLine.AddPoint(_arrow.Position, _drawingLine.GetPointCount() - 1);
-                _lastDrawDirection = inputDir;
-            }
-
-            _arrow.Position += velocity;
-        }
-    }
-
-    private void ProcessClaim(int hitSegmentIndex)
-    {
-        var activeArray = _activeLine.ToArray();
-
-        var (claimedPoly, newPerimeter, claimedArea) = DetermineClaimedPolygon(hitSegmentIndex, activeArray);
-
-        var trappedBlobs = GetTrappedBlobs(claimedPoly);
-
-        if (IsLethalTrap(trappedBlobs))
-        {
-            // Player trapped the wrong color. Destroy line and cancel.
-            KillPlayer();
-            return;
-        }
-
-        DestroyBlobs(trappedBlobs);
-        if (trappedBlobs.Count > 0)
-        {
-            _sfxWaterDrop.Play();
-        }
-
-        ApplyNewPerimeter(newPerimeter);
-        CreateClaimVisuals(claimedPoly);
-        CreateClaimPhysics(claimedPoly);
-
-        CancelDrawing();
-        UpdateProgressAndCheckWin(claimedArea);
-    }
-
-    private (Vector2[] ClaimedPoly, Vector2[] NewPerimeter, float ClaimedArea) DetermineClaimedPolygon(
-        int hitSegmentIndex, Vector2[] activeArray)
-    {
-        var poly1 = GeometryUtils.BuildPolygon(Perimeter, _startSegmentIndex, hitSegmentIndex, activeArray,
-            forward: true);
-        var poly2 = GeometryUtils.BuildPolygon(Perimeter, _startSegmentIndex, hitSegmentIndex, activeArray,
-            forward: false);
-
-        float area1 = GeometryUtils.GetPolygonArea(poly1);
-        float area2 = GeometryUtils.GetPolygonArea(poly2);
-
-        // The smaller area is claimed, the larger area becomes the new safe perimeter
-        return area1 < area2 ? (poly1, poly2, area1) : (poly2, poly1, area2);
-    }
-
-    private void ApplyNewPerimeter(Vector2[] newPerimeter)
-    {
-        var newPerimeterList = new List<Vector2>(newPerimeter) { newPerimeter[0] };
-        Perimeter = newPerimeterList.ToArray();
-        _perimeterLine.Points = newPerimeter;
-    }
-
-    private List<BlobEnemy> GetTrappedBlobs(Vector2[] claimedPoly)
-    {
-        var trappedBlobs = new List<BlobEnemy>();
-
-        foreach (var blob in _activeBlobs)
-        {
-            Vector2 localBlobPos = _painting.ToLocal(blob.GlobalPosition);
-            if (Geometry2D.IsPointInPolygon(localBlobPos, claimedPoly)) trappedBlobs.Add(blob);
-        }
-
-        return trappedBlobs;
-    }
-
-    private bool IsLethalTrap(List<BlobEnemy> trappedBlobs)
-    {
-        foreach (var blob in trappedBlobs)
-        {
-            // Polarity rules: Trapping the SAME color is lethal. A Combined blob counts as BOTH colors.
-            if (blob.BlobEnergy.CurrentTint == _arrow.CurrentEnergy.CurrentTint ||
-                blob.BlobEnergy.CurrentTint == Energy.Tint.Combined)
-                return true;
-        }
-
-        return false;
-    }
-
-    private static void DestroyBlobs(List<BlobEnemy> blobsToDestroy)
-    {
-        foreach (var blob in blobsToDestroy)
-        {
-            if (blob.GetParent() is BlobCluster cluster)
-                cluster.Dissolve();
-            else
-                blob.Dissolve();
-        }
-    }
-
-    private void CreateClaimVisuals(Vector2[] claimedPoly)
-    {
-        Polygon2D claimNode = new Polygon2D
-        {
-            Polygon = ConvertToMaskCoordinates(claimedPoly),
-            Color = _arrow.CurrentEnergy.Fill with { A = 0.0f }
-        };
-        _maskRoot.AddChild(claimNode);
-
-        var tween = CreateTween();
-        tween.TweenProperty(claimNode, "color:a", 1.0f, 0.5f);
-    }
-
-    private void CreateClaimPhysics(Vector2[] claimedPoly)
-    {
-        var claimPhysics = new StaticBody2D();
-
-        // Instead of a single solid CollisionPolygon2D (which triggers Godot's unstable convex decomposer),
-        // we use a hollow chain of SegmentShape2D. This perfectly bypasses the engine bug and guarantees
-        // no crashes, while still providing completely solid walls for the blobs to bounce off of.
-        for (int i = 0; i < claimedPoly.Length; i++)
-        {
-            var p1 = claimedPoly[i];
-            var p2 = claimedPoly[(i + 1) % claimedPoly.Length];
-
-            var segmentShape = new SegmentShape2D { A = p1, B = p2 };
-            var collisionShape = new CollisionShape2D { Shape = segmentShape };
-            claimPhysics.AddChild(collisionShape);
-        }
-
-        _painting.AddChild(claimPhysics);
     }
 
     private void UpdateProgressAndCheckWin(float claimedArea)
@@ -734,74 +403,23 @@ public partial class Main : Node2D
 
         _progressBar.UpdateProgress(_claimedAreaA / _totalArea, _claimedAreaB / _totalArea);
 
-        // Win condition: both colors must reach the 35% goal
-        if (_claimedAreaA / _totalArea >= 0.35f && _claimedAreaB / _totalArea >= 0.35f)
-            Reveal();
-    }
-
-    private void CancelDrawing()
-    {
-        _playerState = PlayerState.OnPerimeter;
-        _activeLine.Clear();
-        _drawingLine.ClearPoints();
+        if (_claimedAreaA / _totalArea >= 0.35f && _claimedAreaB / _totalArea >= 0.35f) Reveal();
     }
 
     private void KillPlayer()
     {
-        if (_activeLine.Count > 0)
-        {
-            _arrow.Position = _activeLine[0]; // Snap back to where drawing started
-            if (_initialDrawDirection != Vector2.Zero)
-                _arrow.SetDirection(_initialDrawDirection); // Restore the arrow's facing direction
-
+        if (_playerController.ActiveLine.Count > 0)
             _sfxErase.Play();
-        }
         else
-        {
             _sfxSnap.Play();
-        }
 
-        CancelDrawing();
-
-        // If KillPlayer is called, you ALWAYS die and get stunned.
-        // Immunity protects you by preventing KillPlayer from being called in the first place (during physical collisions).
-        _arrow.Die();
+        _playerController.ResetToStart();
     }
-
-
-    private Vector2[] ConvertToMaskCoordinates(Vector2[] poly)
-    {
-        var shift = new Vector2(_paintingWidth / 2f, _paintingHeight / 2f);
-        var shifted = new Vector2[poly.Length];
-        for (int i = 0; i < poly.Length; i++)
-            shifted[i] = poly[i] + shift;
-        return shifted;
-    }
-
-    private void UpdateSegmentsOnPoint(Vector2 pt)
-    {
-        _segmentsOnPoint.Clear();
-        for (int i = 0; i < Perimeter.Length - 1; i++)
-            if (GeometryUtils.DistanceToSegment(pt, Perimeter[i], Perimeter[i + 1]) < 0.1f)
-                _segmentsOnPoint.Add(i);
-    }
-
 
     private void HandleFatalError(string errorMessage)
     {
         GD.PrintErr($"Game Initialization Failed: {errorMessage}");
         OS.Alert("Something went wrong loading Chromonia.", "Initialization Error");
         GetTree().Quit();
-    }
-
-    private void HandleMusicError(AppError err)
-    {
-        HandleFatalError(err.Message);
-    }
-
-    public override void _ExitTree()
-    {
-        if (IsInstanceValid(_music)) _music.OnPlaybackFailed -= HandleMusicError;
-        base._ExitTree();
     }
 }

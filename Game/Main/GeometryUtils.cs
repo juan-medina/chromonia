@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
-namespace Chromonia.Core;
+namespace Chromonia.Main;
 
 public static class GeometryUtils
 {
@@ -16,6 +16,26 @@ public static class GeometryUtils
         if (lengthSq == 0) return (p - a).Length();
         float t = Math.Clamp((p - a).Dot(ab) / lengthSq, 0f, 1f);
         return (p - (a + t * ab)).Length();
+    }
+
+    public static Vector2? SegmentIntersectsSegment(Vector2 a, Vector2 b, Vector2 c, Vector2 d)
+    {
+        Vector2 r = b - a;
+        Vector2 s = d - c;
+        float rxs = r.Cross(s);
+        float cmAxs = (c - a).Cross(s);
+
+        // Lines are collinear or parallel. We will ignore overlapping collinear segments for our collision logic
+        if (Mathf.IsZeroApprox(rxs))
+            return null;
+
+        float t = cmAxs / rxs;
+        float u = (c - a).Cross(r) / rxs;
+
+        if (t is >= 0f and <= 1f && u is >= 0f and <= 1f)
+            return a + t * r;
+
+        return null;
     }
 
     public static Vector2 ClampPointToSegment(Vector2 p, Vector2 a, Vector2 b)
@@ -40,7 +60,8 @@ public static class GeometryUtils
         return Math.Abs(area / 2.0f);
     }
 
-    public static Vector2[] BuildPolygon(Vector2[] perimeter, int startSeg, int endSeg, Vector2[] activeLine, bool forward)
+    public static Vector2[] BuildPolygon(Vector2[] perimeter, int startSeg, int endSeg, Vector2[] activeLine,
+        bool forward)
     {
         int totalUnique = perimeter.Length - 1;
         var poly = new List<Vector2>(activeLine);

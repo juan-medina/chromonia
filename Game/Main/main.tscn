@@ -44,20 +44,21 @@ stream_2/stream = ExtResource("13_l5bfp")
 stream_3/stream = ExtResource("14_guo5i")
 stream_4/stream = ExtResource("15_0gq1e")
 
-[node name="Main" type="Node2D" unique_id=1676047802 node_paths=PackedStringArray("_maskViewport", "_maskRoot", "_painting", "_title", "_artist", "_arrow", "_progressBar", "_blobsLayer", "_perimeterLine", "_drawingLine", "_dropShadow", "_borderPhysics", "_sfxDrawLoop", "_sfxSafeLoop", "_sfxErase", "_sfxSnap", "_sfxWaterDrop")]
+[node name="Main" type="Node2D" unique_id=1676047802 node_paths=PackedStringArray("_maskViewport", "_maskRoot", "_painting", "_playfield", "_title", "_artist", "_arrow", "_progressBar", "_blobsLayer", "_perimeterLine", "_drawingLine", "_dropShadow", "_borderPhysics", "_sfxDrawLoop", "_sfxSafeLoop", "_sfxErase", "_sfxSnap", "_sfxWaterDrop")]
 script = ExtResource("1_liyct")
 _maskViewport = NodePath("SubViewport")
 _maskRoot = NodePath("SubViewport/MaskRoot")
 _painting = NodePath("Painting")
+_playfield = NodePath("Playfield")
 _title = NodePath("Painting/Title")
 _artist = NodePath("Painting/Artist")
-_arrow = NodePath("Painting/Arrow")
+_arrow = NodePath("Playfield/Arrow")
 _progressBar = NodePath("SharedProgressBar")
-_blobsLayer = NodePath("Painting/BlobsLayer")
-_perimeterLine = NodePath("Painting/PerimeterLine")
-_drawingLine = NodePath("Painting/DrawingLine")
+_blobsLayer = NodePath("Playfield/BlobsLayer")
+_perimeterLine = NodePath("Playfield/PerimeterLine")
+_drawingLine = NodePath("Playfield/DrawingLine")
 _dropShadow = NodePath("Painting/DropShadow")
-_borderPhysics = NodePath("Painting/BorderPhysics")
+_borderPhysics = NodePath("Playfield/BorderPhysics")
 _sfxDrawLoop = NodePath("SfxDrawLoop")
 _sfxSafeLoop = NodePath("SfxSafeLoop")
 _sfxErase = NodePath("SfxErase")
@@ -87,25 +88,27 @@ theme_override_constants/outline_size = 10
 theme_override_font_sizes/font_size = 22
 text = "This is the artist name"
 
-[node name="Arrow" parent="Painting" unique_id=54182347 instance=ExtResource("4_rj11h")]
-
 [node name="DropShadow" type="Panel" parent="Painting" unique_id=26677036]
 show_behind_parent = true
 theme_override_styles/panel = SubResource("StyleBoxFlat_shadow")
 
-[node name="BlobsLayer" type="CanvasGroup" parent="Painting" unique_id=254393958]
+[node name="Playfield" type="Node2D" parent="." unique_id=987654321]
+
+[node name="Arrow" parent="Playfield" unique_id=54182347 instance=ExtResource("4_rj11h")]
+
+[node name="BlobsLayer" type="CanvasGroup" parent="Playfield" unique_id=254393958]
 z_index = 2
 material = SubResource("ShaderMaterial_blob")
 
-[node name="PerimeterLine" type="Line2D" parent="Painting" unique_id=1917871821]
+[node name="PerimeterLine" type="Line2D" parent="Playfield" unique_id=1917871821]
 z_index = 1
 closed = true
 
-[node name="DrawingLine" type="Line2D" parent="Painting" unique_id=294222425]
+[node name="DrawingLine" type="Line2D" parent="Playfield" unique_id=294222425]
 z_index = 1
 default_color = Color(1, 0.411765, 0.705882, 1)
 
-[node name="BorderPhysics" type="StaticBody2D" parent="Painting" unique_id=455321318]
+[node name="BorderPhysics" type="StaticBody2D" parent="Playfield" unique_id=455321318]
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=178768570]
 
