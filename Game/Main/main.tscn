@@ -165,4 +165,5 @@ bus = &"Sfx"
 
 [node name="SfxPaintStroke" type="AudioStreamPlayer2D" parent="." unique_id=1440768441]
 stream = ExtResource("16_l5bfp")
+volume_db = -5.0
 bus = &"Sfx"
