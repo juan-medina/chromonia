@@ -76,7 +76,7 @@ The player's marker always starts on the border of the playfield. The border and
 
 **Movement is continuous and vector-based, but angularly constrained.** The player can only travel in one of 8 directions — horizontal, vertical, or 45° diagonal — and can only turn in 45° increments. There is no grid; the player moves freely at any speed within those allowed angles.
 
-When the player moves off safe ground into unclaimed space, a line begins drawing behind them (a *Stix*). The line is rendered in the player's current colour (red or blue). The player may change direction while drawing, producing a multi-segment line, as long as each new direction is one of the 8 allowed angles.
+When the player moves off safe ground into unclaimed space, a line begins drawing behind them (a *Stix*). The line is rendered in the player's current colour. The player may change direction while drawing, producing a multi-segment line, as long as each new direction is one of the 8 allowed angles.
 
 If the player returns to safe ground, the enclosed area is claimed. The player may press Space at any time — even while drawing mid-line — to instantly swap their active colour.
 
@@ -91,24 +91,24 @@ At the moment of claiming, enemies inside the newly claimed polygon are checked:
 | Condition | Result |
 |---|---|
 | No enemies inside the polygon | Area is claimed. Painting revealed in colour. |
-| Only same-colour enemies inside | Those enemies are eliminated. Area is claimed. |
-| Any opposite-colour enemy inside | Line is cancelled. Nothing is claimed. All enemies inside survive. |
+| Only opposite-colour enemies inside | Those enemies are eliminated. Area is claimed. |
+| Any same-colour enemy inside | Line is cancelled. Nothing is claimed. All enemies inside survive. |
 | Both colours of enemy inside | Line is cancelled. Nothing is claimed. Both enemies survive. |
 
-> **Note:** A wrong-colour enemy acts as an absolute veto. Even if a right-colour enemy is also present inside, the claim is cancelled entirely.
+> **Note:** A same-colour enemy acts as an absolute veto. Even if an opposite-colour enemy is also present inside, the claim is cancelled entirely.
 
 ### 2.5 Colour Mechanics
 
-The player has two colours: **red** and **blue**. The active colour determines which enemies are friendly (ignore the line) and which are hostile (cancel the line on contact).
+The player has two colours — **Color A** and **Color B**. The active colour determines which enemies are friendly (ignore the active line) and which are hostile (cancel it on contact).
 
 | Condition | Result |
 |---|---|
-| Drawing blue — red enemy touches line | Line cancelled. Player snaps to border. |
-| Drawing blue — blue enemy touches line | Nothing happens. Blue is friendly to a blue line. |
-| Drawing red — blue enemy touches line | Line cancelled. Player snaps to border. |
-| Drawing red — red enemy touches line | Nothing happens. Red is friendly to a red line. |
+| Drawing Color A — Color B enemy touches line | Line cancelled. Player snaps to border. |
+| Drawing Color A — Color A enemy touches line | Nothing happens. Color A is friendly to a Color A line. |
+| Drawing Color B — Color A enemy touches line | Line cancelled. Player snaps to border. |
+| Drawing Color B — Color B enemy touches line | Nothing happens. Color B is friendly to a Color B line. |
 
-**Summary: your colour = your team. Your team ignores your line. The opposing team cancels it.**
+**Summary: your colour = your team. Your team ignores your active line. The opposing team cancels it.**
 
 > **Note:** There is no death mechanic. A cancelled line is the only consequence of an enemy interaction. The player simply tries again.
 
@@ -122,15 +122,15 @@ When a claim is cancelled (wrong-colour enemy inside), all enemies inside contin
 
 ### 2.7 Win Condition
 
-A round is won when the player successfully claims **35% of the total area in Red** AND **35% of the total area in Blue** (a combined 70% threshold). 
+A round is won when the player successfully claims **35% of the total area in Color A** AND **35% of the total area in Color B** (a combined 70% threshold).
 
-Because enemies are only vulnerable to lines of their own colour, the player must dynamically balance their colour usage to safely navigate the enemies while fulfilling both quotas.
+Because enemies are only eliminated by opposite-colour claims, the player must dynamically balance their colour usage to safely navigate the enemies while fulfilling both quotas.
 
 When both quotas are met, the round is won. All remaining enemies disappear and the full-colour painting is revealed.
 
 ### 2.8 Difficulty
 
-Chosen before each session on the play screen. Enemy count is always evenly split between red and blue.
+Chosen before each session on the play screen. Enemy count is always evenly split between the two colours.
 
 | Difficulty | Enemies | Fill Threshold | Enemy Speed |
 |---|---|---|---|
@@ -155,6 +155,8 @@ Chosen before each session on the play screen. Enemy count is always evenly spli
 ## 4. Screens & Application Flow
 
 ### 4.1 Screen List
+
+The following screens are planned. This list is a working reference and may evolve as the game develops.
 
 - EULA Screen *(first launch only)*
 - Main Menu
@@ -189,9 +191,8 @@ Pressing Play loads a random painting from the selected collection and begins th
 
 Full-screen playfield. HUD is minimal:
 
-- Current colour indicator (small red or blue dot, corner of screen)
+- Current colour indicator (corner of screen)
 - Fill percentage progress bar (subtle)
-- Enemy count remaining
 
 No score. No timer.
 
@@ -236,10 +237,9 @@ All paintings are public domain works sourced manually from:
 **Processing pipeline:**
 1. Download original high-resolution files
 2. Resize and letterbox to 1920 × 1080 (preserve aspect ratio, dark bars where needed)
-3. Save as JPEG at quality balancing file size and fidelity
-4. Place in `res://paintings/bundled/`
+3. Save at a quality that balances file size and visual fidelity
 
-Custom paintings are loaded at runtime from a user-configured system folder. Supported formats: PNG, JPG.
+Custom paintings are loaded at runtime from a user-configured system folder.
 
 > Greyscale conversion is **not** pre-processed. A desaturation shader is applied at runtime to unclaimed areas. Only one version of each image is stored.
 
@@ -248,7 +248,6 @@ Custom paintings are loaded at runtime from a user-configured system folder. Sup
 All music sourced from **Musopen** (musopen.org) — public domain recordings of classical works. An intentional pairing: public domain art with public domain music.
 
 - **Style:** Calm instrumental classical — chamber music, piano, string quartets
-- **Format:** OGG
 - **Playback:** Tracks shuffle randomly, loop or cycle continuously
 - **Volume:** Soft background level, never competing with gameplay
 
@@ -299,16 +298,16 @@ The game uses a **vector-based approach**, consistent with the original Qix rath
 - The player's active line is stored as a `PackedVector2Array` of **waypoints**. A new point is recorded only when the player changes direction or closes the shape — not continuously during movement. Each segment between consecutive waypoints is guaranteed to travel in one of 8 directions (horizontal, vertical, or 45° diagonal).
 - On completion the line is closed into a polygon. Area is calculated using the **Shoelace formula**. The smaller area is always claimed.
 - The painting `Sprite2D` carries a `ShaderMaterial` using `reveal.gdshader`. The shader reads the painting texture and a `mask_texture` uniform — a greyscale-encoded state map produced by a `SubViewport` (same resolution as the painting).
-- The mask encodes zone state by RGB channel: black `(0,0,0)` = free (rendered greyscale), white `(1,1,1)` = claimed (full colour), red `(1,0,0)` = claimed with red tint, blue `(0,0,1)` = claimed with blue tint.
+- The mask encodes zone state by channel: black = free (rendered greyscale), white = fully claimed (full colour), Color A value = claimed with Color A tint, Color B value = claimed with Color B tint. Exact channel values are implementation-defined in the shader and Energy class.
 - When an area is claimed, a `Polygon2D` of the appropriate mask colour is added to the SubViewport's `MaskRoot` node. The viewport texture is passed to the shader via `SetShaderParameter("mask_texture", ...)`. Because SubViewport renders one frame later, the parameter update is deferred with `await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame)`.
 - A border is drawn into the mask at load time as four thin white rectangles along the painting edges. This border serves as the player's starting safe ground and as a positional reference for game elements.
-- The active drawing line is also a node inside the SubViewport (`Line2D` added to `MaskRoot`), coloured red `(1,0,0)` or blue `(0,0,1)` to match the player's current draw colour. The shader blends it with the painting in real time. On cancellation the node is removed; on successful completion it is removed and replaced with a `Polygon2D` of the same colour.
+- The active drawing line is also a node inside the SubViewport (`Line2D` added to `MaskRoot`), coloured to match the player's current draw colour. The shader blends it with the painting in real time. On cancellation the node is removed; on successful completion it is removed and replaced with a `Polygon2D` of the same colour.
 - Enemy-inside check at claim time uses a standard **point-in-polygon test** for each enemy.
 - Polygon subtraction (removing the newly claimed polygon from the remaining free space) is the most complex geometric operation. Evaluate **Clipper2** (C# port) vs. a bespoke solution.
 
 ### 6.3 Image Loading
 
-- **Bundled:** Loaded from `res://paintings/bundled/` via standard Godot resource loading.
+- **Bundled:** Loaded via standard Godot resource loading from the bundled paintings folder.
 - **Custom:** Loaded at runtime from a user-configured absolute path using `DirAccess` and `FileAccess`, then converted to `ImageTexture`.
 - On session start, available images from the selected collection are shuffled. Each round picks the next in the shuffled list, cycling when exhausted.
 
@@ -343,7 +342,7 @@ Because the game uses C# (.NET), careful management of Garbage Collection (GC) p
 The project follows a **Feature-Based Hybrid** approach, prioritizing cohesion and modularity.
 
 ### 7.1 Feature-Based Organization
-Rather than grouping files by their type (e.g., all scripts in one folder, all scenes in another), the project is organized around **features or entities**. 
+Rather than grouping files by their type (e.g., all scripts in one folder, all scenes in another), the project is organized around **features or entities**.
 When a C# script is specifically tied to a Godot Scene (Node), both the `.tscn` and `.cs` files (along with any exclusively related assets) reside together in the same feature folder. Check the file tree directly for the current structure.
 
 **Benefits:**
@@ -367,7 +366,7 @@ To maintain a clean and manageable project, the following rules dictate how Godo
 2. **Use Pure C# Classes for Highly Dynamic or Procedural Entities**
    - **Rule:** Use `new Node()` or inherit directly from Godot Node classes in pure C# when the entity is completely procedural, mathematically generated, or its node hierarchy structure is randomized at runtime.
    - **Examples:** The `BlobCluster` (which randomly creates 4-6 `BlobEnemy` sub-nodes and wires them together with physics joints on the fly), dynamically generated polygons for claimed area physics.
-   - **Why:** Building highly randomized node structures (especially those requiring physics joint `NodePath` assignments between dynamically created siblings) is much cleaner and safer in pure code. 
+   - **Why:** Building highly randomized node structures (especially those requiring physics joint `NodePath` assignments between dynamically created siblings) is much cleaner and safer in pure code.
 
 3. **Use Code Instantiation (`ResourceLoader.Load<PackedScene>`) for Prefabs**
    - **Rule:** If an entity has a fixed visual/node structure but needs to be spawned dynamically in varying quantities, create it as a `.tscn` and instantiate it via C#.
@@ -381,7 +380,6 @@ To maintain a clean and manageable project, the following rules dictate how Godo
 - Web export
 - Score or leaderboard of any kind
 - Online multiplayer
-- Controller support *(stretch goal only)*
 - Level editor or custom enemy placement
 - Achievements
 - Localisation *(English only for v1.0)*
@@ -390,12 +388,8 @@ To maintain a clean and manageable project, the following rules dictate how Godo
 
 ## 9. Open Questions
 
-- **Polygon subtraction library:** Evaluate Clipper2 C# port vs. a bespoke solution for the Godot Polygon2D use case.
-- **Fill percentage display:** Progress bar, numeric %, or fully hidden (trust the player to feel progress visually)?
 - **Round complete timing:** How many seconds to display the completed painting before auto-advancing?
-- **Music bundle size:** Minimum viable track count vs. download size — how many tracks ship with v1.0?
 - **Custom folder validation:** Validate images on load (check format, minimum dimensions) or fail silently on bad files?
-- **Enemy spawn positions:** Fully random within free space, or enforce a minimum distance from the player start position?
 - **Colour switch audio:** Should the two-note interval for switching colour play even when on the border (idle), or only when actively drawing?
 
 ---
