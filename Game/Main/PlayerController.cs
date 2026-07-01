@@ -33,7 +33,7 @@ public class PlayerController(Arrow.Arrow arrow, Line2D drawingLine)
     public void MoveArrow(double delta, float arrowSpeed, Vector2[] perimeter)
     {
         if (State == PlayerState.Won) return;
-        if (arrow.IsStunned) return;
+        if (arrow.State == Arrow.ArrowState.Stunned) return;
 
         var speed = arrowSpeed * (float)delta;
         var vx = Input.GetAxis("ui_left", "ui_right");

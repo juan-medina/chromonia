@@ -6,25 +6,43 @@ using Godot;
 
 namespace Chromonia.Arrow;
 
+public enum ArrowState
+{
+    Normal,
+    Stunned,
+    Immune
+}
+
 public partial class Arrow : Sprite2D
 {
-    private const float PulsateScale = 1.25f;
-    private const float PulsateDuration = 0.25f;
-    private const float PulsateMinGlow = 0.9f;
-    private const float PulsateMaxGlow = 1.1f;
+    [Export] private Shader _blinkShader = null!;
 
-    private float _timePassed;
-    private Vector2 _baseScale;
-    private float _targetRotation;
+    private const float PulsateMinGlow = 0.9f;
     private const float RotationSpeed = Mathf.Pi / 0.25f; // Radians per second to complete rotation in 0.25s
+    private static readonly Color DeadColor = Colors.Red;
+    private static readonly Color ImmuneColor = Colors.LightGray;
 
     public Energy CurrentEnergy { get; } = new();
+    public ArrowState State { get; private set; } = ArrowState.Normal;
+
+    private float _stateDurationRemaining;
+    private float _targetRotation;
+
+    public override void _Ready()
+    {
+        base._Ready();
+
+        CurrentEnergy.CurrentTint = Energy.Tint.A;
+        var m1 = CurrentEnergy.Marker;
+        SelfModulate = new Color(m1.R * PulsateMinGlow, m1.G * PulsateMinGlow, m1.B * PulsateMinGlow);
+        _targetRotation = Rotation;
+    }
 
     public void Cycle()
     {
         CurrentEnergy.Cycle();
-        SelfModulate = CurrentEnergy.Marker * PulsateMinGlow;
-        _timePassed = 0f; // Reset the pulse phase, just like restarting the tween
+        var m2 = CurrentEnergy.Marker;
+        SelfModulate = new Color(m2.R * PulsateMinGlow, m2.G * PulsateMinGlow, m2.B * PulsateMinGlow);
     }
 
     public void SetDirection(Vector2 direction)
@@ -44,63 +62,75 @@ public partial class Arrow : Sprite2D
         _targetRotation = currentRotation + angleDiff;
     }
 
-    public bool IsImmune { get; private set; }
-    public bool IsStunned { get; private set; }
 
-    public async void Die()
+    public void Die() => ChangeState(ArrowState.Stunned, 2.0f);
+
+    public void StartImmunity(float duration) => ChangeState(ArrowState.Immune, duration);
+
+    private void ChangeState(ArrowState newState, float duration = 0f)
     {
-        IsImmune = true;
-        IsStunned = true;
+        State = newState;
+        _stateDurationRemaining = duration;
 
-        // Turn Neon Red to indicate stunned/damaged state
-        SelfModulate = new Color(2.5f, 0.2f, 0.2f);
+        switch (newState)
+        {
+            case ArrowState.Normal:
+            {
+                var mNorm = CurrentEnergy.Marker;
+                SelfModulate = new Color(mNorm.R * PulsateMinGlow, mNorm.G * PulsateMinGlow, mNorm.B * PulsateMinGlow);
+                Material = null;
+                break;
+            }
 
-        // Wait 2 seconds for the stun to wear off
-        await ToSignal(GetTree().CreateTimer(2.0f), SceneTreeTimer.SignalName.Timeout);
+            case ArrowState.Stunned:
+            {
+                var mStun = CurrentEnergy.Marker;
+                SelfModulate = new Color(mStun.R * PulsateMinGlow, mStun.G * PulsateMinGlow, mStun.B * PulsateMinGlow);
+            }
+            {
+                var smRed = new ShaderMaterial { Shader = _blinkShader };
+                smRed.SetShaderParameter("blink_color", DeadColor);
+                Material = smRed;
+            }
 
-        IsStunned = false;
+                break;
 
-        // Restore base color but start blinking to indicate remaining 2s of immunity
-        SelfModulate = CurrentEnergy.Marker * PulsateMinGlow;
+            case ArrowState.Immune:
+            {
+                var mImm = CurrentEnergy.Marker;
+                SelfModulate = new Color(mImm.R * PulsateMinGlow, mImm.G * PulsateMinGlow, mImm.B * PulsateMinGlow);
+            }
+            {
+                var smWhite = new ShaderMaterial { Shader = _blinkShader };
+                smWhite.SetShaderParameter("blink_color", ImmuneColor);
+                Material = smWhite;
+            }
 
-        StartImmunity(2.0f);
-    }
-
-    public void StartImmunity(float duration)
-    {
-        IsImmune = true;
-        var tween = CreateTween();
-        
-        int loops = Mathf.Max(1, Mathf.RoundToInt(duration / 0.25f));
-        tween.SetLoops(loops);
-        
-        tween.TweenProperty(this, "self_modulate:a", 0.1f, 0.125f);
-        tween.TweenProperty(this, "self_modulate:a", 1.0f, 0.125f);
-        tween.Finished += () => IsImmune = false;
+                break;
+            default:
+                GD.PrintErr($"Arrow: Unhandled state {nameof(newState)}: {newState}");
+                GetTree().Quit();
+                break;
+        }
     }
 
     public override void _Process(double delta)
     {
-        base._Process(delta);
-
-        // Handle Pulsate (Scale only, as color pulsate interferes with death blink)
-        _timePassed += (float)delta;
-        float progress = (-Mathf.Cos(_timePassed * Mathf.Pi / PulsateDuration) + 1.0f) / 2.0f;
-
-        Scale = _baseScale * Mathf.Lerp(1.0f, PulsateScale, progress);
+        if (_stateDurationRemaining > 0f)
+        {
+            _stateDurationRemaining -= (float)delta;
+            if (_stateDurationRemaining <= 0f)
+            {
+                if (State == ArrowState.Stunned)
+                    ChangeState(ArrowState.Immune, 2.0f);
+                else
+                    ChangeState(ArrowState.Normal);
+            }
+        }
 
         // Handle Rotation
         if (float.IsNaN(_targetRotation)) return;
         if (!Mathf.IsEqualApprox(Rotation, _targetRotation))
             Rotation = Mathf.MoveToward(Rotation, _targetRotation, RotationSpeed * (float)delta);
-    }
-
-    public override void _Ready()
-    {
-        base._Ready();
-        _baseScale = Scale;
-        CurrentEnergy.CurrentTint = Energy.Tint.A;
-        SelfModulate = CurrentEnergy.Marker * PulsateMinGlow;
-        _targetRotation = Rotation;
     }
 }

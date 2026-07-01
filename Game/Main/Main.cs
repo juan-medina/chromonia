@@ -54,8 +54,8 @@ public partial class Main : Node2D
     private const float MinBlobSpeed = 50f;
     private const float MaxBlobSpeed = 350f;
     private const int ClusterCount = 8;
-    private const float StartImmunityDuration = 3.0f;
-    private const float ToReveal = 0.005f;
+    private const float StartImmunityDuration = 1.5f;
+    private const float ToReveal = 0.35f;
 
     private int _paintingWidth = ViewportWidth;
     private int _paintingHeight = ViewportHeight;

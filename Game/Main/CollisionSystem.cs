@@ -40,7 +40,7 @@ public class CollisionSystem(Node2D playfield, Arrow.Arrow arrow)
 
     public bool CheckCollisions(PlayerState playerState, List<Vector2> activeLine)
     {
-        if (arrow.IsImmune || playerState == PlayerState.Won) return false;
+        if (arrow.State != Arrow.ArrowState.Normal || playerState == PlayerState.Won) return false;
 
         const float arrowRadius = 15f;
         const float lineThicknessRadius = 4f;
@@ -54,7 +54,7 @@ public class CollisionSystem(Node2D playfield, Arrow.Arrow arrow)
                 continue;
 
             if (blob.GlobalPosition.DistanceTo(arrow.GlobalPosition) < blob.Radius + arrowRadius)
-                if (!arrow.IsImmune)
+                if (arrow.State == Arrow.ArrowState.Normal)
                     return true;
 
             if (playerState != PlayerState.Drawing || activeLine.Count < 2) continue;
@@ -64,7 +64,7 @@ public class CollisionSystem(Node2D playfield, Arrow.Arrow arrow)
             {
                 if (!(GeometryUtils.DistanceToSegment(localBlobPos, activeLine[j], activeLine[j + 1]) <
                       blob.Radius + lineThicknessRadius)) continue;
-                if (!arrow.IsImmune) return true;
+                if (arrow.State == Arrow.ArrowState.Normal) return true;
             }
         }
 
