@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using Chromonia.Library;
 using Godot;
+using Chromonia.Core;
 using BlobEnemy = Chromonia.Enemies.BlobEnemy;
 using MusicPlayer = Chromonia.Music.MusicPlayer;
 using PaintingLibrary = Chromonia.Library.PaintingLibrary;
@@ -16,6 +17,7 @@ public partial class Main : Node2D
 {
     private PaintingLibrary _library = null!;
     private MusicPlayer _music = null!;
+    private TransitionManager _transition = null!;
 
     [Export] private SubViewport _maskViewport = null!;
     [Export] private Node2D _maskRoot = null!;
@@ -53,6 +55,7 @@ public partial class Main : Node2D
     private const float MaxBlobSpeed = 350f;
     private const int ClusterCount = 8;
     private const float StartImmunityDuration = 3.0f;
+    private const float ToReveal = 0.005f;
 
     private int _paintingWidth = ViewportWidth;
     private int _paintingHeight = ViewportHeight;
@@ -94,7 +97,15 @@ public partial class Main : Node2D
             return;
         }
 
-        _music.OnPlaybackFailed += err => HandleFatalError(err.Message);
+        _transition = GetNode<TransitionManager>("/root/TransitionManager");
+        if (_transition is null)
+        {
+            HandleFatalError("TransitionManager global autoload is missing.");
+            return;
+        }
+
+        _music.OnPlaybackFailed += OnFatalAppError;
+        _transition.OnTransitionFailed += OnFatalAppError;
 
         _playerController = new PlayerController(_arrow, _drawingLine);
         _playerController.OnClaimTriggered += HandleClaimTriggered;
@@ -111,6 +122,22 @@ public partial class Main : Node2D
         }
 
         SetupArrow();
+    }
+
+    public override void _ExitTree()
+    {
+        if (IsInstanceValid(_music))
+            _music.OnPlaybackFailed -= OnFatalAppError;
+
+        if (IsInstanceValid(_transition))
+            _transition.OnTransitionFailed -= OnFatalAppError;
+
+        base._ExitTree();
+    }
+
+    private void OnFatalAppError(AppError err)
+    {
+        HandleFatalError(err.Message);
     }
 
     private void HandleClaimTriggered(int hitSegmentIndex)
@@ -211,7 +238,7 @@ public partial class Main : Node2D
         if (_playerController.State == PlayerState.Won)
         {
             _library.MoveNext();
-            GetTree().ReloadCurrentScene();
+            _transition.ReloadCurrentScene();
             return;
         }
 
@@ -406,7 +433,7 @@ public partial class Main : Node2D
 
         _progressBar.UpdateProgress(_claimedAreaA / _totalArea, _claimedAreaB / _totalArea);
 
-        if (_claimedAreaA / _totalArea >= 0.35f && _claimedAreaB / _totalArea >= 0.35f) Reveal();
+        if (_claimedAreaA / _totalArea >= ToReveal && _claimedAreaB / _totalArea >= ToReveal) Reveal();
     }
 
     private void KillPlayer()

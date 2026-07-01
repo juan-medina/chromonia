@@ -13,6 +13,7 @@ public partial class MusicPlayer : AudioStreamPlayer
 
     public override void _Ready()
     {
+        ProcessMode = ProcessModeEnum.Always;
         Finished += OnFinished;
         Bus = "Music";
     }
