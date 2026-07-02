@@ -4,7 +4,18 @@
 [ext_resource type="Script" uid="uid://cci53qihbr6ib" path="res://Arrow/Arrow.cs" id="2_23jat"]
 [ext_resource type="Shader" uid="uid://ciqe877pnshsh" path="res://Arrow/blink.gdshader" id="3_vvo1s"]
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_stunned"]
+shader = ExtResource("3_vvo1s")
+shader_parameter/blink_frequency = 5.0
+shader_parameter/blink_color = Color(1, 0, 0, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_immune"]
+shader = ExtResource("3_vvo1s")
+shader_parameter/blink_frequency = 5.0
+shader_parameter/blink_color = Color(0.827451, 0.827451, 0.827451, 1)
+
 [node name="Arrow" type="Sprite2D" unique_id=54182347]
 texture = ExtResource("1_umosx")
 script = ExtResource("2_23jat")
-_blinkShader = ExtResource("3_vvo1s")
+_stunnedMaterial = SubResource("ShaderMaterial_stunned")
+_immuneMaterial = SubResource("ShaderMaterial_immune")

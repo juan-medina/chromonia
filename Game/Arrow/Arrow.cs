@@ -15,12 +15,13 @@ public enum ArrowState
 
 public partial class Arrow : Sprite2D
 {
-    [Export] private Shader _blinkShader = null!;
+    [Export] private Material _stunnedMaterial = null!;
+    [Export] private Material _immuneMaterial = null!;
 
     private const float PulsateMinGlow = 0.9f;
-    private const float RotationSpeed = Mathf.Pi / 0.25f; // Radians per second to complete rotation in 0.25s
-    private static readonly Color DeadColor = Colors.Red;
-    private static readonly Color ImmuneColor = Colors.LightGray;
+    private const float RotationTime = 0.25f;
+    private const float RotationSpeed = Mathf.Pi / RotationTime; // Radians per second
+    private const float ImmuneTime = 2.0f;
 
     public Energy CurrentEnergy { get; } = new();
     public ArrowState State { get; private set; } = ArrowState.Normal;
@@ -33,33 +34,30 @@ public partial class Arrow : Sprite2D
         base._Ready();
 
         CurrentEnergy.CurrentTint = Energy.Tint.A;
-        var m1 = CurrentEnergy.Marker;
-        SelfModulate = new Color(m1.R * PulsateMinGlow, m1.G * PulsateMinGlow, m1.B * PulsateMinGlow);
+        SetColor();
+
         _targetRotation = Rotation;
+    }
+
+    private void SetColor()
+    {
+        var marker = CurrentEnergy.Marker;
+        SelfModulate = new Color(marker.R * PulsateMinGlow, marker.G * PulsateMinGlow, marker.B * PulsateMinGlow);
     }
 
     public void Cycle()
     {
         CurrentEnergy.Cycle();
-        var m2 = CurrentEnergy.Marker;
-        SelfModulate = new Color(m2.R * PulsateMinGlow, m2.G * PulsateMinGlow, m2.B * PulsateMinGlow);
+        SetColor();
     }
 
     public void SetDirection(Vector2 direction)
     {
-        if (direction == Vector2.Zero) return;
+        float target = direction.Angle() + Mathf.Pi / 2f;
 
-        float newTargetRotation = direction.Angle() + Mathf.Pi / 2f;
+        if (Mathf.IsEqualApprox(_targetRotation, target)) return;
 
-        if (Mathf.IsEqualApprox(_targetRotation, newTargetRotation)) return;
-
-        _targetRotation = newTargetRotation;
-
-        float currentRotation = Rotation;
-        float angleDiff = Mathf.AngleDifference(currentRotation, _targetRotation);
-
-        // We set the target to the continuous unwrapped angle to make MoveToward easier
-        _targetRotation = currentRotation + angleDiff;
+        _targetRotation = Rotation + Mathf.AngleDifference(Rotation, target);
     }
 
 
@@ -72,46 +70,14 @@ public partial class Arrow : Sprite2D
         State = newState;
         _stateDurationRemaining = duration;
 
-        switch (newState)
+        Material = newState switch
         {
-            case ArrowState.Normal:
-            {
-                var mNorm = CurrentEnergy.Marker;
-                SelfModulate = new Color(mNorm.R * PulsateMinGlow, mNorm.G * PulsateMinGlow, mNorm.B * PulsateMinGlow);
-                Material = null;
-                break;
-            }
-
-            case ArrowState.Stunned:
-            {
-                var mStun = CurrentEnergy.Marker;
-                SelfModulate = new Color(mStun.R * PulsateMinGlow, mStun.G * PulsateMinGlow, mStun.B * PulsateMinGlow);
-            }
-            {
-                var smRed = new ShaderMaterial { Shader = _blinkShader };
-                smRed.SetShaderParameter("blink_color", DeadColor);
-                Material = smRed;
-            }
-
-                break;
-
-            case ArrowState.Immune:
-            {
-                var mImm = CurrentEnergy.Marker;
-                SelfModulate = new Color(mImm.R * PulsateMinGlow, mImm.G * PulsateMinGlow, mImm.B * PulsateMinGlow);
-            }
-            {
-                var smWhite = new ShaderMaterial { Shader = _blinkShader };
-                smWhite.SetShaderParameter("blink_color", ImmuneColor);
-                Material = smWhite;
-            }
-
-                break;
-            default:
-                GD.PrintErr($"Arrow: Unhandled state {nameof(newState)}: {newState}");
-                GetTree().Quit();
-                break;
-        }
+            ArrowState.Normal => null,
+            ArrowState.Stunned => _stunnedMaterial,
+            ArrowState.Immune => _immuneMaterial,
+            _ => Material
+        };
+        SetColor();
     }
 
     public override void _Process(double delta)
@@ -122,14 +88,13 @@ public partial class Arrow : Sprite2D
             if (_stateDurationRemaining <= 0f)
             {
                 if (State == ArrowState.Stunned)
-                    ChangeState(ArrowState.Immune, 2.0f);
+                    ChangeState(ArrowState.Immune, ImmuneTime);
                 else
                     ChangeState(ArrowState.Normal);
             }
         }
 
         // Handle Rotation
-        if (float.IsNaN(_targetRotation)) return;
         if (!Mathf.IsEqualApprox(Rotation, _targetRotation))
             Rotation = Mathf.MoveToward(Rotation, _targetRotation, RotationSpeed * (float)delta);
     }
