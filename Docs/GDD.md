@@ -335,6 +335,11 @@ Because the game uses C# (.NET), careful management of Garbage Collection (GC) p
 - **Discrete Events (Tweens):** For distinct, infrequent events (such as an enemy dying, UI sliding in, or a level transition), use Godot's built-in `CreateTween()`. While instantiating Tweens in C# does create small wrapper objects for the GC to clean up, the code readability and robust easing functions make it the optimal choice for non-continuous actions.
 - **Loops (`for` vs `foreach`):** `foreach` loops are permitted for clean sequential traversal of strongly-typed collections like `List<T>` and `T[]`, as modern .NET struct enumerators guarantee zero heap allocations. However, use standard `for` loops when index manipulation or collection modification is needed. Avoid `foreach` over `IEnumerable<T>` or untyped Godot arrays in gameplay loops, as this forces enumerator boxing and causes GC pressure.
 
+### 6.7 Semantic Naming
+
+**Never use hardcoded colour names (e.g., `Red`, `Blue`, `White`) for variables, materials, nodes, or logic references.** If a colour's visual representation changes later, references like `smRed` or `isBlue` become dangerously misleading and create technical debt. 
+- Always use semantic names based on **state or function** (e.g., `StunnedMaterial`, `ImmuneMaterial`, `ColorA`, `ColorB`).
+
 ---
 
 ## 7. Project Structure
