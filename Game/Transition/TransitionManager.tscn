@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://1dt0ixkayaeh"]
 
-[ext_resource type="Script" path="res://Core/TransitionManager.cs" id="1_tmcs"]
+[ext_resource type="Script" uid="uid://dvfr6lqa3g0ux" path="res://Transition/TransitionManager.cs" id="1_tmcs"]
 
 [node name="TransitionManager" type="CanvasLayer" unique_id=1454320545 node_paths=PackedStringArray("_fadeRect")]
 process_mode = 3

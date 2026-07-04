@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: MIT
 
 using System;
+using Chromonia.Core;
 using Godot;
 
-namespace Chromonia.Core;
+namespace Chromonia.Transition;
 
 public partial class TransitionManager : CanvasLayer
 {

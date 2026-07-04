@@ -10,6 +10,7 @@ using BlobEnemy = Chromonia.Enemies.BlobEnemy;
 using MusicPlayer = Chromonia.Music.MusicPlayer;
 using PaintingLibrary = Chromonia.Library.PaintingLibrary;
 using SharedProgressBar = Chromonia.UI.SharedProgressBar;
+using TransitionManager = Chromonia.Transition.TransitionManager;
 
 namespace Chromonia.Main;
 
