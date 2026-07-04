@@ -114,10 +114,10 @@ public partial class Main : Node2D
 
         _claimSystem = new ClaimSystem(_playfield, _maskRoot, _perimeterLine, _arrow);
 
-        var (success, error) = TryLoadCurrentPainting();
-        if (!success)
+        var result = TryLoadCurrentPainting();
+        if (!result)
         {
-            HandleFatalError(error);
+            HandleFatalError(result.Message);
             return;
         }
 
@@ -135,7 +135,7 @@ public partial class Main : Node2D
         base._ExitTree();
     }
 
-    private void OnFatalAppError(AppError err)
+    private void OnFatalAppError(Result err)
     {
         HandleFatalError(err.Message);
     }
@@ -271,24 +271,24 @@ public partial class Main : Node2D
         _drawingLine.Visible = false;
     }
 
-    private (bool Success, string Error) TryLoadCurrentPainting()
+    private Result TryLoadCurrentPainting()
     {
-        var (painting, err) = _library.Current();
-        return !err ? (false, err.Message) : TryLoadPainting(painting!);
+        var result = _library.Current();
+        return !result ? Result.Fail(result.ErrorMessage) : TryLoadPainting(result.Value);
     }
 
-    private (bool Success, string Error) TryLoadPainting(ResourceEntry painting)
+    private Result TryLoadPainting(ResourceEntry painting)
     {
-        var (texture, texErr) = _library.LoadCurrentResource();
-        if (!texErr) return (false, texErr.Message);
+        var result = _library.LoadCurrentResource();
+        if (!result) return Result.Fail(result.ErrorMessage);
 
-        _paintingWidth = texture!.GetWidth();
-        _paintingHeight = texture.GetHeight();
+        _paintingWidth = result.Value.GetWidth();
+        _paintingHeight = result.Value.GetHeight();
 
         if (_paintingWidth <= 0 || _paintingHeight <= 0)
-            return (false, $"Invalid painting dimensions: {_paintingWidth}x{_paintingHeight}");
+            return Result.Fail($"Invalid painting dimensions: {_paintingWidth}x{_paintingHeight}");
 
-        _painting.Texture = texture;
+        _painting.Texture = result.Value;
 
         CalculateDimensionsAndScale();
         PositionElements();
@@ -299,7 +299,7 @@ public partial class Main : Node2D
         SpawnEnemies(_scaledWidth, _scaledHeight);
         RegisterSpawnedBlobs();
 
-        return (true, string.Empty);
+        return Result.Ok();
     }
 
     private void CalculateDimensionsAndScale()

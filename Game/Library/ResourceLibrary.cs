@@ -25,10 +25,10 @@ public abstract partial class ResourceLibrary<T> : Node where T : Resource
 
     public override void _Ready()
     {
-        var (success, error) = TryLoadEntries();
-        if (!success)
+        var result = TryLoadEntries();
+        if (!result)
         {
-            GD.PrintErr($"{GetType().Name} Critical Initialization Failure: {error}");
+            GD.PrintErr($"{GetType().Name} Critical Initialization Failure: {result.Message}");
             return;
         }
 
@@ -40,11 +40,11 @@ public abstract partial class ResourceLibrary<T> : Node where T : Resource
     {
     }
 
-    public (ResourceEntry? Entry, AppError Err) Current()
+    public Result<ResourceEntry> Current()
     {
         return _entries.Count != 0
-            ? (_entries[_index], AppError.Ok())
-            : (null, AppError.Fail($"{GetType().Name} has no entries loaded."));
+            ? Result<ResourceEntry>.Ok(_entries[_index])
+            : Result<ResourceEntry>.Fail($"{GetType().Name} has no entries loaded.");
     }
 
     public void MoveNext()
@@ -61,22 +61,22 @@ public abstract partial class ResourceLibrary<T> : Node where T : Resource
         _index = 0;
     }
 
-    public (T? Resource, AppError Err) LoadCurrentResource()
+    public Result<T> LoadCurrentResource()
     {
-        var (entry, err) = Current();
-        if (!err) return (null, err);
+        var entryResult = Current();
+        if (!entryResult) return Result<T>.Fail(entryResult.ErrorMessage);
 
-        var path = FolderPath + entry!.File;
+        var path = FolderPath + entryResult.Value.File;
         var resource = ResourceLoader.Load<T>(path);
         return resource is not null
-            ? (resource, AppError.Ok())
-            : (null, AppError.Fail($"Could not load resource: {path}"));
+            ? Result<T>.Ok(resource)
+            : Result<T>.Fail($"Could not load resource: {path}");
     }
 
-    private (bool Success, string Error) TryLoadEntries()
+    private Result TryLoadEntries()
     {
         using var file = FileAccess.Open(JsonPath, FileAccess.ModeFlags.Read);
-        if (file is null) return (false, $"Could not open {JsonPath}");
+        if (file is null) return Result.Fail($"Could not open {JsonPath}");
 
         try
         {
@@ -105,10 +105,10 @@ public abstract partial class ResourceLibrary<T> : Node where T : Resource
         }
         catch (JsonException ex)
         {
-            return (false, $"Failed to parse JSON: {ex.Message}");
+            return Result.Fail($"Failed to parse JSON: {ex.Message}");
         }
 
-        return _entries.Count == 0 ? (false, "No items found.") : (true, string.Empty);
+        return _entries.Count == 0 ? Result.Fail("No items found.") : Result.Ok();
     }
 
     private void Shuffle()

@@ -10,7 +10,7 @@ public partial class TransitionManager : CanvasLayer
 {
     [Export] private ColorRect _fadeRect = null!;
 
-    public event Action<AppError>? OnTransitionFailed;
+    public event Action<Result>? OnTransitionFailed;
 
     private bool _isTransitioning;
     private const float FadeDuration = 0.5f;
@@ -36,13 +36,13 @@ public partial class TransitionManager : CanvasLayer
             tree = GetTree();
             if (tree == null)
             {
-                OnTransitionFailed?.Invoke(AppError.Fail("Scene transition failed: GetTree fail"));
+                OnTransitionFailed?.Invoke(Result.Fail("Scene transition failed: GetTree fail"));
                 return;
             }
 
             if (!IsInstanceValid(_fadeRect))
             {
-                OnTransitionFailed?.Invoke(AppError.Fail("Scene transition failed: _fadeRect is invalid"));
+                OnTransitionFailed?.Invoke(Result.Fail("Scene transition failed: _fadeRect is invalid"));
                 return;
             }
 
@@ -92,7 +92,7 @@ public partial class TransitionManager : CanvasLayer
             if (tree != null) tree.Paused = false;
 
             _isTransitioning = false;
-            OnTransitionFailed?.Invoke(AppError.Fail($"Scene transition failed: {ex.Message}"));
+            OnTransitionFailed?.Invoke(Result.Fail($"Scene transition failed: {ex.Message}"));
         }
     }
 }
