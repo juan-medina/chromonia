@@ -91,7 +91,7 @@ public partial class Main : Node2D
         }
 
         var musicErr = _music.TryPlayMusic();
-        if (!musicErr.Success)
+        if (!musicErr)
         {
             HandleFatalError(musicErr.Message);
             return;
@@ -274,13 +274,13 @@ public partial class Main : Node2D
     private (bool Success, string Error) TryLoadCurrentPainting()
     {
         var (painting, err) = _library.Current();
-        return !err.Success ? (false, err.Message) : TryLoadPainting(painting!);
+        return !err ? (false, err.Message) : TryLoadPainting(painting!);
     }
 
     private (bool Success, string Error) TryLoadPainting(ResourceEntry painting)
     {
         var (texture, texErr) = _library.LoadCurrentResource();
-        if (!texErr.Success) return (false, texErr.Message);
+        if (!texErr) return (false, texErr.Message);
 
         _paintingWidth = texture!.GetWidth();
         _paintingHeight = texture.GetHeight();

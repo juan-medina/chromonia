@@ -25,7 +25,7 @@ public partial class MusicPlayer : AudioStreamPlayer
         AppError err;
         if (_library == null)
         {
-            err = new AppError(false, "MusicLibrary is null on music finished");
+            err = AppError.Fail("MusicLibrary is null on music finished");
             OnPlaybackFailed?.Invoke(err);
             GD.PrintErr(err.Message);
             return;
@@ -33,7 +33,7 @@ public partial class MusicPlayer : AudioStreamPlayer
 
         _library.MoveNext();
         err = PlayCurrent();
-        if (err.Success) return;
+        if (err) return;
 
         GD.PrintErr(err.Message);
         OnPlaybackFailed?.Invoke(err);
@@ -45,14 +45,14 @@ public partial class MusicPlayer : AudioStreamPlayer
         AppError err;
         if (_library == null)
         {
-            err = new AppError(false, "MusicLibrary is null on PlayCurrent");
+            err = AppError.Fail("MusicLibrary is null on PlayCurrent");
             OnPlaybackFailed?.Invoke(err);
             GD.PrintErr(err.Message);
             return err;
         }
 
         (Stream, err) = _library.LoadCurrentResource();
-        if (!err.Success) return err;
+        if (!err) return err;
 
         Play();
         return AppError.Ok();

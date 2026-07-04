@@ -3,8 +3,18 @@
 
 namespace Chromonia.Core;
 
-public record AppError(bool Success, string Message)
+public readonly struct AppError
 {
+    private readonly bool _success;
+    public readonly string Message;
+
+    private AppError(bool success, string message)
+    {
+        _success = success;
+        Message = message;
+    }
+
     public static AppError Ok() => new(true, string.Empty);
-    public static AppError Fail(string msg) => new(false, msg);
+    public static AppError Fail(string message) => new(false, message);
+    public static implicit operator bool(AppError e) => e._success;
 }

@@ -64,7 +64,7 @@ public abstract partial class ResourceLibrary<T> : Node where T : Resource
     public (T? Resource, AppError Err) LoadCurrentResource()
     {
         var (entry, err) = Current();
-        if (!err.Success) return (null, err);
+        if (!err) return (null, err);
 
         var path = FolderPath + entry!.File;
         var resource = ResourceLoader.Load<T>(path);
