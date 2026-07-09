@@ -12,6 +12,10 @@ public partial class BlobEnemy : RigidBody2D
     public Energy CurrentEnergy { get; private set; }
     public float Radius { get; private set; }
     public bool IsDissolving { get; private set; }
+    private Color DisplayColor { get; set; }
+
+    public const string GroupName = "Blobs";
+    private const float DissolveTime = 0.5F;
 
     public BlobEnemy(Energy energy, float radius)
     {
@@ -19,7 +23,7 @@ public partial class BlobEnemy : RigidBody2D
         CurrentEnergy = energy;
         Radius = radius;
 
-        AddToGroup("Blobs");
+        AddToGroup(GroupName);
 
         // Collision layers:
         // Layer 2 = Blob layer (what I am)
@@ -50,13 +54,8 @@ public partial class BlobEnemy : RigidBody2D
     {
     }
 
-    private Color DisplayColor { get; set; }
 
-    public void SetMerged(bool isMerged)
-    {
-        CurrentEnergy = isMerged ? Energy.Combined : BaseEnergy;
-    }
-
+    public void SetMerged(bool isMerged) => CurrentEnergy = isMerged ? Energy.Combined : BaseEnergy;
 
 
     public override void _Ready()
@@ -75,22 +74,23 @@ public partial class BlobEnemy : RigidBody2D
         QueueRedraw();
     }
 
+    public override void _ExitTree()
+    {
+        RemoveFromGroup(GroupName);
+        base._ExitTree();
+    }
+
     public void Dissolve()
     {
         if (IsDissolving) return;
         IsDissolving = true;
 
-        RemoveFromGroup("Blobs");
-
         SetDeferred(CollisionObject2D.PropertyName.CollisionLayer, 0);
         SetDeferred(CollisionObject2D.PropertyName.CollisionMask, 0);
 
-        var tween = CreateTween();
-        tween.TweenProperty(this, "scale", Vector2.Zero, 0.5f)
+        CreateTween().TweenProperty(this, "scale", Vector2.Zero, DissolveTime)
             .SetTrans(Tween.TransitionType.Back)
             .SetEase(Tween.EaseType.In);
-
-        if (GetParent() is not BlobCluster) tween.TweenCallback(Callable.From(QueueFree));
     }
 
     public override void _Draw()

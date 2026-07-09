@@ -353,7 +353,7 @@ public partial class Main : Node2D
 
     private void RegisterSpawnedBlobs()
     {
-        var nodes = GetTree().GetNodesInGroup("Blobs");
+        var nodes = GetTree().GetNodesInGroup(BlobEnemy.GroupName);
         var blobs = new List<BlobEnemy>();
         for (int i = 0; i < nodes.Count; i++)
         {
