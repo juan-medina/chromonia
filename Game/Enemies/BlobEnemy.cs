@@ -15,7 +15,7 @@ public partial class BlobEnemy : RigidBody2D
     private Color DisplayColor { get; set; }
 
     public const string GroupName = "Blobs";
-    private const float DissolveTime = 0.5F;
+    public const float DissolveTime = 0.5F;
 
     public BlobEnemy(Energy energy, float radius)
     {

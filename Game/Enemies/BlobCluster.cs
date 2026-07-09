@@ -19,6 +19,9 @@ public partial class BlobCluster : Node2D
     private const int MinRadius = 10;
     private const int MaxRadius = 20;
 
+    private const float WobbleFrequency = 50f;
+    private const float MaxWobbleAngle = 3.0f;
+
     // Noise to create erratic movement
     private FastNoiseLite _noise = null!;
     private double _timePassed;
@@ -88,11 +91,12 @@ public partial class BlobCluster : Node2D
 
         _timePassed += delta;
 
-        // Use noise to smoothly steer the cluster instead of pushing it
-        // The noise value is between -1 and 1. We multiply by a turning speed (e.g., 3.0 radians/sec).
-        float turnRate = _noise.GetNoise1D((float)_timePassed * 50f) * 3.0f;
+        // The noise creates a smooth, continuous 'wobble' to make the movement feel organic instead of perfectly straight.
+        // WobbleFrequency controls how fast it sweeps through the noise pattern.
+        // MaxWobbleAngle is the maximum angle (in radians) it can veer off-course per second.
+        float wobbleRate = _noise.GetNoise1D((float)_timePassed * WobbleFrequency) * MaxWobbleAngle;
 
-        _core.LinearVelocity = _core.LinearVelocity.Rotated(turnRate * (float)delta);
+        _core.LinearVelocity = _core.LinearVelocity.Rotated(wobbleRate * (float)delta);
 
         // Strictly enforce the exact speed at all times so it never slows down or speeds up
         if (_core.LinearVelocity.LengthSquared() > 0.1f)
@@ -113,7 +117,7 @@ public partial class BlobCluster : Node2D
                 blob.Dissolve();
 
         var tween = CreateTween();
-        tween.TweenInterval(0.5f);
+        tween.TweenInterval(BlobEnemy.DissolveTime);
         tween.TweenCallback(Callable.From(QueueFree));
     }
 }
