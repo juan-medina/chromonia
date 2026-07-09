@@ -10,7 +10,7 @@ public partial class BlobCluster : Node2D
 {
     private RigidBody2D _core = null!;
     private float _speed;
-    private Energy.Tint _tint;
+    private Energy _energy;
     private bool IsDissolving { get; set; }
 
 
@@ -27,9 +27,9 @@ public partial class BlobCluster : Node2D
     {
     }
 
-    public BlobCluster(Energy.Tint tint, float speed)
+    public BlobCluster(Energy energy, float speed)
     {
-        _tint = tint;
+        _energy = energy;
         _speed = speed;
         _noise = new FastNoiseLite { Seed = (int)GD.Randi(), Frequency = 0.5f };
     }
@@ -58,7 +58,7 @@ public partial class BlobCluster : Node2D
         for (int i = 0; i < subBlobs; i++)
         {
             float radius = GD.RandRange(MinRadius, MaxRadius);
-            var blob = new BlobEnemy(_tint, radius);
+            var blob = new BlobEnemy(_energy, radius);
 
             // Random offset so they don't spawn exactly inside each other
             float spawnAngle = (float)GD.RandRange(0, Mathf.Tau);

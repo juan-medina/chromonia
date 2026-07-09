@@ -75,7 +75,7 @@ public class PlayerController(Arrow.Arrow arrow, Line2D drawingLine)
     public void CycleColor()
     {
         arrow.Cycle();
-        if (State == PlayerState.Drawing) drawingLine.DefaultColor = arrow.CurrentEnergy.Line;
+        if (State == PlayerState.Drawing) drawingLine.DefaultColor = arrow.CurrentEnergy.Line();
     }
 
     public void CancelDrawing()
@@ -144,7 +144,7 @@ public class PlayerController(Arrow.Arrow arrow, Line2D drawingLine)
         _initialDrawDirection = inputDir;
         _startSegmentIndex = _segmentsOnPoint[0];
 
-        drawingLine.DefaultColor = arrow.CurrentEnergy.Line;
+        drawingLine.DefaultColor = arrow.CurrentEnergy.Line();
 
         _activeLine.Clear();
         _activeLine.Add(current);

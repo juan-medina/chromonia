@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: MIT
 
 using System.Collections.Generic;
-using Chromonia.Core;
 using Godot;
 
 namespace Chromonia.Main;
@@ -42,7 +41,7 @@ public class ClaimSystem(Node2D playfield, Node2D maskRoot, Line2D perimeterLine
         Polygon2D claimNode = new Polygon2D
         {
             Polygon = ConvertToMaskCoordinates(claimedPoly),
-            Color = arrow.CurrentEnergy.Fill with { A = 0.0f }
+            Color = arrow.CurrentEnergy.Fill() with { A = 0.0f }
         };
         maskRoot.AddChild(claimNode);
 

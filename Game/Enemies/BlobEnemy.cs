@@ -8,16 +8,15 @@ namespace Chromonia.Enemies;
 
 public partial class BlobEnemy : RigidBody2D
 {
-    public Energy BlobEnergy { get; } = new();
-    public Energy.Tint BaseTint { get; private set; }
+    public Energy BaseEnergy { get; private set; }
+    public Energy CurrentEnergy { get; private set; }
     public float Radius { get; private set; }
     public bool IsDissolving { get; private set; }
 
-
-    public BlobEnemy(Energy.Tint tint, float radius)
+    public BlobEnemy(Energy energy, float radius)
     {
-        BaseTint = tint;
-        BlobEnergy.CurrentTint = tint;
+        BaseEnergy = energy;
+        CurrentEnergy = energy;
         Radius = radius;
 
         AddToGroup("Blobs");
@@ -42,20 +41,27 @@ public partial class BlobEnemy : RigidBody2D
 
         var shape = new CollisionShape2D
         {
-            Shape = new CircleShape2D { Radius = this.Radius }
+            Shape = new CircleShape2D { Radius = Radius }
         };
         AddChild(shape);
     }
-
-    private Color DisplayColor { get; set; }
 
     public BlobEnemy()
     {
     }
 
+    private Color DisplayColor { get; set; }
+
+    public void SetMerged(bool isMerged)
+    {
+        CurrentEnergy = isMerged ? Energy.Combined : BaseEnergy;
+    }
+
+
+
     public override void _Ready()
     {
-        DisplayColor = BlobEnergy.Fill;
+        DisplayColor = CurrentEnergy.Fill();
 
         var shader = ResourceLoader.Load<Shader>("res://Enemies/blob_soft.gdshader");
         Material = new ShaderMaterial { Shader = shader };
@@ -65,7 +71,7 @@ public partial class BlobEnemy : RigidBody2D
     {
         if (IsDissolving) return;
         // Smoothly transition the display color towards the target logical color
-        DisplayColor = DisplayColor.Lerp(BlobEnergy.Fill, (float)delta * 10.0f);
+        DisplayColor = DisplayColor.Lerp(CurrentEnergy.Fill(), (float)delta * 10.0f);
         QueueRedraw();
     }
 
@@ -84,10 +90,7 @@ public partial class BlobEnemy : RigidBody2D
             .SetTrans(Tween.TransitionType.Back)
             .SetEase(Tween.EaseType.In);
 
-        if (GetParent() is not BlobCluster)
-        {
-            tween.TweenCallback(Callable.From(QueueFree));
-        }
+        if (GetParent() is not BlobCluster) tween.TweenCallback(Callable.From(QueueFree));
     }
 
     public override void _Draw()

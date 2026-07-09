@@ -26,10 +26,10 @@ public partial class SharedProgressBar : Control
     {
         UpdateProgress(0f, 0f);
 
-        _fillA.Modulate = Energy.A.Fill;
-        _fillB.Modulate = Energy.B.Fill;
-        _markerA.Modulate = Energy.A.Marker;
-        _markerB.Modulate = Energy.B.Marker;
+        _fillA.Modulate = Energy.A.Fill();
+        _fillB.Modulate = Energy.B.Fill();
+        _markerA.Modulate = Energy.A.Marker();
+        _markerB.Modulate = Energy.B.Marker();
     }
 
     public void UpdateProgress(float percentA, float percentB)

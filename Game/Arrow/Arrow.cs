@@ -23,7 +23,7 @@ public partial class Arrow : Sprite2D
     private const float RotationSpeed = Mathf.Pi / RotationTime; // Radians per second
     private const float ImmuneTime = 2.0f;
 
-    public Energy CurrentEnergy { get; } = new();
+    public Energy CurrentEnergy { get; private set; } = Energy.A;
     public ArrowState State { get; private set; } = ArrowState.Normal;
 
     private float _stateDurationRemaining;
@@ -33,7 +33,6 @@ public partial class Arrow : Sprite2D
     {
         base._Ready();
 
-        CurrentEnergy.CurrentTint = Energy.Tint.A;
         SetColor();
 
         _targetRotation = Rotation;
@@ -41,13 +40,13 @@ public partial class Arrow : Sprite2D
 
     private void SetColor()
     {
-        var marker = CurrentEnergy.Marker;
+        var marker = CurrentEnergy.Marker();
         SelfModulate = new Color(marker.R * PulsateMinGlow, marker.G * PulsateMinGlow, marker.B * PulsateMinGlow);
     }
 
     public void Cycle()
     {
-        CurrentEnergy.Cycle();
+        CurrentEnergy = CurrentEnergy.Cycle();
         SetColor();
     }
 

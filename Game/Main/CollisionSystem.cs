@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: MIT
 
 using System.Collections.Generic;
-using Chromonia.Core;
 using Chromonia.Enemies;
 using Godot;
 
@@ -21,19 +20,19 @@ public class CollisionSystem(Node2D playfield, Arrow.Arrow arrow)
             if (_activeBlobs[i].IsDissolving || !GodotObject.IsInstanceValid(_activeBlobs[i])) _activeBlobs.RemoveAt(i);
         }
 
-        for (int i = 0; i < _activeBlobs.Count; i++) _activeBlobs[i].BlobEnergy.CurrentTint = _activeBlobs[i].BaseTint;
+        for (int i = 0; i < _activeBlobs.Count; i++) _activeBlobs[i].SetMerged(false);
 
         for (int i = 0; i < _activeBlobs.Count; i++)
         {
             for (int j = i + 1; j < _activeBlobs.Count; j++)
             {
-                if (_activeBlobs[i].BaseTint == _activeBlobs[j].BaseTint) continue;
+                if (_activeBlobs[i].BaseEnergy == _activeBlobs[j].BaseEnergy) continue;
 
                 float dynamicMergeDistance = _activeBlobs[i].Radius + _activeBlobs[j].Radius + 15f;
                 if (!(_activeBlobs[i].GlobalPosition.DistanceTo(_activeBlobs[j].GlobalPosition) <
                       dynamicMergeDistance)) continue;
-                _activeBlobs[i].BlobEnergy.CurrentTint = Energy.Tint.Combined;
-                _activeBlobs[j].BlobEnergy.CurrentTint = Energy.Tint.Combined;
+                _activeBlobs[i].SetMerged(true);
+                _activeBlobs[j].SetMerged(true);
             }
         }
     }
@@ -49,8 +48,8 @@ public class CollisionSystem(Node2D playfield, Arrow.Arrow arrow)
         {
             var blob = _activeBlobs[i];
 
-            if (blob.BlobEnergy.CurrentTint == arrow.CurrentEnergy.CurrentTint &&
-                blob.BlobEnergy.CurrentTint != Energy.Tint.Combined)
+            if (blob.CurrentEnergy == arrow.CurrentEnergy &&
+                blob.CurrentEnergy != Energy.Combined)
                 continue;
 
             if (blob.GlobalPosition.DistanceTo(arrow.GlobalPosition) < blob.Radius + arrowRadius)
@@ -87,8 +86,8 @@ public class CollisionSystem(Node2D playfield, Arrow.Arrow arrow)
         for (int i = 0; i < trappedBlobs.Count; i++)
         {
             var blob = trappedBlobs[i];
-            if (blob.BlobEnergy.CurrentTint == arrow.CurrentEnergy.CurrentTint ||
-                blob.BlobEnergy.CurrentTint == Energy.Tint.Combined)
+            if (blob.CurrentEnergy == arrow.CurrentEnergy ||
+                blob.CurrentEnergy == Energy.Combined)
                 return true;
         }
 

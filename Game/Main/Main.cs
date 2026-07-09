@@ -372,9 +372,9 @@ public partial class Main : Node2D
 
         for (int i = 0; i < ClusterCount; i++)
         {
-            var tint = (i % 2 == 0) ? Energy.Tint.A : Energy.Tint.B;
+            var energy = (i % 2 == 0) ? Energy.A : Energy.B;
             float speed = (float)GD.RandRange(MinBlobSpeed, MaxBlobSpeed);
-            var cluster = new Enemies.BlobCluster(tint, speed);
+            var cluster = new Enemies.BlobCluster(energy, speed);
 
             float px = (float)GD.RandRange(bounds.Position.X + 70f, bounds.End.X - 70f);
             float py = (float)GD.RandRange(bounds.Position.Y + 70f, bounds.End.Y - 70f);
@@ -425,7 +425,7 @@ public partial class Main : Node2D
 
     private void UpdateProgressAndCheckWin(float claimedArea)
     {
-        if (_arrow.CurrentEnergy.Primary)
+        if (_arrow.CurrentEnergy == Energy.A)
             _claimedAreaA += claimedArea;
         else
             _claimedAreaB += claimedArea;
