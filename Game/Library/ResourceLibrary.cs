@@ -51,14 +51,14 @@ public abstract partial class ResourceLibrary<T> : Node where T : Resource
     {
         if (_entries.Count == 0) return;
 
-        if (_index + 1 < _entries.Count)
+        // do not modify index if we need to shuffle
+        if (_index + 1 >= _entries.Count)
         {
-            _index++;
+            Shuffle();
             return;
         }
 
-        Shuffle();
-        _index = 0;
+        _index++;
     }
 
     public Result<T> LoadCurrentResource()
@@ -88,12 +88,8 @@ public abstract partial class ResourceLibrary<T> : Node where T : Resource
 
                 var metadata = new Dictionary<string, string>();
                 if (element.TryGetProperty("metadata", out var metaElement))
-                {
                     foreach (var prop in metaElement.EnumerateObject())
-                    {
                         metadata[prop.Name] = prop.Value.GetString() ?? string.Empty;
-                    }
-                }
 
                 _entries.Add(new ResourceEntry(
                     fileProp,
@@ -115,15 +111,22 @@ public abstract partial class ResourceLibrary<T> : Node where T : Resource
     {
         if (_entries.Count <= 1) return;
 
+        // the entry AT the current index
         var at = _entries.Count > 0 && _index < _entries.Count ? _entries[_index] : null;
 
+        // In-place Fisher-Yates shuffle, 0 allocations. Iterating back to front ensures each
+        // randomly swapped item is locked into place, guaranteeing an unbiased distribution.
         for (int i = _entries.Count - 1; i > 0; i--)
         {
             int j = GD.RandRange(0, i);
             (_entries[i], _entries[j]) = (_entries[j], _entries[i]);
         }
 
+        // if we have the same entry AT the current index, swap it with the next entry
         if (at is not null && at.File == _entries[0].File)
             (_entries[0], _entries[1]) = (_entries[1], _entries[0]);
+
+        // we start from the beginning
+        _index = 0;
     }
 }
