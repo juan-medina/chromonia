@@ -3,6 +3,13 @@
 
 shader_type canvas_item;
 
+
+// Applied to the group container holding all the fuzzy blobs.
+// It looks at all the overlapping blurry circles and "snaps" their blur into a sharp, crisp edge.
+// Because the blurs overlap, this snapping effect makes the blobs look like drops of liquid
+// that perfectly merge and stick together (commonly known as a 'metaball' effect).
+// It also makes the liquid bright and adds a glowing outline around the edges.
+
 void fragment() {
     vec4 c = texture(TEXTURE, UV);
 
