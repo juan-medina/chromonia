@@ -89,12 +89,6 @@ public partial class Main : Node2D
 
         if (!InitSystems()) return;
 
-        _transitionProgressBar.Visible = false;
-        if (_transitionProgressBar.TextureProgress is GradientTexture1D gradTex && gradTex.Gradient is not null)
-        {
-            gradTex.Gradient.Colors = [Energy.A.Fill(), Energy.B.Fill()];
-        }
-
         SetupLevel();
     }
 
@@ -164,8 +158,15 @@ public partial class Main : Node2D
         }
 
         SpawnEnemies(_scaledWidth, _scaledHeight);
-
         SetupArrow();
+        SetupTransitionProgressBar();
+    }
+
+    private void SetupTransitionProgressBar()
+    {
+        _transitionProgressBar.Visible = false;
+        (_transitionProgressBar.TextureProgress as GradientTexture1D)!.Gradient.Colors =
+            [Energy.A.Fill(), Energy.B.Fill()];
     }
 
     private void OnMusicStarted(Result<ResourceEntry> result)

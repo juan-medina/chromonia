@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Chromonia"
-config/version="0.1.1969"
+config/version="0.1.1985"
 run/main_scene="uid://bujvwvf4xmwo0"
 config/features=PackedStringArray("4.6", "C#", "Forward Plus")
 boot_splash/bg_color=Color(0, 0, 0, 1)
