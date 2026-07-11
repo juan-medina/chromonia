@@ -11,10 +11,11 @@ config_version=5
 [application]
 
 config/name="Chromonia"
-config/version="0.1.1988"
+config/version="0.1.2039"
 run/main_scene="uid://bujvwvf4xmwo0"
 config/features=PackedStringArray("4.6", "C#", "Forward Plus")
 boot_splash/bg_color=Color(0, 0, 0, 1)
+boot_splash/show_image=false
 config/icon="res://icon.svg"
 
 [audio]
@@ -23,6 +24,7 @@ buses/default_bus_layout="uid://drsl4y4op4opw"
 
 [autoload]
 
+SettingsManager="*res://Core/SettingsManager.cs"
 PaintingLibrary="*uid://dl7mukxiiwvoo"
 MusicLibrary="*uid://dygsxk1w1iyrv"
 MusicPlayer="*uid://dmgxynxx0nxn7"
@@ -32,6 +34,7 @@ TransitionManager="*res://Transition/TransitionManager.tscn"
 
 window/size/viewport_width=1920
 window/size/viewport_height=1080
+window/size/mode=1
 window/stretch/mode="viewport"
 window/stretch/aspect="expand"
 
