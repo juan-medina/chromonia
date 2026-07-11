@@ -7,12 +7,12 @@
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_stunned"]
 shader = ExtResource("3_vvo1s")
 shader_parameter/blink_frequency = 5.0
-shader_parameter/blink_color = Color(1, 0, 0, 1)
+shader_parameter/blink_color = Color(2, 0, 0, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_immune"]
 shader = ExtResource("3_vvo1s")
 shader_parameter/blink_frequency = 5.0
-shader_parameter/blink_color = Color(0.827451, 0.827451, 0.827451, 1)
+shader_parameter/blink_color = Color(2.2, 2.2, 1.2, 1)
 
 [node name="Arrow" type="Sprite2D" unique_id=54182347]
 texture = ExtResource("1_umosx")

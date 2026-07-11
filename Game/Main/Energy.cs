@@ -17,17 +17,17 @@ public static class EnergyExtensions
     // A - Cyan
     private static readonly Color LineA = new(0.6f, 2.2f, 2.2f);
     private static readonly Color FillA = new(0.0f, 1.8f, 1.8f);
-    private static readonly Color MarkerA = new(0.6f, 1.0f, 1.0f);
+    private static readonly Color MarkerA = new(0.6f, 2.2f, 2.2f);
 
     // B - Magenta
     private static readonly Color LineB = new(2.4f, 0.2f, 2.4f);
     private static readonly Color FillB = new(2.0f, 0.0f, 2.0f);
-    private static readonly Color MarkerB = new(1.0f, 0.4f, 1.0f);
+    private static readonly Color MarkerB = new(2.4f, 0.2f, 2.4f);
 
     // Combined - Yellow/White
     private static readonly Color LineCombined = new(2.2f, 2.2f, 1.2f);
-    private static readonly Color FillCombined = new(1.8f, 1.8f, 0.8f);
-    private static readonly Color MarkerCombined = new(1.0f, 1.0f, 0.8f);
+    private static readonly Color FillCombined = new(2.2f, 2.2f, 1.2f);
+    private static readonly Color MarkerCombined = new(2.2f, 2.2f, 1.2f);
 
     public static Color Line(this Energy type) => type switch
     {
