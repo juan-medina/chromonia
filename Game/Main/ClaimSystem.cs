@@ -17,7 +17,7 @@ public class ClaimSystem(Node2D playfield, Node2D maskRoot, Line2D perimeterLine
         _scaledHeight = scaledHeight;
     }
 
-    public (Vector2[] ClaimedPoly, Vector2[] NewPerimeter, float ClaimedArea) DetermineClaimedPolygon(
+    public static (Vector2[] ClaimedPoly, Vector2[] NewPerimeter, float ClaimedArea) DetermineClaimedPolygon(
         Vector2[] perimeter, int startSeg, int hitSegmentIndex, Vector2[] activeArray)
     {
         var poly1 = GeometryUtils.BuildPolygon(perimeter, startSeg, hitSegmentIndex, activeArray, forward: true);

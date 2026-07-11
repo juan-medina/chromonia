@@ -188,7 +188,7 @@ public partial class Main : Node2D
         var activeArray = _playerSystem.ActiveLine.ToArray();
 
         // create a poligon with those lines
-        var (claimedPoly, newPerimeter, claimedArea) = _claimSystem.DetermineClaimedPolygon(
+        var (claimedPoly, newPerimeter, claimedArea) = ClaimSystem.DetermineClaimedPolygon(
             Perimeter, _playerSystem.StartSegmentIndex, hitSegmentIndex, activeArray);
 
         // get trapped blobs
