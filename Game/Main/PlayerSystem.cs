@@ -46,10 +46,11 @@ public class PlayerSystem(Arrow.Arrow arrow, Line2D drawingLine)
 
         var velocity = new Vector2(vx, vy) * speed;
         var inputDir = new Vector2(vx, vy);
+        var inputDirNorm = inputDir.Normalized();
 
         if (State == PlayerState.Drawing)
         {
-            if (inputDir != -_lastDrawDirection && IsOnSelfLine())
+            if (!inputDirNorm.IsEqualApprox(-_lastDrawDirection) && IsOnSelfLine())
             {
                 return;
             }
@@ -60,10 +61,10 @@ public class PlayerSystem(Arrow.Arrow arrow, Line2D drawingLine)
         switch (State)
         {
             case PlayerState.OnPerimeter:
-                ProcessOnPerimeter(velocity, inputDir, vy, perimeter);
+                ProcessOnPerimeter(velocity, inputDirNorm, vy, perimeter);
                 break;
             case PlayerState.Drawing:
-                ProcessDrawing(velocity, inputDir, perimeter);
+                ProcessDrawing(velocity, inputDirNorm, perimeter);
                 break;
             case PlayerState.Won:
                 break;
@@ -107,7 +108,7 @@ public class PlayerSystem(Arrow.Arrow arrow, Line2D drawingLine)
         return false;
     }
 
-    private void ProcessOnPerimeter(Vector2 velocity, Vector2 inputDir, float vy, Vector2[] perimeter)
+    private void ProcessOnPerimeter(Vector2 velocity, Vector2 inputDirNorm, float vy, Vector2[] perimeter)
     {
         Vector2 current = arrow.Position;
         UpdateSegmentsOnPoint(current, perimeter);
@@ -136,12 +137,12 @@ public class PlayerSystem(Arrow.Arrow arrow, Line2D drawingLine)
 
         if (movedOnPerimeter) return;
 
-        Vector2 testPoint = current + inputDir * 1.0f;
+        Vector2 testPoint = current + inputDirNorm * 1.0f;
         if (!Geometry2D.IsPointInPolygon(testPoint, perimeter)) return;
 
         State = PlayerState.Drawing;
-        _lastDrawDirection = inputDir;
-        _initialDrawDirection = inputDir;
+        _lastDrawDirection = inputDirNorm;
+        _initialDrawDirection = inputDirNorm;
         _startSegmentIndex = _segmentsOnPoint[0];
 
         drawingLine.DefaultColor = arrow.CurrentEnergy.Line();
@@ -155,14 +156,14 @@ public class PlayerSystem(Arrow.Arrow arrow, Line2D drawingLine)
         drawingLine.AddPoint(current);
     }
 
-    private void ProcessDrawing(Vector2 velocity, Vector2 inputDir, Vector2[] perimeter)
+    private void ProcessDrawing(Vector2 velocity, Vector2 inputDirNorm, Vector2[] perimeter)
     {
-        bool backtracking = inputDir == -_lastDrawDirection;
+        bool backtracking = inputDirNorm.IsEqualApprox(-_lastDrawDirection);
 
         if (backtracking)
             HandleBacktracking(velocity);
         else
-            HandleAdvancing(velocity, inputDir, perimeter);
+            HandleAdvancing(velocity, inputDirNorm, perimeter);
 
         if (State != PlayerState.Drawing) return;
 
@@ -190,7 +191,7 @@ public class PlayerSystem(Arrow.Arrow arrow, Line2D drawingLine)
         }
     }
 
-    private void HandleAdvancing(Vector2 velocity, Vector2 inputDir, Vector2[] perimeter)
+    private void HandleAdvancing(Vector2 velocity, Vector2 inputDirNorm, Vector2[] perimeter)
     {
         Vector2 moveA = arrow.Position;
         Vector2 moveB = arrow.Position + velocity;
@@ -234,11 +235,11 @@ public class PlayerSystem(Arrow.Arrow arrow, Line2D drawingLine)
         }
         else
         {
-            if (inputDir != _lastDrawDirection)
+            if (!inputDirNorm.IsEqualApprox(_lastDrawDirection))
             {
                 _activeLine.Insert(_activeLine.Count - 1, arrow.Position);
                 drawingLine.AddPoint(arrow.Position, drawingLine.GetPointCount() - 1);
-                _lastDrawDirection = inputDir;
+                _lastDrawDirection = inputDirNorm;
             }
 
             arrow.Position += velocity;
