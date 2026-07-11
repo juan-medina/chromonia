@@ -8,11 +8,17 @@ namespace Chromonia.Music;
 
 public partial class MusicPlayer : AudioStreamPlayer
 {
-    private Library.MusicLibrary? _library;
+    private Library.MusicLibrary _library = null!;
     public event System.Action<Result>? OnPlaybackFailed;
+    public event System.Action<Result<Library.ResourceEntry>>? OnPlaybackStarted;
+
+    private bool _ready;
 
     public override void _Ready()
     {
+        _library = GetNodeOrNull<Library.MusicLibrary>("/root/MusicLibrary");
+        _ready = _library is not null;
+
         ProcessMode = ProcessModeEnum.Always;
         Finished += OnFinished;
         Bus = "Music";
@@ -22,30 +28,21 @@ public partial class MusicPlayer : AudioStreamPlayer
 
     private void OnFinished()
     {
-        Result err;
-        if (_library == null)
-        {
-            err = Result.Fail("MusicLibrary is null on music finished");
-            OnPlaybackFailed?.Invoke(err);
-            GD.PrintErr(err.Message);
-            return;
-        }
+        if (!_ready) return;
 
         _library.MoveNext();
-        err = PlayCurrent();
-        if (err) return;
+        var result = PlayCurrent();
+        if (result) return;
 
-        GD.PrintErr(err.Message);
-        OnPlaybackFailed?.Invoke(err);
+        GD.PrintErr(result.Message);
+        OnPlaybackFailed?.Invoke(result);
     }
 
     private Result PlayCurrent()
     {
-        _library ??= GetNodeOrNull<Library.MusicLibrary>("/root/MusicLibrary");
-        Result err;
-        if (_library == null)
+        if (!_ready)
         {
-            err = Result.Fail("MusicLibrary is null on PlayCurrent");
+            var err = Result.Fail("MusicLibrary is not ready on PlayCurrent");
             OnPlaybackFailed?.Invoke(err);
             GD.PrintErr(err.Message);
             return err;
@@ -56,6 +53,7 @@ public partial class MusicPlayer : AudioStreamPlayer
 
         Stream = result.Value;
         Play();
+        OnPlaybackStarted?.Invoke(_library.Current());
         return Result.Ok();
     }
 }

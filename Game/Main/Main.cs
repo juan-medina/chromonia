@@ -84,19 +84,7 @@ public partial class Main : Node2D
             return;
         }
 
-        _music = GetNode<MusicPlayer>("/root/MusicPlayer");
-        if (_music is null)
-        {
-            HandleFatalError("MusicPlayer global autoload is missing.");
-            return;
-        }
-
-        var musicErr = _music.TryPlayMusic();
-        if (!musicErr)
-        {
-            HandleFatalError(musicErr.Message);
-            return;
-        }
+        if (!InitMusic()) return;
 
         _transition = GetNode<TransitionManager>("/root/TransitionManager");
         if (_transition is null)
@@ -105,14 +93,12 @@ public partial class Main : Node2D
             return;
         }
 
-        _music.OnPlaybackFailed += OnFatalAppError;
         _transition.OnTransitionFailed += OnFatalAppError;
 
         _playerController = new PlayerController(_arrow, _drawingLine);
         _playerController.OnClaimTriggered += HandleClaimTriggered;
 
         _collisionSystem = new CollisionSystem(_playfield, _arrow);
-
         _claimSystem = new ClaimSystem(_playfield, _maskRoot, _perimeterLine, _arrow);
 
         var result = TryLoadCurrentPainting();
@@ -123,6 +109,38 @@ public partial class Main : Node2D
         }
 
         SetupArrow();
+    }
+
+    private bool InitMusic()
+    {
+        Result result;
+        _music = GetNode<MusicPlayer>("/root/MusicPlayer");
+        if (_music is null)
+        {
+            result = Result.Fail("MusicPlayer global autoload is missing.");
+        }
+        else
+        {
+            _music.OnPlaybackFailed += OnFatalAppError;
+            _music.OnPlaybackStarted += OnMusicStarted;
+
+            result = _music.TryPlayMusic();
+        }
+
+
+        if (!result) HandleFatalError(result.Message);
+        return result;
+    }
+
+    private void OnMusicStarted(Result<ResourceEntry> result)
+    {
+        if (!result)
+        {
+            OnFatalAppError(Result.Fail(result.ErrorMessage));
+            return;
+        }
+
+        GD.Print($"Now playing: {result.Value.Name} by {result.Value.Author}");
     }
 
     public override void _ExitTree()
