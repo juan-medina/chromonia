@@ -12,6 +12,7 @@ using MusicPlayer = Chromonia.Music.MusicPlayer;
 using PaintingLibrary = Chromonia.Library.PaintingLibrary;
 using SharedProgressBar = Chromonia.UI.SharedProgressBar;
 using ToastNotification = Chromonia.UI.ToastNotification;
+using GalleryPlaque = Chromonia.UI.GalleryPlaque;
 using TransitionManager = Chromonia.Transition.TransitionManager;
 
 namespace Chromonia.Main;
@@ -26,8 +27,6 @@ public partial class Main : Node2D
     [Export] private Node2D _maskRoot = null!;
     [Export] private Sprite2D _painting = null!;
     [Export] private Node2D _playfield = null!;
-    [Export] private Label _title = null!;
-    [Export] private Label _artist = null!;
     [Export] private Arrow.Arrow _arrow = null!;
     [Export] private SharedProgressBar _progressBar = null!;
     [Export] private CanvasGroup _blobsLayer = null!;
@@ -42,10 +41,13 @@ public partial class Main : Node2D
     [Export] private AudioStreamPlayer2D _sfxWaterDrop = null!;
     [Export] private AudioStreamPlayer2D _sfxPaintStroke = null!;
     [Export] private ToastNotification _toastNotification = null!;
+    [Export] private GalleryPlaque _galleryPlaque = null!;
+    [Export] private TextureProgressBar _transitionProgressBar = null!;
+
+    private bool _isAdvancingToNextRound;
 
     private const int ViewportWidth = 1920;
     private const int ViewportHeight = 1080;
-    private const float LabelPadding = 10f;
     private static readonly Color BorderColor = new(0.75f, 2.25f, 0.75f);
     private const float BorderThickness = 5f;
     private const float ArrowSpeed = 300f;
@@ -54,7 +56,10 @@ public partial class Main : Node2D
     private const float SideMargin = 25f;
     private const float AvailableWidth = ViewportWidth - (SideMargin * 2);
     private const float AvailableHeight = ViewportHeight - (TopMargin + BottomMargin);
-    private const float RevealTime = 1.0F;
+    private const float RevealTime = 1.0f;
+    private const float PlaqueDisplayTime = 4.0f;
+    private const float TransitionDelay = 0.15f;
+    private const float TotalWaitTime = RevealTime + PlaqueDisplayTime + TransitionDelay;
     private const float MinBlobSpeed = 50f;
     private const float MaxBlobSpeed = 350f;
     private const int ClusterCount = 8;
@@ -83,6 +88,12 @@ public partial class Main : Node2D
         if (!InitGlobals()) return;
 
         if (!InitSystems()) return;
+
+        _transitionProgressBar.Visible = false;
+        if (_transitionProgressBar.TextureProgress is GradientTexture1D gradTex && gradTex.Gradient is not null)
+        {
+            gradTex.Gradient.Colors = [Energy.A.Fill(), Energy.B.Fill()];
+        }
 
         SetupLevel();
     }
@@ -296,8 +307,7 @@ public partial class Main : Node2D
 
         if (_playerSystem.State == PlayerState.Won)
         {
-            _library.MoveNext();
-            _transition.ReloadCurrentScene();
+            AdvanceToNextPainting();
             return;
         }
 
@@ -327,9 +337,34 @@ public partial class Main : Node2D
         tween.SetParallel(false);
         tween.TweenCallback(Callable.From(() => _painting.Material = null));
 
-        // show the painting labels
-        _title.Visible = true;
-        _artist.Visible = true;
+        // Show gallery plaque
+        var paintingResult = _library.Current();
+        if (!paintingResult)
+        {
+            OnFatalAppError(Result.Fail(paintingResult.ErrorMessage));
+            return;
+        }
+
+        var paintingInfo = paintingResult.Value;
+
+        string title = $"{paintingInfo.Name} ({paintingInfo.Metadata.GetValueOrDefault("years", "")})";
+        string artist = $"{paintingInfo.Author} ({paintingInfo.Metadata.GetValueOrDefault("nationality", "")})";
+
+        // Set plaque position to bottom-right of the painting texture
+        // Since painting is centered, the bottom-right corner is (width/2, height/2)
+        _galleryPlaque.Position = new Vector2(_paintingWidth / 2f, _paintingHeight / 2f);
+
+        // Show plaque after the painting finishes zooming/revealing
+        tween.TweenCallback(Callable.From(() => _galleryPlaque.ShowPlaque(title, artist, PlaqueDisplayTime)));
+
+        // Animate the transition progress bar over PlaqueDisplayTime
+        tween.TweenCallback(Callable.From(() => _transitionProgressBar.Visible = true));
+        _transitionProgressBar.Value = 0.0f;
+        tween.TweenProperty(_transitionProgressBar, "value", 1.0f, PlaqueDisplayTime);
+
+        // Set the timer for automatic advancement
+        GetTree().CreateTimer(TotalWaitTime).Timeout += AdvanceToNextPainting;
+
         _arrow.Visible = false;
 
         // hide the drawing line and perimter
@@ -337,13 +372,22 @@ public partial class Main : Node2D
         _drawingLine.Visible = false;
     }
 
+    private void AdvanceToNextPainting()
+    {
+        if (_isAdvancingToNextRound) return;
+        _isAdvancingToNextRound = true;
+
+        _library.MoveNext();
+        _transition.ReloadCurrentScene();
+    }
+
     private Result TryLoadCurrentPainting()
     {
         var result = _library.Current();
-        return !result ? Result.Fail(result.ErrorMessage) : TryLoadPainting(result.Value);
+        return !result ? Result.Fail(result.ErrorMessage) : TryLoadPainting();
     }
 
-    private Result TryLoadPainting(ResourceEntry painting)
+    private Result TryLoadPainting()
     {
         var result = _library.LoadCurrentResource();
         if (!result) return Result.Fail(result.ErrorMessage);
@@ -358,7 +402,6 @@ public partial class Main : Node2D
 
         CalculateDimensionsAndScale();
         PositionElements();
-        SetupLabels(painting);
         SetupShaderMask();
 
         CreateBorder(_scaledWidth, _scaledHeight, BorderColor, BorderThickness);
@@ -385,19 +428,6 @@ public partial class Main : Node2D
 
         _dropShadow.Size = new Vector2(_paintingWidth, _paintingHeight);
         _dropShadow.Position = new Vector2(-_paintingWidth / 2f, -_paintingHeight / 2f);
-    }
-
-    private void SetupLabels(ResourceEntry painting)
-    {
-        var topLeft = new Vector2(-_paintingWidth / 2f + LabelPadding, -_paintingHeight / 2f + LabelPadding);
-
-        _title.Position = topLeft;
-        _title.Text = $"{painting.Name} ({painting.Metadata.GetValueOrDefault("years", "")})";
-        _title.AddThemeColorOverride("font_color", new Color(1.5F, 1.5F, 1.5F));
-
-        _artist.Position = topLeft + new Vector2(0, _title.Size.Y > 0 ? _title.Size.Y : 24f);
-        _artist.Text = $"{painting.Author} ({painting.Metadata.GetValueOrDefault("nationality", "")})";
-        _artist.AddThemeColorOverride("font_color", new Color(1.5F, 1.5F, 1.5F));
     }
 
     private void SetupShaderMask()

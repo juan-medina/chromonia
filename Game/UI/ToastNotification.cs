@@ -10,6 +10,8 @@ public partial class ToastNotification : MarginContainer
     [Export] private Label _titleLabel = null!;
     [Export] private Label _subtitleLabel = null!;
 
+    private const float FadeDuration = 0.5f;
+
     public override void _Ready()
     {
         Modulate = new Color(1, 1, 1, 0); // Hide initially
@@ -21,8 +23,8 @@ public partial class ToastNotification : MarginContainer
         _subtitleLabel.Text = subtitle;
 
         var tween = CreateTween();
-        tween.TweenProperty(this, "modulate:a", 1.0f, 0.5f);
+        tween.TweenProperty(this, "modulate:a", 1.0f, FadeDuration);
         tween.TweenInterval(duration);
-        tween.TweenProperty(this, "modulate:a", 0.0f, 0.5f);
+        tween.TweenProperty(this, "modulate:a", 0.0f, FadeDuration);
     }
 }
