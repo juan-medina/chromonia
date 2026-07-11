@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://c33j3aytggu4p"
+path="res://.godot/imported/goldberg_variations_BWV_988 _Aria.ogg-ae30a222bf50ce67ab4a4f0d83005be8.oggvorbisstr"
+
+[deps]
+
+source_file="res://Music/Songs/goldberg_variations_BWV_988 _Aria.ogg"
+dest_files=["res://.godot/imported/goldberg_variations_BWV_988 _Aria.ogg-ae30a222bf50ce67ab4a4f0d83005be8.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
