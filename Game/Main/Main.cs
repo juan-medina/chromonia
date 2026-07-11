@@ -11,6 +11,7 @@ using BlobEnemy = Chromonia.Enemies.BlobEnemy;
 using MusicPlayer = Chromonia.Music.MusicPlayer;
 using PaintingLibrary = Chromonia.Library.PaintingLibrary;
 using SharedProgressBar = Chromonia.UI.SharedProgressBar;
+using ToastNotification = Chromonia.UI.ToastNotification;
 using TransitionManager = Chromonia.Transition.TransitionManager;
 
 namespace Chromonia.Main;
@@ -40,6 +41,7 @@ public partial class Main : Node2D
     [Export] private AudioStreamPlayer2D _sfxSnap = null!;
     [Export] private AudioStreamPlayer2D _sfxWaterDrop = null!;
     [Export] private AudioStreamPlayer2D _sfxPaintStroke = null!;
+    [Export] private ToastNotification _toastNotification = null!;
 
     private const int ViewportWidth = 1920;
     private const int ViewportHeight = 1080;
@@ -163,7 +165,10 @@ public partial class Main : Node2D
             return;
         }
 
-        GD.Print($"Now playing: {result.Value.Name} by {result.Value.Author}");
+        var entry = result.Value;
+        string subtitle = $"{entry.Name} by {entry.Author}\nPerformed by: {entry.Metadata["performer"]}";
+
+        _toastNotification.ShowToast("Now Playing", subtitle);
     }
 
     public override void _ExitTree()

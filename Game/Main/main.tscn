@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://dxhwomcmo5bio" path="res://Arrow/arrow.tscn" id="4_rj11h"]
 [ext_resource type="Texture2D" uid="uid://da27hv6rxfri3" path="res://Background/canvas.jpg" id="5_qac2q"]
 [ext_resource type="PackedScene" uid="uid://bfytw5fks6f4w" path="res://UI/shared_progress_bar.tscn" id="6_o60nc"]
+[ext_resource type="PackedScene" path="res://UI/toast_notification.tscn" id="17_toast"]
 [ext_resource type="Shader" uid="uid://dwmn3qansqxuf" path="res://Enemies/blob_merge.gdshader" id="7_blob"]
 [ext_resource type="AudioStream" uid="uid://brxsb307tc6yi" path="res://Main/Sounds/pencil_continue_loop.wav" id="8_f6fdm"]
 [ext_resource type="AudioStream" uid="uid://bjm36kbgx1i62" path="res://Main/Sounds/pencil_eraser.wav" id="9_rj11h"]
@@ -45,7 +46,7 @@ stream_2/stream = ExtResource("13_l5bfp")
 stream_3/stream = ExtResource("14_guo5i")
 stream_4/stream = ExtResource("15_0gq1e")
 
-[node name="Main" type="Node2D" unique_id=1676047802 node_paths=PackedStringArray("_maskViewport", "_maskRoot", "_painting", "_playfield", "_title", "_artist", "_arrow", "_progressBar", "_blobsLayer", "_perimeterLine", "_drawingLine", "_dropShadow", "_borderPhysics", "_sfxDrawLoop", "_sfxSafeLoop", "_sfxErase", "_sfxSnap", "_sfxWaterDrop", "_sfxPaintStroke")]
+[node name="Main" type="Node2D" unique_id=1676047802 node_paths=PackedStringArray("_maskViewport", "_maskRoot", "_painting", "_playfield", "_title", "_artist", "_arrow", "_progressBar", "_blobsLayer", "_perimeterLine", "_drawingLine", "_dropShadow", "_borderPhysics", "_sfxDrawLoop", "_sfxSafeLoop", "_sfxErase", "_sfxSnap", "_sfxWaterDrop", "_sfxPaintStroke", "_toastNotification")]
 script = ExtResource("1_liyct")
 _maskViewport = NodePath("SubViewport")
 _maskRoot = NodePath("SubViewport/MaskRoot")
@@ -66,6 +67,7 @@ _sfxErase = NodePath("SfxErase")
 _sfxSnap = NodePath("SfxSnap")
 _sfxWaterDrop = NodePath("SfxWaterDrop")
 _sfxPaintStroke = NodePath("SfxPaintStroke")
+_toastNotification = NodePath("ToastNotification")
 
 [node name="Painting" type="Sprite2D" parent="." unique_id=1516573035]
 material = SubResource("ShaderMaterial_lbhrr")
@@ -140,6 +142,12 @@ stretch_mode = 6
 [node name="SharedProgressBar" parent="." unique_id=1012471350 instance=ExtResource("6_o60nc")]
 offset_top = -505.0
 offset_bottom = -465.0
+
+[node name="ToastNotification" parent="." unique_id=9876543210 instance=ExtResource("17_toast")]
+offset_left = 600.0
+offset_top = -520.0
+offset_right = 930.0
+offset_bottom = -440.0
 
 [node name="SfxDrawLoop" type="AudioStreamPlayer2D" parent="." unique_id=4766154]
 stream = ExtResource("8_f6fdm")
