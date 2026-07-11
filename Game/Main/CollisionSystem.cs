@@ -9,7 +9,7 @@ namespace Chromonia.Main;
 
 public class CollisionSystem(Node2D playfield, Arrow.Arrow arrow)
 {
-    private readonly List<BlobEnemy> _activeBlobs = new();
+    private readonly List<BlobEnemy> _activeBlobs = [];
 
     public void AddBlobs(IEnumerable<BlobEnemy> blobs) => _activeBlobs.AddRange(blobs);
 

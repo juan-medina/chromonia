@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Chromonia.Library;
 using Godot;
 using Chromonia.Core;
+using Chromonia.Enemies;
 using BlobEnemy = Chromonia.Enemies.BlobEnemy;
 using MusicPlayer = Chromonia.Music.MusicPlayer;
 using PaintingLibrary = Chromonia.Library.PaintingLibrary;
@@ -69,7 +70,7 @@ public partial class Main : Node2D
     private float _claimedAreaB;
     private float _totalArea;
 
-    private PlayerController _playerController = null!;
+    private PlayerSystem _playerSystem = null!;
     private CollisionSystem _collisionSystem = null!;
     private ClaimSystem _claimSystem = null!;
 
@@ -77,38 +78,21 @@ public partial class Main : Node2D
 
     public override void _Ready()
     {
+        if (!InitGlobals()) return;
+
+        if (!InitSystems()) return;
+
+        SetupLevel();
+    }
+
+    private bool InitGlobals() => InitLibrary() && InitMusic() && InitTransitionManager();
+
+    private bool InitLibrary()
+    {
         _library = GetNodeOrNull<PaintingLibrary>("/root/PaintingLibrary");
-        if (_library is null)
-        {
-            HandleFatalError("PaintingLibrary global autoload is missing.");
-            return;
-        }
-
-        if (!InitMusic()) return;
-
-        _transition = GetNode<TransitionManager>("/root/TransitionManager");
-        if (_transition is null)
-        {
-            HandleFatalError("TransitionManager global autoload is missing.");
-            return;
-        }
-
-        _transition.OnTransitionFailed += OnFatalAppError;
-
-        _playerController = new PlayerController(_arrow, _drawingLine);
-        _playerController.OnClaimTriggered += HandleClaimTriggered;
-
-        _collisionSystem = new CollisionSystem(_playfield, _arrow);
-        _claimSystem = new ClaimSystem(_playfield, _maskRoot, _perimeterLine, _arrow);
-
-        var result = TryLoadCurrentPainting();
-        if (!result)
-        {
-            HandleFatalError(result.Message);
-            return;
-        }
-
-        SetupArrow();
+        if (_library is not null) return true;
+        HandleFatalError("PaintingLibrary global autoload is missing.");
+        return false;
     }
 
     private bool InitMusic()
@@ -128,8 +112,47 @@ public partial class Main : Node2D
         }
 
 
-        if (!result) HandleFatalError(result.Message);
+        if (!result) OnFatalAppError(result);
         return result;
+    }
+
+    private bool InitTransitionManager()
+    {
+        _transition = GetNode<TransitionManager>("/root/TransitionManager");
+        if (_transition is null)
+        {
+            HandleFatalError("TransitionManager global autoload is missing.");
+            return false;
+        }
+
+        _transition.OnTransitionFailed += OnFatalAppError;
+
+        return true;
+    }
+
+    private bool InitSystems()
+    {
+        _playerSystem = new PlayerSystem(_arrow, _drawingLine);
+        _playerSystem.OnClaimTriggered += HandleClaimTriggered;
+
+        _collisionSystem = new CollisionSystem(_playfield, _arrow);
+        _claimSystem = new ClaimSystem(_playfield, _maskRoot, _perimeterLine, _arrow);
+
+        return true;
+    }
+
+    private void SetupLevel()
+    {
+        var result = TryLoadCurrentPainting();
+        if (!result)
+        {
+            OnFatalAppError(result);
+            return;
+        }
+
+        SpawnEnemies(_scaledWidth, _scaledHeight);
+
+        SetupArrow();
     }
 
     private void OnMusicStarted(Result<ResourceEntry> result)
@@ -146,7 +169,10 @@ public partial class Main : Node2D
     public override void _ExitTree()
     {
         if (IsInstanceValid(_music))
+        {
             _music.OnPlaybackFailed -= OnFatalAppError;
+            _music.OnPlaybackStarted -= OnMusicStarted;
+        }
 
         if (IsInstanceValid(_transition))
             _transition.OnTransitionFailed -= OnFatalAppError;
@@ -154,77 +180,86 @@ public partial class Main : Node2D
         base._ExitTree();
     }
 
-    private void OnFatalAppError(Result err)
-    {
-        HandleFatalError(err.Message);
-    }
+    private void OnFatalAppError(Result err) => HandleFatalError(err.Message);
 
     private void HandleClaimTriggered(int hitSegmentIndex)
     {
-        var activeArray = _playerController.ActiveLine.ToArray();
+        // get the lines of the active drawing
+        var activeArray = _playerSystem.ActiveLine.ToArray();
 
+        // create a poligon with those lines
         var (claimedPoly, newPerimeter, claimedArea) = _claimSystem.DetermineClaimedPolygon(
-            Perimeter, _playerController.StartSegmentIndex, hitSegmentIndex, activeArray);
+            Perimeter, _playerSystem.StartSegmentIndex, hitSegmentIndex, activeArray);
 
+        // get trapped blobs
         _collisionSystem.GetTrappedBlobs(claimedPoly, _trappedBlobsBuffer);
 
-        if (_collisionSystem.IsLethalTrap(_trappedBlobsBuffer))
-        {
-            KillPlayer();
-            return;
-        }
-
-        DestroyBlobs(_trappedBlobsBuffer);
+        // do we trap any
         if (_trappedBlobsBuffer.Count > 0)
         {
-            _sfxWaterDrop.Play();
+            // if is lethal
+            if (_collisionSystem.IsLethalTrap(_trappedBlobsBuffer))
+            {
+                KillPlayer();
+                return;
+            }
+
+            DestroyBlobs();
         }
 
-        _sfxPaintStroke.Play();
 
+        // cancel current drawing
+        _playerSystem.CancelDrawing();
+
+        //  animate claim
+        _claimSystem.CreateClaimVisuals(claimedPoly, GetTree());
+
+        // update the visual perimeter
         _claimSystem.ApplyNewPerimeter(newPerimeter, out var updatedPerimeter);
         Perimeter = updatedPerimeter;
 
-        _claimSystem.CreateClaimVisuals(claimedPoly, GetTree());
+        // update collision area
         _claimSystem.CreateClaimPhysics(claimedPoly);
 
-        _playerController.CancelDrawing();
+        // check if we win
         UpdateProgressAndCheckWin(claimedArea);
+
+        // play capture zone sound
+        _sfxPaintStroke.Play();
     }
 
-    private static void DestroyBlobs(List<BlobEnemy> blobsToDestroy)
+    private void DestroyBlobs()
     {
-        for (int i = 0; i < blobsToDestroy.Count; i++)
-        {
-            var blob = blobsToDestroy[i];
-            if (blob.GetParent() is Enemies.BlobCluster cluster)
-                cluster.Dissolve();
-            else
-                blob.Dissolve();
-        }
+        // destroy the parents will destroy the children, parent are always BlobCluster
+        for (int i = 0; i < _trappedBlobsBuffer.Count; i++) _trappedBlobsBuffer[i].GetParent<BlobCluster>().Dissolve();
     }
 
     public override void _Process(double delta)
     {
         base._Process(delta);
 
+        // move the arrow
         Vector2 posBefore = _arrow.Position;
-
-        _playerController.MoveArrow(delta, ArrowSpeed, Perimeter);
-
+        _playerSystem.MoveArrow(delta, ArrowSpeed, Perimeter);
         Vector2 posAfter = _arrow.Position;
 
+        // update merges
         _collisionSystem.UpdateBlobMergeStates();
 
-        if (_collisionSystem.CheckCollisions(_playerController.State, _playerController.ActiveLine)) KillPlayer();
+        // check if we have collided
+        if (_collisionSystem.CheckCollisions(_playerSystem.State, _playerSystem.ActiveLine)) KillPlayer();
 
+        // update our audio moving / drawing
         UpdateAudioState(posBefore != posAfter);
     }
 
     private void UpdateAudioState(bool actuallyMoved)
     {
-        bool shouldPlayDraw = _playerController.State == PlayerState.Drawing && actuallyMoved;
-        bool shouldPlaySafe = _playerController.State == PlayerState.OnPerimeter && actuallyMoved;
+        // we play a loop sund when we are moving in a safe area, and a different one if we are drawing
+        //  there is not movement sound if we are not moving
+
+        bool shouldPlayDraw = _playerSystem.State == PlayerState.Drawing && actuallyMoved;
+        bool shouldPlaySafe = _playerSystem.State == PlayerState.OnPerimeter && actuallyMoved;
 
         if (shouldPlayDraw)
         {
@@ -254,21 +289,25 @@ public partial class Main : Node2D
 
         if (!@event.IsActionPressed("ui_accept")) return;
 
-        if (_playerController.State == PlayerState.Won)
+        if (_playerSystem.State == PlayerState.Won)
         {
             _library.MoveNext();
             _transition.ReloadCurrentScene();
             return;
         }
 
-        _playerController.CycleColor();
+        _playerSystem.CycleColor();
     }
 
     private void Reveal()
     {
-        _playerController.State = PlayerState.Won;
+        // we reveal the paint with a effect
+
+        // mark as won and kil all blobs
+        _playerSystem.State = PlayerState.Won;
         _collisionSystem.DestroyAllBlobs();
 
+        // animate the reavel
         var tween = CreateTween();
         tween.SetParallel();
         tween.TweenProperty(_painting.Material, "shader_parameter/reveal_progress", 1.0f, RevealTime);
@@ -283,9 +322,12 @@ public partial class Main : Node2D
         tween.SetParallel(false);
         tween.TweenCallback(Callable.From(() => _painting.Material = null));
 
+        // show the painting labels
         _title.Visible = true;
         _artist.Visible = true;
         _arrow.Visible = false;
+
+        // hide the drawing line and perimter
         _perimeterLine.Visible = false;
         _drawingLine.Visible = false;
     }
@@ -315,8 +357,6 @@ public partial class Main : Node2D
         SetupShaderMask();
 
         CreateBorder(_scaledWidth, _scaledHeight, BorderColor, BorderThickness);
-        SpawnEnemies(_scaledWidth, _scaledHeight);
-        RegisterSpawnedBlobs();
 
         return Result.Ok();
     }
@@ -392,7 +432,7 @@ public partial class Main : Node2D
         {
             var energy = (i % 2 == 0) ? Energy.A : Energy.B;
             float speed = (float)GD.RandRange(MinBlobSpeed, MaxBlobSpeed);
-            var cluster = new Enemies.BlobCluster(energy, speed);
+            var cluster = new BlobCluster(energy, speed);
 
             float px = (float)GD.RandRange(bounds.Position.X + 70f, bounds.End.X - 70f);
             float py = (float)GD.RandRange(bounds.Position.Y + 70f, bounds.End.Y - 70f);
@@ -401,6 +441,8 @@ public partial class Main : Node2D
 
             _blobsLayer.AddChild(cluster);
         }
+
+        RegisterSpawnedBlobs();
     }
 
     private void CreateBorder(float width, float height, Color color, float thickness)
@@ -457,12 +499,13 @@ public partial class Main : Node2D
 
     private void KillPlayer()
     {
-        if (_playerController.ActiveLine.Count > 0)
+        // if we die while drawing we play a different sound that when we are in the perimeter
+        if (_playerSystem.ActiveLine.Count > 0)
             _sfxErase.Play();
         else
             _sfxSnap.Play();
 
-        _playerController.ResetToStart();
+        _playerSystem.ResetToStart();
     }
 
     private void HandleFatalError(string errorMessage)

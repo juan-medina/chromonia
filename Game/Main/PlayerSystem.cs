@@ -15,7 +15,7 @@ public enum PlayerState
     Won
 }
 
-public class PlayerController(Arrow.Arrow arrow, Line2D drawingLine)
+public class PlayerSystem(Arrow.Arrow arrow, Line2D drawingLine)
 {
     private readonly List<int> _segmentsOnPoint = new(4);
     private readonly List<Vector2> _activeLine = new();
