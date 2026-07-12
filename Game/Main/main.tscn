@@ -18,6 +18,7 @@
 [ext_resource type="AudioStream" uid="uid://c6eeadg1almjq" path="res://Main/Sounds/paint_stroke.wav" id="16_l5bfp"]
 [ext_resource type="PackedScene" uid="uid://dqy2nbiy1clia" path="res://UI/toast_notification.tscn" id="17_toast"]
 [ext_resource type="PackedScene" uid="uid://cmb2txx7wyrt2" path="res://UI/gallery_plaque.tscn" id="18_plaq"]
+[ext_resource type="PackedScene" path="res://UI/onboarding_tutorial.tscn" id="19_onboarding"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_lbhrr"]
 shader = ExtResource("2_ib3t1")
@@ -182,3 +183,5 @@ bus = &"Sfx"
 stream = ExtResource("16_l5bfp")
 volume_db = -5.0
 bus = &"Sfx"
+
+[node name="OnboardingTutorial" parent="." instance=ExtResource("19_onboarding")]
