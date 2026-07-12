@@ -4,35 +4,7 @@
 [ext_resource type="AudioStream" uid="uid://bb2su3baa5yuw" path="res://Main/Sounds/snap.wav" id="2_hover"]
 [ext_resource type="AudioStream" uid="uid://7ax41q1vq5ej" path="res://Main/Sounds/water_drop_1.wav" id="3_click"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
-bg_color = Color(0.1, 0.1, 0.1, 0.9)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_focus"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0, 1, 1, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
-expand_margin_left = 4.0
-expand_margin_top = 4.0
-expand_margin_right = 4.0
-expand_margin_bottom = 4.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slider_highlight"]
-bg_color = Color(0, 1, 1, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
+[ext_resource type="Theme" uid="uid://djb8idhiocumf" path="res://UI/main_theme.tres" id="4_theme"]
 
 [node name="PauseMenu" type="CanvasLayer" unique_id=1658654569 node_paths=PackedStringArray("_resumeButton", "_restartButton", "_fullscreenToggle", "_masterSlider", "_musicSlider", "_sfxSlider", "_quitButton", "_masterLabel", "_musicLabel", "_sfxLabel", "_hoverSfx", "_clickSfx")]
 process_mode = 3
@@ -53,6 +25,7 @@ _hoverSfx = NodePath("HoverSfx")
 _clickSfx = NodePath("ClickSfx")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=582353511]
+theme = ExtResource("4_theme")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -71,7 +44,6 @@ grow_vertical = 2
 [node name="PanelContainer" type="PanelContainer" parent="ColorRect/CenterContainer" unique_id=840890886]
 custom_minimum_size = Vector2(400, 0)
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
 
 [node name="MarginContainer" type="MarginContainer" parent="ColorRect/CenterContainer/PanelContainer" unique_id=884402687]
 layout_mode = 2
@@ -93,13 +65,11 @@ horizontal_alignment = 1
 [node name="ResumeButton" type="Button" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=1557823579]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
 text = "Resume"
 
 [node name="RestartButton" type="Button" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=1940437818]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
 text = "Restart Game"
 
 [node name="HSeparator" type="HSeparator" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=826013832]
@@ -112,7 +82,6 @@ horizontal_alignment = 1
 
 [node name="FullscreenToggle" type="CheckButton" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=1877381333]
 layout_mode = 2
-theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
 text = "Fullscreen"
 
 [node name="MasterLabel" type="Label" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=1472577820]
@@ -121,7 +90,6 @@ text = "Master Volume"
 
 [node name="MasterSlider" type="HSlider" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=1545528755]
 layout_mode = 2
-theme_override_styles/grabber_area_highlight = SubResource("StyleBoxFlat_slider_highlight")
 max_value = 1.0
 step = 0.05
 value = 1.0
@@ -132,7 +100,6 @@ text = "Music Volume"
 
 [node name="MusicSlider" type="HSlider" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=1670137128]
 layout_mode = 2
-theme_override_styles/grabber_area_highlight = SubResource("StyleBoxFlat_slider_highlight")
 max_value = 1.0
 step = 0.05
 value = 1.0
@@ -143,7 +110,6 @@ text = "SFX Volume"
 
 [node name="SfxSlider" type="HSlider" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=1634306138]
 layout_mode = 2
-theme_override_styles/grabber_area_highlight = SubResource("StyleBoxFlat_slider_highlight")
 max_value = 1.0
 step = 0.05
 value = 1.0
@@ -154,7 +120,6 @@ layout_mode = 2
 [node name="QuitButton" type="Button" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=702490730]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
 text = "Quit to Desktop"
 
 [node name="HoverSfx" type="AudioStreamPlayer" parent="." unique_id=1182311537]
