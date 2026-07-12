@@ -48,7 +48,7 @@ public partial class InputManager : Node
         OnDeviceChanged?.Invoke(CurrentDevice);
     }
 
-    public override void _UnhandledInput(InputEvent @event)
+    public override void _Input(InputEvent @event)
     {
         InputDeviceType newDevice = CurrentDevice;
 
@@ -92,11 +92,17 @@ public partial class InputManager : Node
 
         path = actionName switch
         {
-            "ui_accept" or "energy_cycle" => CurrentDevice switch
+            "ui_accept" => CurrentDevice switch
+            {
+                InputDeviceType.KeyboardAndMouse => basePath + "Keyboard & Mouse/Default/keyboard_enter.png",
+                InputDeviceType.PlayStation => basePath + "PlayStation Series/Default/playstation_button_color_cross.png",
+                InputDeviceType.Xbox => basePath + "Xbox Series/Default/xbox_button_color_a.png",
+                _ => basePath + "Generic/Default/generic_button_circle_bottom.png"
+            },
+            "energy_cycle" => CurrentDevice switch
             {
                 InputDeviceType.KeyboardAndMouse => basePath + "Keyboard & Mouse/Default/keyboard_space.png",
-                InputDeviceType.PlayStation => basePath +
-                                               "PlayStation Series/Default/playstation_button_color_cross.png",
+                InputDeviceType.PlayStation => basePath + "PlayStation Series/Default/playstation_button_color_cross.png",
                 InputDeviceType.Xbox => basePath + "Xbox Series/Default/xbox_button_color_a.png",
                 _ => basePath + "Generic/Default/generic_button_circle_bottom.png"
             },

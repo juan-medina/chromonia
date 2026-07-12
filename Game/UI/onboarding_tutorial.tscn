@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://bn6boo2mrte5h"]
 
-[ext_resource type="Script" path="res://UI/OnboardingTutorial.cs" id="1_script"]
-[ext_resource type="Script" path="res://UI/Components/InputPromptIcon.cs" id="2_icon"]
+[ext_resource type="Script" uid="uid://cg1ei02b8mmoy" path="res://UI/OnboardingTutorial.cs" id="1_script"]
+[ext_resource type="Script" uid="uid://cxa4gc08jqgpb" path="res://UI/Components/InputPromptIcon.cs" id="2_icon"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_onboarding"]
 content_margin_left = 40.0

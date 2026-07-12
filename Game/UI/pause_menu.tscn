@@ -1,7 +1,21 @@
 [gd_scene format=3 uid="uid://dpsa82hd38ds2"]
 
 [ext_resource type="Script" uid="uid://covtddvrcylkv" path="res://UI/PauseMenu.cs" id="1_script"]
+[ext_resource type="Script" path="res://UI/Components/InputPromptIcon.cs" id="2_icon"]
 [ext_resource type="Theme" uid="uid://djb8idhiocumf" path="res://UI/main_theme.tres" id="4_theme"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prompts"]
+content_margin_left = 20.0
+content_margin_top = 10.0
+content_margin_right = 20.0
+content_margin_bottom = 10.0
+bg_color = Color(0.15, 0.15, 0.15, 0.95)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 10
 
 [node name="PauseMenu" type="CanvasLayer" unique_id=1658654569 node_paths=PackedStringArray("_resumeButton", "_restartButton", "_fullscreenToggle", "_masterSlider", "_musicSlider", "_sfxSlider", "_quitButton", "_masterLabel", "_musicLabel", "_sfxLabel")]
 process_mode = 3
@@ -26,7 +40,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("4_theme")
-color = Color(0, 0, 0, 0.85)
+color = Color(0, 0, 0, 0.95)
 
 [node name="CenterContainer" type="CenterContainer" parent="ColorRect" unique_id=439291460]
 layout_mode = 1
@@ -116,3 +130,64 @@ layout_mode = 2
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Quit to Desktop"
+
+[node name="PromptMargin" type="MarginContainer" parent="ColorRect"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -400.0
+offset_top = -60.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 30
+
+[node name="PanelContainer" type="PanelContainer" parent="ColorRect/PromptMargin"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_prompts")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ColorRect/PromptMargin/PanelContainer"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="NavIcon" type="TextureRect" parent="ColorRect/PromptMargin/PanelContainer/HBoxContainer"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+script = ExtResource("2_icon")
+ActionName = "Move"
+
+[node name="NavLabel" type="Label" parent="ColorRect/PromptMargin/PanelContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Navigate"
+
+[node name="AcceptIcon" type="TextureRect" parent="ColorRect/PromptMargin/PanelContainer/HBoxContainer"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+script = ExtResource("2_icon")
+ActionName = "ui_accept"
+
+[node name="AcceptLabel" type="Label" parent="ColorRect/PromptMargin/PanelContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Select"
+
+[node name="CancelIcon" type="TextureRect" parent="ColorRect/PromptMargin/PanelContainer/HBoxContainer"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+script = ExtResource("2_icon")
+ActionName = "ui_cancel"
+
+[node name="CancelLabel" type="Label" parent="ColorRect/PromptMargin/PanelContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Back"
