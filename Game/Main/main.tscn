@@ -156,29 +156,29 @@ nine_patch_stretch = true
 texture_progress = SubResource("GradientTexture1D_plaq_line")
 metadata/_edit_use_anchors_ = true
 
-[node name="SfxDrawLoop" type="AudioStreamPlayer2D" parent="." unique_id=4766154]
+[node name="SfxDrawLoop" type="AudioStreamPlayer" parent="." unique_id=1360398058]
 stream = ExtResource("8_f6fdm")
 bus = &"Sfx"
 
-[node name="SfxSafeLoop" type="AudioStreamPlayer2D" parent="." unique_id=468208134]
+[node name="SfxSafeLoop" type="AudioStreamPlayer" parent="." unique_id=1055437751]
 stream = ExtResource("8_f6fdm")
 volume_db = -3.0
 pitch_scale = 0.6
 bus = &"Sfx"
 
-[node name="SfxErase" type="AudioStreamPlayer2D" parent="." unique_id=1366338616]
+[node name="SfxErase" type="AudioStreamPlayer" parent="." unique_id=1712977587]
 stream = ExtResource("9_rj11h")
 bus = &"Sfx"
 
-[node name="SfxSnap" type="AudioStreamPlayer2D" parent="." unique_id=2121598107]
+[node name="SfxSnap" type="AudioStreamPlayer" parent="." unique_id=1099613968]
 stream = ExtResource("10_qac2q")
 bus = &"Sfx"
 
-[node name="SfxWaterDrop" type="AudioStreamPlayer2D" parent="." unique_id=570315960]
+[node name="SfxWaterDrop" type="AudioStreamPlayer" parent="." unique_id=197782058]
 stream = SubResource("AudioStreamRandomizer_wbdht")
 bus = &"Sfx"
 
-[node name="SfxPaintStroke" type="AudioStreamPlayer2D" parent="." unique_id=1440768441]
+[node name="SfxPaintStroke" type="AudioStreamPlayer" parent="." unique_id=217830637]
 stream = ExtResource("16_l5bfp")
 volume_db = -5.0
 bus = &"Sfx"
