@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://d4vevg3faxan"]
+
+[ext_resource type="Script" uid="uid://brsuf2a5xfc7h" path="res://UI/UiAudioManager.cs" id="1_script"]
+[ext_resource type="AudioStream" uid="uid://bb2su3baa5yuw" path="res://Main/Sounds/snap.wav" id="2_hover"]
+[ext_resource type="AudioStream" uid="uid://7ax41q1vq5ej" path="res://Main/Sounds/water_drop_1.wav" id="3_click"]
+
+[node name="UiAudioManager" type="Node" unique_id=573837441 node_paths=PackedStringArray("_hoverSfx", "_clickSfx")]
+process_mode = 3
+script = ExtResource("1_script")
+_hoverSfx = NodePath("HoverSfx")
+_clickSfx = NodePath("ClickSfx")
+
+[node name="HoverSfx" type="AudioStreamPlayer" parent="." unique_id=499735438]
+stream = ExtResource("2_hover")
+bus = &"Sfx"
+
+[node name="ClickSfx" type="AudioStreamPlayer" parent="." unique_id=556989841]
+stream = ExtResource("3_click")
+bus = &"Sfx"

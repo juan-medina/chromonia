@@ -20,16 +20,15 @@ public partial class PauseMenu : CanvasLayer
     [Export] private Label _musicLabel = null!;
     [Export] private Label _sfxLabel = null!;
 
-    [Export] private AudioStreamPlayer _hoverSfx = null!;
-    [Export] private AudioStreamPlayer _clickSfx = null!;
-
     private SettingsManager _settingsManager = null!;
     private Transition.TransitionManager _transitionManager = null!;
+    private UiAudioManager _uiAudioManager = null!;
 
     public override void _Ready()
     {
         _settingsManager = GetNode<SettingsManager>("/root/SettingsManager");
         _transitionManager = GetNode<Transition.TransitionManager>("/root/TransitionManager");
+        _uiAudioManager = GetNode<UiAudioManager>("/root/UiAudioManager");
 
         // Connect UI elements
         _resumeButton.Pressed += CloseMenu;
@@ -42,26 +41,9 @@ public partial class PauseMenu : CanvasLayer
         _musicSlider.ValueChanged += OnMusicVolumeChanged;
         _sfxSlider.ValueChanged += OnSfxVolumeChanged;
 
-        // Setup sound feedback for all interactive controls
-        ConnectSounds(_resumeButton);
-        ConnectSounds(_restartButton);
-        ConnectSounds(_fullscreenToggle);
-        ConnectSounds(_masterSlider);
-        ConnectSounds(_musicSlider);
-        ConnectSounds(_sfxSlider);
-        ConnectSounds(_quitButton);
+        _uiAudioManager.ConnectMenuSounds(this);
     }
 
-    private void ConnectSounds(Control control)
-    {
-        control.FocusEntered += PlayHoverSound;
-        control.MouseEntered += PlayHoverSound;
-
-        if (control is BaseButton button) button.Pressed += PlayClickSound;
-    }
-
-    private void PlayHoverSound() => _hoverSfx.Play();
-    private void PlayClickSound() => _clickSfx.Play();
     private void QuitGame() => GetTree().Quit();
     private void OnFullscreenToggled(bool toggled) => _settingsManager.SetFullscreen(toggled);
 
@@ -73,7 +55,6 @@ public partial class PauseMenu : CanvasLayer
     {
         _settingsManager.SetVolume(bus, val);
         UpdateLabels();
-        _clickSfx.Play();
     }
 
     public override void _UnhandledInput(InputEvent @event)

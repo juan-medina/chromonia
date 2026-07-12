@@ -1,12 +1,9 @@
 [gd_scene format=3 uid="uid://dpsa82hd38ds2"]
 
 [ext_resource type="Script" uid="uid://covtddvrcylkv" path="res://UI/PauseMenu.cs" id="1_script"]
-[ext_resource type="AudioStream" uid="uid://bb2su3baa5yuw" path="res://Main/Sounds/snap.wav" id="2_hover"]
-[ext_resource type="AudioStream" uid="uid://7ax41q1vq5ej" path="res://Main/Sounds/water_drop_1.wav" id="3_click"]
-
 [ext_resource type="Theme" uid="uid://djb8idhiocumf" path="res://UI/main_theme.tres" id="4_theme"]
 
-[node name="PauseMenu" type="CanvasLayer" unique_id=1658654569 node_paths=PackedStringArray("_resumeButton", "_restartButton", "_fullscreenToggle", "_masterSlider", "_musicSlider", "_sfxSlider", "_quitButton", "_masterLabel", "_musicLabel", "_sfxLabel", "_hoverSfx", "_clickSfx")]
+[node name="PauseMenu" type="CanvasLayer" unique_id=1658654569 node_paths=PackedStringArray("_resumeButton", "_restartButton", "_fullscreenToggle", "_masterSlider", "_musicSlider", "_sfxSlider", "_quitButton", "_masterLabel", "_musicLabel", "_sfxLabel")]
 process_mode = 3
 layer = 100
 visible = false
@@ -21,16 +18,14 @@ _quitButton = NodePath("ColorRect/CenterContainer/PanelContainer/MarginContainer
 _masterLabel = NodePath("ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/MasterLabel")
 _musicLabel = NodePath("ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/MusicLabel")
 _sfxLabel = NodePath("ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/SfxLabel")
-_hoverSfx = NodePath("HoverSfx")
-_clickSfx = NodePath("ClickSfx")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=582353511]
-theme = ExtResource("4_theme")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("4_theme")
 color = Color(0, 0, 0, 0.5)
 
 [node name="CenterContainer" type="CenterContainer" parent="ColorRect" unique_id=439291460]
@@ -121,11 +116,3 @@ layout_mode = 2
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Quit to Desktop"
-
-[node name="HoverSfx" type="AudioStreamPlayer" parent="." unique_id=1182311537]
-stream = ExtResource("2_hover")
-bus = &"Sfx"
-
-[node name="ClickSfx" type="AudioStreamPlayer" parent="." unique_id=189969787]
-stream = ExtResource("3_click")
-bus = &"Sfx"
