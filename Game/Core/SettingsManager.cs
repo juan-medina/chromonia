@@ -12,13 +12,23 @@ public partial class SettingsManager : Node
     private const string SectionAudio = "audio";
 
     public bool Fullscreen { get; private set; }
-    public float MasterVolume { get; private set; }
-    public float MusicVolume { get; private set; }
-    public float SfxVolume { get; private set; }
+    public float MasterVolume { get; private set; } = 1.0f;
+    public float MusicVolume { get; private set; } = 1.0f;
+    public float SfxVolume { get; private set; } = 1.0f;
+
+    private float _baseMasterDb;
+    private float _baseMusicDb;
+    private float _baseSfxDb;
 
     public override void _Ready()
     {
         ProcessMode = ProcessModeEnum.Always;
+
+        // get base Db from the default buss setup
+        _baseMasterDb = AudioServer.GetBusVolumeDb(AudioServer.GetBusIndex("Master"));
+        _baseMusicDb = AudioServer.GetBusVolumeDb(AudioServer.GetBusIndex("Music"));
+        _baseSfxDb = AudioServer.GetBusVolumeDb(AudioServer.GetBusIndex("Sfx"));
+
         LoadSettings();
         ApplyWindowMode();
         ApplyAudioVolumes();
@@ -28,7 +38,7 @@ public partial class SettingsManager : Node
     {
         using var config = new ConfigFile();
         var err = config.Load(ConfigPath);
-        
+
         if (err == Error.Ok)
         {
             Fullscreen = (bool)config.GetValue(SectionDisplay, "fullscreen", false);
@@ -46,14 +56,14 @@ public partial class SettingsManager : Node
         }
     }
 
-    public void SaveSettings()
+    private void SaveSettings()
     {
         using var config = new ConfigFile();
         config.SetValue(SectionDisplay, "fullscreen", Fullscreen);
         config.SetValue(SectionAudio, "master_volume", MasterVolume);
         config.SetValue(SectionAudio, "music_volume", MusicVolume);
         config.SetValue(SectionAudio, "sfx_volume", SfxVolume);
-        
+
         var err = config.Save(ConfigPath);
         if (err != Error.Ok)
         {
@@ -64,7 +74,7 @@ public partial class SettingsManager : Node
     public void SetFullscreen(bool isFullscreen)
     {
         if (Fullscreen == isFullscreen) return;
-        
+
         Fullscreen = isFullscreen;
         ApplyWindowMode();
         SaveSettings();
@@ -73,7 +83,7 @@ public partial class SettingsManager : Node
     public void SetVolume(string busName, float volumeLinear)
     {
         volumeLinear = Mathf.Clamp(volumeLinear, 0.0f, 1.0f);
-        
+
         switch (busName.ToLower())
         {
             case "master":
@@ -89,7 +99,7 @@ public partial class SettingsManager : Node
                 GD.PrintErr($"SettingsManager: Invalid bus name '{busName}'");
                 return;
         }
-        
+
         ApplyBusVolume(busName, volumeLinear);
         SaveSettings();
     }
@@ -111,13 +121,18 @@ public partial class SettingsManager : Node
         int busIndex = AudioServer.GetBusIndex(busName);
         if (busIndex >= 0)
         {
-            // Convert linear 0.0-1.0 to Db. 0.0 linear = -80 Db (mute).
-            float volumeDb = volumeLinear > 0.0f ? Mathf.LinearToDb(volumeLinear) : -80.0f;
+            float baseDb = busName switch
+            {
+                "Music" => _baseMusicDb,
+                "Sfx" => _baseSfxDb,
+                _ => _baseMasterDb
+            };
+
+            // Convert linear 0.0-1.0 to Db offset, and apply to the base Db
+            float volumeDb = volumeLinear > 0.0f ? baseDb + Mathf.LinearToDb(volumeLinear) : -80.0f;
             AudioServer.SetBusVolumeDb(busIndex, volumeDb);
         }
         else
-        {
             GD.PrintErr($"SettingsManager: Audio Bus '{busName}' not found.");
-        }
     }
 }

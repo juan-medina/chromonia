@@ -247,8 +247,11 @@ public partial class Main : Node2D
 
     private void DestroyBlobs()
     {
-        // destroy the parents will destroy the children, parent are always BlobCluster
-        for (int i = 0; i < _trappedBlobsBuffer.Count; i++) _trappedBlobsBuffer[i].GetParent<BlobCluster>().Dissolve();
+        // destroy the parents will destroy the children, parent are always BlobCluster, dissolve return true
+        //  only if we actually dissolve the cluster,since a previous child may have already dissolved it
+        for (int i = 0; i < _trappedBlobsBuffer.Count; i++)
+            if (_trappedBlobsBuffer[i].GetParent<BlobCluster>().Dissolve())
+                _sfxWaterDrop.Play();
     }
 
     public override void _Process(double delta)
@@ -297,21 +300,14 @@ public partial class Main : Node2D
 
     public override void _UnhandledInput(InputEvent @event)
     {
-        if (@event.IsActionPressed("ui_cancel"))
+        if (@event.IsActionPressed("skip_reveal") && _playerSystem.State == PlayerState.Won)
         {
-            _music.Stop();
-            GetTree().Quit();
-            return;
-        }
-
-        if (!@event.IsActionPressed("ui_accept")) return;
-
-        if (_playerSystem.State == PlayerState.Won)
-        {
+            _sfxWaterDrop.Play();
             AdvanceToNextPainting();
             return;
         }
 
+        if (!@event.IsActionPressed("energy_cycle")) return;
         _playerSystem.CycleColor();
     }
 
@@ -323,7 +319,7 @@ public partial class Main : Node2D
         _playerSystem.State = PlayerState.Won;
         _collisionSystem.DestroyAllBlobs();
 
-        // animate the reavel
+        // animate the reveal
         var tween = CreateTween();
         tween.SetParallel();
         tween.TweenProperty(_painting.Material, "shader_parameter/reveal_progress", 1.0f, RevealTime);

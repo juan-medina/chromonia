@@ -103,9 +103,9 @@ public partial class BlobCluster : Node2D
             _core.LinearVelocity = _core.LinearVelocity.Normalized() * _speed;
     }
 
-    public void Dissolve()
+    public bool Dissolve()
     {
-        if (IsDissolving) return;
+        if (IsDissolving) return false;
         IsDissolving = true;
 
         SetPhysicsProcess(false);
@@ -119,5 +119,6 @@ public partial class BlobCluster : Node2D
         var tween = CreateTween();
         tween.TweenInterval(BlobEnemy.DissolveTime);
         tween.TweenCallback(Callable.From(QueueFree));
+        return true;
     }
 }
