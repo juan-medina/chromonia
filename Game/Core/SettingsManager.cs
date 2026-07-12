@@ -41,7 +41,7 @@ public partial class SettingsManager : Node
 
         if (err == Error.Ok)
         {
-            Fullscreen = (bool)config.GetValue(SectionDisplay, "fullscreen", false);
+            Fullscreen = (bool)config.GetValue(SectionDisplay, "fullscreen", true);
             MasterVolume = (float)config.GetValue(SectionAudio, "master_volume", 1.0f);
             MusicVolume = (float)config.GetValue(SectionAudio, "music_volume", 1.0f);
             SfxVolume = (float)config.GetValue(SectionAudio, "sfx_volume", 1.0f);
@@ -49,7 +49,7 @@ public partial class SettingsManager : Node
         else
         {
             // First time launch or missing config - set defaults
-            Fullscreen = false;
+            Fullscreen = true;
             MasterVolume = 1.0f;
             MusicVolume = 1.0f;
             SfxVolume = 1.0f;
