@@ -109,75 +109,39 @@
 	  }
 	},
 	{
-	  "file": "",
-	  "name": "Méditation from Thaïs",
-	  "author": "Jules Massenet",
-	  "metadata": {
-		"performer": "",
-		"performer_url": ""
-	  }
-	},
-	{
-	  "file": "",
+	  "file": "elegie_Op_24_Complete_Performance.ogg",
 	  "name": "Élégie for Cello and Piano, Op. 24",
 	  "author": "Gabriel Fauré",
 	  "metadata": {
-		"performer": "",
-		"performer_url": ""
+		"performer": "Isabella Stewart Gardner Museum",
+		"performer_url": "https://musopen.org/music/performer/isabella-stewart-gardner-museum/"
 	  }
 	},
 	{
-	  "file": "",
+	  "file": "string_quartet_no_2_in_D_Major_III_Nocturne_Andante.ogg",
 	  "name": "String Quartet No. 2 in D Major (Notturno)",
 	  "author": "Alexander Borodin",
 	  "metadata": {
-		"performer": "",
-		"performer_url": ""
+		"performer": "Musopen String Quartet",
+		"performer_url": "https://musopen.org/music/performer/musopen-string-quartet/"
 	  }
 	},
 	{
-	  "file": "",
-	  "name": "Clarinet Quintet in A major, K. 581 (Larghetto)",
-	  "author": "Wolfgang Amadeus Mozart",
-	  "metadata": {
-		"performer": "",
-		"performer_url": ""
-	  }
-	},
-	{
-	  "file": "",
+	  "file": "piano_sonata_no_8_in_C_minor_pathetique_op_13_II_adagio_cantabile.ogg",
 	  "name": "Pathétique Sonata (2nd Movement - Adagio cantabile)",
 	  "author": "Ludwig van Beethoven",
 	  "metadata": {
-		"performer": "",
-		"performer_url": ""
+		"performer": "Paul Pitman",
+		"performer_url": "https://musopen.org/music/performer/paul-pitman/"
 	  }
 	},
 	{
-	  "file": "",
-	  "name": "Andante Cantabile (from String Quartet No. 1)",
-	  "author": "Pyotr Ilyich Tchaikovsky",
-	  "metadata": {
-		"performer": "",
-		"performer_url": ""
-	  }
-	},
-	{
-	  "file": "",
-	  "name": "The Lark Ascending",
-	  "author": "Ralph Vaughan Williams",
-	  "metadata": {
-		"performer": "",
-		"performer_url": ""
-	  }
-	},
-	{
-	  "file": "",
+	  "file": "pavane_for_a_dead_princess.ogg",
 	  "name": "Pavane pour une infante défunte",
 	  "author": "Maurice Ravel",
 	  "metadata": {
-		"performer": "",
-		"performer_url": ""
+		"performer": "Thérèse Dussaut",
+		"performer_url": "https://musopen.org/music/performer/therese-dussaut/"
 	  }
 	}
   ]
