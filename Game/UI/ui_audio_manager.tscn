@@ -15,17 +15,17 @@ stream_2/stream = ExtResource("5_n7064")
 stream_3/stream = ExtResource("6_ma81i")
 stream_4/stream = ExtResource("7_s63h7")
 
-[node name="UiAudioManager" type="Node" unique_id=573837441 node_paths=PackedStringArray("_hoverSfx", "_clickSfx")]
+[node name="UiAudioManager" type="Node" unique_id=573837441 node_paths=PackedStringArray("_focusSfx", "_clickSfx")]
 process_mode = 3
 script = ExtResource("1_script")
-_hoverSfx = NodePath("HoverSfx")
+_focusSfx = NodePath("FocusSfx")
 _clickSfx = NodePath("ClickSfx")
 
 [node name="ClickSfx" type="AudioStreamPlayer" parent="." unique_id=1508825818]
 stream = SubResource("AudioStreamRandomizer_k06ru")
 bus = &"Sfx"
 
-[node name="HoverSfx" type="AudioStreamPlayer" parent="." unique_id=884747490]
+[node name="FocusSfx" type="AudioStreamPlayer" parent="." unique_id=884747490]
 stream = SubResource("AudioStreamRandomizer_k06ru")
 volume_db = -12.0
 pitch_scale = 2.5

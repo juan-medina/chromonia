@@ -7,7 +7,7 @@ namespace Chromonia.UI;
 
 public partial class UiAudioManager : Node
 {
-    [Export] private AudioStreamPlayer _hoverSfx = null!;
+    [Export] private AudioStreamPlayer _focusSfx = null!;
     [Export] private AudioStreamPlayer _clickSfx = null!;
 
     public void ConnectMenuSounds(Node rootNode)
@@ -26,19 +26,17 @@ public partial class UiAudioManager : Node
         switch (control)
         {
             case BaseButton button:
-                button.FocusEntered += PlayHoverSound;
-                button.MouseEntered += PlayHoverSound;
+                button.FocusEntered += PlayFocusSound;
                 button.Pressed += PlayClickSound;
                 break;
             case Slider slider:
-                slider.FocusEntered += PlayHoverSound;
-                slider.MouseEntered += PlayHoverSound;
+                slider.FocusEntered += PlayFocusSound;
                 slider.ValueChanged += PlaySliderClickSound;
                 break;
         }
     }
 
-    private void PlayHoverSound() => _hoverSfx.Play();
+    private void PlayFocusSound() => _focusSfx.Play();
     private void PlayClickSound() => _clickSfx.Play();
     private void PlaySliderClickSound(double _) => _clickSfx.Play();
 }
