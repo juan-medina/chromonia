@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://bpg8i5edn7ci5"]
 
 [ext_resource type="Script" uid="uid://ra5cldy4cf6g" path="res://UI/MainMenu.cs" id="1_script"]
-[ext_resource type="Theme" path="res://UI/modern_menu_theme.tres" id="2_theme"]
+[ext_resource type="Theme" uid="uid://djb8idhiocumf" path="res://UI/main_theme.tres" id="2_theme"]
 [ext_resource type="Texture2D" uid="uid://da27hv6rxfri3" path="res://Background/canvas.jpg" id="3_bg"]
 [ext_resource type="PackedScene" uid="uid://da8d3k1iu6o82" path="res://UI/modern_menu_button.tscn" id="4_mmb"]
 [ext_resource type="Script" uid="uid://cxa4gc08jqgpb" path="res://UI/Components/InputPromptIcon.cs" id="5_icon"]
@@ -63,21 +63,26 @@ theme_override_constants/separation = 20
 layout_mode = 2
 size_flags_horizontal = 1
 theme_override_font_sizes/font_size = 72
+focus_neighbor_top = NodePath("../ExitButton")
 text = "Play"
 
 [node name="OptionsButton" parent="MarginContainer/VBoxContainer" unique_id=1984971053 instance=ExtResource("4_mmb")]
 layout_mode = 2
 size_flags_horizontal = 1
+theme_override_font_sizes/font_size = 48
 text = "Options"
 
 [node name="AboutButton" parent="MarginContainer/VBoxContainer" unique_id=238710926 instance=ExtResource("4_mmb")]
 layout_mode = 2
 size_flags_horizontal = 1
+theme_override_font_sizes/font_size = 48
 text = "About"
 
 [node name="ExitButton" parent="MarginContainer/VBoxContainer" unique_id=1149671681 instance=ExtResource("4_mmb")]
 layout_mode = 2
 size_flags_horizontal = 1
+theme_override_font_sizes/font_size = 48
+focus_neighbor_bottom = NodePath("../PlayButton")
 text = "Exit"
 
 [node name="PromptMargin" type="MarginContainer" parent="." unique_id=1567012696]

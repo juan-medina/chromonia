@@ -1,37 +1,10 @@
 [gd_resource type="Theme" format=3 uid="uid://djb8idhiocumf"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_focus"]
-content_margin_left = 0.0
-content_margin_top = 0.0
-content_margin_right = 0.0
-content_margin_bottom = 0.0
-bg_color = Color(0.6, 0.6, 0.6, 0)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0, 1, 1, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
-expand_margin_left = 4.0
-expand_margin_top = 4.0
-expand_margin_right = 4.0
-expand_margin_bottom = 4.0
-
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_normal"]
 content_margin_left = 0.0
 content_margin_top = 0.0
 content_margin_right = 0.0
 content_margin_bottom = 0.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slider_highlight"]
-bg_color = Color(0, 1, 1, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0.1, 0.1, 0.1, 0.9)
@@ -41,15 +14,18 @@ corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
 [resource]
-Button/styles/focus = SubResource("StyleBoxFlat_focus")
-Button/styles/hover = SubResource("StyleBoxFlat_focus")
-Button/styles/hover_pressed = SubResource("StyleBoxFlat_focus")
+Button/constants/h_separation = 0
+Button/constants/outline_size = 0
+Button/styles/disabled = SubResource("StyleBoxEmpty_normal")
+Button/styles/focus = SubResource("StyleBoxEmpty_normal")
+Button/styles/hover = SubResource("StyleBoxEmpty_normal")
+Button/styles/hover_pressed = SubResource("StyleBoxEmpty_normal")
 Button/styles/normal = SubResource("StyleBoxEmpty_normal")
 Button/styles/pressed = SubResource("StyleBoxEmpty_normal")
-CheckButton/styles/focus = SubResource("StyleBoxFlat_focus")
-CheckButton/styles/hover = SubResource("StyleBoxFlat_focus")
-CheckButton/styles/hover_pressed = SubResource("StyleBoxFlat_focus")
+CheckButton/styles/disabled = SubResource("StyleBoxEmpty_normal")
+CheckButton/styles/focus = SubResource("StyleBoxEmpty_normal")
+CheckButton/styles/hover = SubResource("StyleBoxEmpty_normal")
+CheckButton/styles/hover_pressed = SubResource("StyleBoxEmpty_normal")
 CheckButton/styles/normal = SubResource("StyleBoxEmpty_normal")
 CheckButton/styles/pressed = SubResource("StyleBoxEmpty_normal")
-HSlider/styles/grabber_area_highlight = SubResource("StyleBoxFlat_slider_highlight")
 PanelContainer/styles/panel = SubResource("StyleBoxFlat_bg")
