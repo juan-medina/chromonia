@@ -5,6 +5,15 @@
 [ext_resource type="Texture2D" uid="uid://da27hv6rxfri3" path="res://Background/canvas.jpg" id="3_bg"]
 [ext_resource type="PackedScene" uid="uid://da8d3k1iu6o82" path="res://UI/modern_menu_button.tscn" id="4_mmb"]
 [ext_resource type="Script" uid="uid://cxa4gc08jqgpb" path="res://UI/Components/InputPromptIcon.cs" id="5_icon"]
+[ext_resource type="Shader" uid="uid://dwmn3qansqxuf" path="res://Enemies/blob_merge.gdshader" id="6_shader"]
+
+[sub_resource type="Environment" id="Environment_menu"]
+background_mode = 3
+glow_enabled = true
+glow_blend_mode = 0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_blobs"]
+shader = ExtResource("6_shader")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prompts"]
 content_margin_left = 20.0
@@ -19,22 +28,18 @@ corner_radius_bottom_left = 20
 shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 10
 
-[node name="MainMenu" type="Control" unique_id=1004905813 node_paths=PackedStringArray("_playButton", "_optionsButton", "_aboutButton", "_exitButton")]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme = ExtResource("2_theme")
+[node name="MainMenu" type="Node2D" unique_id=1004905813 node_paths=PackedStringArray("_playButton", "_optionsButton", "_aboutButton", "_exitButton", "_blobsLayer")]
 script = ExtResource("1_script")
-_playButton = NodePath("MarginContainer/VBoxContainer/PlayButton")
-_optionsButton = NodePath("MarginContainer/VBoxContainer/OptionsButton")
-_aboutButton = NodePath("MarginContainer/VBoxContainer/AboutButton")
-_exitButton = NodePath("MarginContainer/VBoxContainer/ExitButton")
+_playButton = NodePath("UILayer/MenuControl/MarginContainer/VBoxContainer/PlayButton")
+_optionsButton = NodePath("UILayer/MenuControl/MarginContainer/VBoxContainer/OptionsButton")
+_aboutButton = NodePath("UILayer/MenuControl/MarginContainer/VBoxContainer/AboutButton")
+_exitButton = NodePath("UILayer/MenuControl/MarginContainer/VBoxContainer/ExitButton")
+_blobsLayer = NodePath("BlobsLayer")
 
-[node name="Background" type="TextureRect" parent="." unique_id=1759071665]
-layout_mode = 1
+[node name="BackgroundLayer" type="CanvasLayer" parent="." unique_id=987654321]
+layer = -1
+
+[node name="Background" type="TextureRect" parent="BackgroundLayer" unique_id=1759071665]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -42,8 +47,28 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("3_bg")
 expand_mode = 1
+stretch_mode = 6
 
-[node name="MarginContainer" type="MarginContainer" parent="." unique_id=182236546]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1234567890]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=433407142]
+environment = SubResource("Environment_menu")
+
+[node name="BlobsLayer" type="CanvasGroup" parent="." unique_id=999999999]
+material = SubResource("ShaderMaterial_blobs")
+
+[node name="UILayer" type="CanvasLayer" parent="." unique_id=111222333]
+
+[node name="MenuControl" type="Control" parent="UILayer" unique_id=444555666]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+
+[node name="MarginContainer" type="MarginContainer" parent="UILayer/MenuControl" unique_id=182236546]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -53,39 +78,36 @@ grow_vertical = 2
 theme_override_constants/margin_left = 120
 theme_override_constants/margin_bottom = 120
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=2089571676]
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/MenuControl/MarginContainer" unique_id=2089571676]
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 8
 theme_override_constants/separation = 20
 
-[node name="PlayButton" parent="MarginContainer/VBoxContainer" unique_id=477749179 instance=ExtResource("4_mmb")]
+[node name="PlayButton" parent="UILayer/MenuControl/MarginContainer/VBoxContainer" unique_id=477749179 instance=ExtResource("4_mmb")]
 layout_mode = 2
 size_flags_horizontal = 1
-theme_override_font_sizes/font_size = 72
 focus_neighbor_top = NodePath("../ExitButton")
+theme_override_font_sizes/font_size = 72
 text = "Play"
 
-[node name="OptionsButton" parent="MarginContainer/VBoxContainer" unique_id=1984971053 instance=ExtResource("4_mmb")]
+[node name="OptionsButton" parent="UILayer/MenuControl/MarginContainer/VBoxContainer" unique_id=1984971053 instance=ExtResource("4_mmb")]
 layout_mode = 2
 size_flags_horizontal = 1
-theme_override_font_sizes/font_size = 48
 text = "Options"
 
-[node name="AboutButton" parent="MarginContainer/VBoxContainer" unique_id=238710926 instance=ExtResource("4_mmb")]
+[node name="AboutButton" parent="UILayer/MenuControl/MarginContainer/VBoxContainer" unique_id=238710926 instance=ExtResource("4_mmb")]
 layout_mode = 2
 size_flags_horizontal = 1
-theme_override_font_sizes/font_size = 48
 text = "About"
 
-[node name="ExitButton" parent="MarginContainer/VBoxContainer" unique_id=1149671681 instance=ExtResource("4_mmb")]
+[node name="ExitButton" parent="UILayer/MenuControl/MarginContainer/VBoxContainer" unique_id=1149671681 instance=ExtResource("4_mmb")]
 layout_mode = 2
 size_flags_horizontal = 1
-theme_override_font_sizes/font_size = 48
 focus_neighbor_bottom = NodePath("../PlayButton")
 text = "Exit"
 
-[node name="PromptMargin" type="MarginContainer" parent="." unique_id=1567012696]
+[node name="PromptMargin" type="MarginContainer" parent="UILayer/MenuControl" unique_id=1567012696]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
@@ -98,15 +120,15 @@ grow_vertical = 0
 theme_override_constants/margin_right = 30
 theme_override_constants/margin_bottom = 30
 
-[node name="PanelContainer" type="PanelContainer" parent="PromptMargin" unique_id=1257880099]
+[node name="PanelContainer" type="PanelContainer" parent="UILayer/MenuControl/PromptMargin" unique_id=1257880099]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_prompts")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="PromptMargin/PanelContainer" unique_id=650940234]
+[node name="HBoxContainer" type="HBoxContainer" parent="UILayer/MenuControl/PromptMargin/PanelContainer" unique_id=650940234]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="NavIcon" type="TextureRect" parent="PromptMargin/PanelContainer/HBoxContainer" unique_id=616678185]
+[node name="NavIcon" type="TextureRect" parent="UILayer/MenuControl/PromptMargin/PanelContainer/HBoxContainer" unique_id=616678185]
 custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
 expand_mode = 1
@@ -114,19 +136,19 @@ stretch_mode = 5
 script = ExtResource("5_icon")
 ActionName = "Move"
 
-[node name="NavLabel" type="Label" parent="PromptMargin/PanelContainer/HBoxContainer" unique_id=2135654023]
+[node name="NavLabel" type="Label" parent="UILayer/MenuControl/PromptMargin/PanelContainer/HBoxContainer" unique_id=2135654023]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Navigate"
 
-[node name="AcceptIcon" type="TextureRect" parent="PromptMargin/PanelContainer/HBoxContainer" unique_id=51936678]
+[node name="AcceptIcon" type="TextureRect" parent="UILayer/MenuControl/PromptMargin/PanelContainer/HBoxContainer" unique_id=51936678]
 custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 script = ExtResource("5_icon")
 
-[node name="AcceptLabel" type="Label" parent="PromptMargin/PanelContainer/HBoxContainer" unique_id=372397409]
+[node name="AcceptLabel" type="Label" parent="UILayer/MenuControl/PromptMargin/PanelContainer/HBoxContainer" unique_id=372397409]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Select"

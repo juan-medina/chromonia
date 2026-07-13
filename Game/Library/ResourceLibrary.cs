@@ -107,7 +107,7 @@ public abstract partial class ResourceLibrary<T> : Node where T : Resource
         return _entries.Count == 0 ? Result.Fail("No items found.") : Result.Ok();
     }
 
-    private void Shuffle()
+    public void Shuffle()
     {
         if (_entries.Count <= 1) return;
 

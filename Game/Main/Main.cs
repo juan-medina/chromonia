@@ -482,7 +482,7 @@ public partial class Main : Node2D
             float px = (float)GD.RandRange(bounds.Position.X + 70f, bounds.End.X - 70f);
             float py = (float)GD.RandRange(bounds.Position.Y + 70f, bounds.End.Y - 70f);
             cluster.Position = new Vector2(px, py);
-            cluster.ZIndex = 2;
+            cluster.ZIndex = 0;
 
             _blobsLayer.AddChild(cluster);
         }
