@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://UI/ModernCheckButton.cs" id="1_script"]
 
 [node name="ModernCheckButton" type="CheckButton" node_paths=PackedStringArray("_underline")]
-size_flags_horizontal = 0
+size_flags_horizontal = 3
 alignment = 0
 script = ExtResource("1_script")
 _underline = NodePath("Underline")

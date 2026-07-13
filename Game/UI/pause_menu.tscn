@@ -91,6 +91,7 @@ text = "Settings"
 
 [node name="FullscreenToggle" parent="ColorRect/MarginContainer/VBoxContainer" instance=ExtResource("6_mcb")]
 layout_mode = 2
+custom_minimum_size = Vector2(300, 0)
 theme_override_font_sizes/font_size = 28
 text = "Fullscreen"
 
