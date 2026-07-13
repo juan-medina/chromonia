@@ -1,12 +1,16 @@
 [gd_scene format=3 uid="uid://1dt0ixkayaeh"]
 
 [ext_resource type="Script" uid="uid://dvfr6lqa3g0ux" path="res://Transition/TransitionManager.cs" id="1_tmcs"]
+[ext_resource type="PackedScene" uid="uid://bpg8i5edn7ci5" path="res://UI/main_menu.tscn" id="2_menu"]
+[ext_resource type="PackedScene" uid="uid://bujvwvf4xmwo0" path="res://Main/main.tscn" id="3_game"]
 
 [node name="TransitionManager" type="CanvasLayer" unique_id=1454320545 node_paths=PackedStringArray("_fadeRect")]
 process_mode = 3
 layer = 100
 script = ExtResource("1_tmcs")
 _fadeRect = NodePath("ColorRect")
+_mainMenuScene = ExtResource("2_menu")
+_gameScene = ExtResource("3_game")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=785744005]
 anchors_preset = 15

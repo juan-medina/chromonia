@@ -19,7 +19,7 @@ shadow_size = 10
 
 [node name="PauseMenu" type="CanvasLayer" unique_id=1658654569 node_paths=PackedStringArray("_resumeButton", "_restartButton", "_fullscreenToggle", "_masterSlider", "_musicSlider", "_sfxSlider", "_quitButton", "_masterLabel", "_musicLabel", "_sfxLabel")]
 process_mode = 3
-layer = 100
+layer = 50
 visible = false
 script = ExtResource("1_script")
 _resumeButton = NodePath("ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ResumeButton")
@@ -129,7 +129,7 @@ layout_mode = 2
 [node name="QuitButton" type="Button" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=702490730]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "Quit to Desktop"
+text = "Main Menu"
 
 [node name="PromptMargin" type="MarginContainer" parent="ColorRect"]
 layout_mode = 1

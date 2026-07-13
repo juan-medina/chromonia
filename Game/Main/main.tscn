@@ -18,7 +18,8 @@
 [ext_resource type="AudioStream" uid="uid://c6eeadg1almjq" path="res://Main/Sounds/paint_stroke.wav" id="16_l5bfp"]
 [ext_resource type="PackedScene" uid="uid://dqy2nbiy1clia" path="res://UI/toast_notification.tscn" id="17_toast"]
 [ext_resource type="PackedScene" uid="uid://cmb2txx7wyrt2" path="res://UI/gallery_plaque.tscn" id="18_plaq"]
-[ext_resource type="PackedScene" path="res://UI/onboarding_tutorial.tscn" id="19_onboarding"]
+[ext_resource type="PackedScene" uid="uid://bn6boo2mrte5h" path="res://UI/onboarding_tutorial.tscn" id="19_onboarding"]
+[ext_resource type="PackedScene" uid="uid://dpsa82hd38ds2" path="res://UI/pause_menu.tscn" id="20_pause"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_lbhrr"]
 shader = ExtResource("2_ib3t1")
@@ -184,4 +185,6 @@ stream = ExtResource("16_l5bfp")
 volume_db = -5.0
 bus = &"Sfx"
 
-[node name="OnboardingTutorial" parent="." instance=ExtResource("19_onboarding")]
+[node name="OnboardingTutorial" parent="." unique_id=116149869 instance=ExtResource("19_onboarding")]
+
+[node name="PauseMenu" parent="." instance=ExtResource("20_pause")]

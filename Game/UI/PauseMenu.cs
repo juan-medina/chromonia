@@ -42,9 +42,25 @@ public partial class PauseMenu : CanvasLayer
         _sfxSlider.ValueChanged += OnSfxVolumeChanged;
 
         _uiAudioManager.ConnectMenuSounds(this);
+
+        // Unify mouse and keyboard/controller focus
+        BindFocusSteal(_resumeButton);
+        BindFocusSteal(_restartButton);
+        BindFocusSteal(_quitButton);
+        BindFocusSteal(_fullscreenToggle);
+        BindFocusSteal(_masterSlider);
+        BindFocusSteal(_musicSlider);
+        BindFocusSteal(_sfxSlider);
     }
 
-    private void QuitGame() => GetTree().Quit();
+    private static void BindFocusSteal(Control control) => control.MouseEntered += control.GrabFocus;
+
+    private void QuitGame()
+    {
+        GetTree().Paused = false;
+        _transitionManager.TransitionToMenu();
+    }
+
     private void OnFullscreenToggled(bool toggled) => _settingsManager.SetFullscreen(toggled);
 
     private void OnMasterVolumeChanged(double val) => ChangeVolume("Master", (float)val);
@@ -118,8 +134,6 @@ public partial class PauseMenu : CanvasLayer
     private void RestartGame()
     {
         GetTree().Paused = false;
-        Visible = false;
-
         _transitionManager.ReloadCurrentScene();
     }
 
