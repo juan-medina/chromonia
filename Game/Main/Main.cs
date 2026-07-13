@@ -90,6 +90,17 @@ public partial class Main : Node2D
         if (!InitSystems()) return;
 
         SetupLevel();
+
+        // Workaround for Godot 4 Camera2D not centering correctly
+        GetTree().Root.SizeChanged += OnWindowResized;
+    }
+
+    private void OnWindowResized()
+    {
+        var camera = GetNode<Camera2D>("Camera2D");
+        camera.Enabled = false;
+        camera.Enabled = true;
+        camera.ForceUpdateScroll();
     }
 
     private bool InitGlobals() => InitLibrary() && InitMusic() && InitTransitionManager();
@@ -193,6 +204,8 @@ public partial class Main : Node2D
 
         if (IsInstanceValid(_transition))
             _transition.OnTransitionFailed -= OnFatalAppError;
+
+        GetTree().Root.SizeChanged -= OnWindowResized;
 
         base._ExitTree();
     }
