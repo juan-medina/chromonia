@@ -3,6 +3,7 @@
 
 using Godot;
 using Chromonia.Transition;
+using Chromonia.Core;
 
 namespace Chromonia.UI;
 
@@ -21,6 +22,8 @@ public partial class MainMenu : Control
         _transitionManager = GetNode<TransitionManager>("/root/TransitionManager");
         _uiAudioManager = GetNode<UiAudioManager>("/root/UiAudioManager");
 
+        _transitionManager.OnTransitionFailed += OnFatalAppError;
+
         _playButton.Pressed += OnPlayPressed;
         _optionsButton.Pressed += OnOptionsPressed;
         _aboutButton.Pressed += OnAboutPressed;
@@ -31,8 +34,22 @@ public partial class MainMenu : Control
         _playButton.GrabFocus();
     }
 
+    public override void _ExitTree()
+    {
+        if (IsInstanceValid(_transitionManager)) _transitionManager.OnTransitionFailed -= OnFatalAppError;
+    }
+
     private void OnPlayPressed() => _transitionManager.TransitionToGame();
     private static void OnOptionsPressed() => GD.Print("Options Pressed");
     private static void OnAboutPressed() => GD.Print("About Pressed");
     private void OnExitPressed() => GetTree().Quit();
+
+    private void OnFatalAppError(Result err) => HandleFatalError(err.Message);
+
+    private void HandleFatalError(string errorMessage)
+    {
+        GD.PrintErr($"Transition Failed: {errorMessage}");
+        OS.Alert("Something went wrong loading the game.", "Transition Error");
+        GetTree().Quit();
+    }
 }
