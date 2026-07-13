@@ -187,4 +187,4 @@ bus = &"Sfx"
 
 [node name="OnboardingTutorial" parent="." unique_id=116149869 instance=ExtResource("19_onboarding")]
 
-[node name="PauseMenu" parent="." instance=ExtResource("20_pause")]
+[node name="PauseMenu" parent="." unique_id=1880022859 instance=ExtResource("20_pause")]

@@ -9,10 +9,10 @@ namespace Chromonia.UI;
 
 public partial class MainMenu : Control
 {
-    [Export] private ModernMenuButton _playButton = null!;
-    [Export] private ModernMenuButton _optionsButton = null!;
-    [Export] private ModernMenuButton _aboutButton = null!;
-    [Export] private ModernMenuButton _exitButton = null!;
+    [Export] private Button _playButton = null!;
+    [Export] private Button _optionsButton = null!;
+    [Export] private Button _aboutButton = null!;
+    [Export] private Button _exitButton = null!;
 
     private TransitionManager _transitionManager = null!;
     private UiAudioManager _uiAudioManager = null!;
