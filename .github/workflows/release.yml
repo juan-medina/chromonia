@@ -41,17 +41,34 @@ jobs:
                 with:
                     dotnet-version: '8.0.x'
 
+            -   name: Cache NuGet packages
+                uses: actions/cache@v4
+                with:
+                    path: ~/.nuget/packages
+                    key: nuget-${{ runner.os }}-${{ hashFiles('Game/**/*.csproj') }}
+                    restore-keys: nuget-${{ runner.os }}-
+
             -   name: Setup Godot
                 uses: chickensoft-games/setup-godot@v2
                 with:
                     version: 4.6.1
                     use-dotnet: true
                     include-templates: true
+                    cache: true
+
+            -   name: Cache Godot import cache
+                uses: actions/cache@v4
+                with:
+                    path: Game/.godot/imported
+                    key: godot-import-${{ runner.os }}
+                    restore-keys: godot-import-${{ runner.os }}-
 
             -   name: Import project assets
                 shell: bash
                 working-directory: Game
-                run: godot --headless --editor --quit-after 300 || true
+                env:
+                    GODOT_DISABLE_LEAK_CHECKS: 1
+                run: godot --headless --import
 
             -   name: Export
                 shell: bash
@@ -63,9 +80,16 @@ jobs:
                     godot --headless --export-release "${{ matrix.preset }}" ../publish/${{ matrix.rid }}/${{ matrix.output }}
 
             # Windows: pack with Velopack
+            -   name: Cache Velopack CLI
+                if: matrix.velopack
+                uses: actions/cache@v4
+                with:
+                    path: ~/.dotnet/tools
+                    key: velopack-cli-${{ runner.os }}
+
             -   name: Install Velopack CLI
                 if: matrix.velopack
-                run: dotnet tool install -g vpk
+                run: dotnet tool install -g vpk || true
 
             -   name: Pack installer (Windows)
                 if: matrix.velopack
