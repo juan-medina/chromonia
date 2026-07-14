@@ -51,8 +51,8 @@ public partial class SettingsManager : Node
             // First time launch or missing config - set defaults
             Fullscreen = true;
             MasterVolume = 1.0f;
-            MusicVolume = 1.0f;
-            SfxVolume = 1.0f;
+            MusicVolume = 0.5f;
+            SfxVolume = 0.5f;
         }
     }
 
