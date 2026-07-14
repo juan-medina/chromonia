@@ -5,6 +5,7 @@ using Godot;
 using Chromonia.Transition;
 using Chromonia.Core;
 using Chromonia.Library;
+using Chromonia.Music;
 
 namespace Chromonia.UI;
 
@@ -19,11 +20,13 @@ public partial class MainMenu : Node2D
     [Export] private Label _logoText = null!;
     [Export] private Sprite2D _blobsDisplay = null!;
 
-    private PaintingLibrary _library = null!;
+    private PaintingLibrary _paintingLibrary = null!;
+
     private const int MaxBlobs = 15;
     private TransitionManager _transitionManager = null!;
     private UiAudioManager _uiAudioManager = null!;
-    private BlobData[] _blobs = null!;
+    private BlobData[] _blobs = [];
+    private MusicPlayer _music = null!;
     private float _colorPhase;
 
     private struct BlobData
@@ -47,7 +50,8 @@ public partial class MainMenu : Node2D
 
         _transitionManager.OnTransitionFailed += OnFatalAppError;
 
-        if (!InitLibrary()) return;
+        if (!InitPaintingLibrary()) return;
+        if (!InitMusic()) return;
 
         SetupButtons();
         CreateBlobs();
@@ -62,13 +66,28 @@ public partial class MainMenu : Node2D
         if (_logoText.Material is ShaderMaterial mat) mat.SetShaderParameter("reflection_map", viewportTex);
     }
 
-    private bool InitLibrary()
+    private bool InitPaintingLibrary()
     {
-        _library = GetNodeOrNull<PaintingLibrary>("/root/PaintingLibrary");
-        if (_library is not null) return true;
+        _paintingLibrary = GetNodeOrNull<PaintingLibrary>("/root/PaintingLibrary");
+        if (_paintingLibrary is not null) return true;
         HandleFatalError("PaintingLibrary global autoload is missing.");
         return false;
     }
+
+    private bool InitMusic()
+    {
+        _music = GetNodeOrNull<MusicPlayer>("/root/MusicPlayer");
+        if (_music is null)
+        {
+            HandleFatalError("MusicPlayer global autoload is missing.");
+            return false;
+        }
+
+        _music.OnPlaybackFailed += OnFatalAppError;
+        _music.Play();
+        return true;
+    }
+
 
     private void SetupButtons()
     {
@@ -136,13 +155,14 @@ public partial class MainMenu : Node2D
 
     public override void _ExitTree()
     {
+        if (IsInstanceValid(_music)) _music.OnPlaybackFailed -= OnFatalAppError;
         if (IsInstanceValid(_transitionManager)) _transitionManager.OnTransitionFailed -= OnFatalAppError;
     }
 
     private void OnPlayPressed()
     {
         // get a new set of paintings every time we play
-        _library.Shuffle();
+        _paintingLibrary.Shuffle();
         _transitionManager.TransitionToGame();
     }
 

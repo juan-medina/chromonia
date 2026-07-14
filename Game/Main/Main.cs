@@ -8,10 +8,8 @@ using Godot;
 using Chromonia.Core;
 using Chromonia.Enemies;
 using BlobEnemy = Chromonia.Enemies.BlobEnemy;
-using MusicPlayer = Chromonia.Music.MusicPlayer;
 using PaintingLibrary = Chromonia.Library.PaintingLibrary;
 using SharedProgressBar = Chromonia.UI.SharedProgressBar;
-using ToastNotification = Chromonia.UI.ToastNotification;
 using GalleryPlaque = Chromonia.UI.GalleryPlaque;
 using TransitionManager = Chromonia.Transition.TransitionManager;
 
@@ -20,7 +18,7 @@ namespace Chromonia.Main;
 public partial class Main : Node2D
 {
     private PaintingLibrary _library = null!;
-    private MusicPlayer _music = null!;
+    private Chromonia.Music.MusicPlayer _music = null!;
     private TransitionManager _transition = null!;
 
     [Export] private SubViewport _maskViewport = null!;
@@ -40,7 +38,6 @@ public partial class Main : Node2D
     [Export] private AudioStreamPlayer _sfxSnap = null!;
     [Export] private AudioStreamPlayer _sfxWaterDrop = null!;
     [Export] private AudioStreamPlayer _sfxPaintStroke = null!;
-    [Export] private ToastNotification _toastNotification = null!;
     [Export] private GalleryPlaque _galleryPlaque = null!;
     [Export] private TextureProgressBar _transitionProgressBar = null!;
 
@@ -115,23 +112,14 @@ public partial class Main : Node2D
 
     private bool InitMusic()
     {
-        Result result;
-        _music = GetNode<MusicPlayer>("/root/MusicPlayer");
-        if (_music is null)
-        {
-            result = Result.Fail("MusicPlayer global autoload is missing.");
-        }
-        else
+        _music = GetNodeOrNull<Music.MusicPlayer>("/root/MusicPlayer");
+        if (_music is not null)
         {
             _music.OnPlaybackFailed += OnFatalAppError;
-            _music.OnPlaybackStarted += OnMusicStarted;
-
-            result = _music.TryPlayMusic();
+            return true;
         }
-
-
-        if (!result) OnFatalAppError(result);
-        return result;
+        HandleFatalError("MusicPlayer global autoload is missing.");
+        return false;
     }
 
     private bool InitTransitionManager()
@@ -180,27 +168,12 @@ public partial class Main : Node2D
             [Energy.A.Fill(), Energy.B.Fill()];
     }
 
-    private void OnMusicStarted(Result<ResourceEntry> result)
-    {
-        if (!result)
-        {
-            OnFatalAppError(Result.Fail(result.ErrorMessage));
-            return;
-        }
 
-        var entry = result.Value;
-        string subtitle = $"{entry.Name} by {entry.Author}\nPerformed by: {entry.Metadata["performer"]}";
-
-        _toastNotification.ShowToast("Now Playing", subtitle);
-    }
 
     public override void _ExitTree()
     {
         if (IsInstanceValid(_music))
-        {
             _music.OnPlaybackFailed -= OnFatalAppError;
-            _music.OnPlaybackStarted -= OnMusicStarted;
-        }
 
         if (IsInstanceValid(_transition))
             _transition.OnTransitionFailed -= OnFatalAppError;

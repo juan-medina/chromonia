@@ -9,51 +9,63 @@ namespace Chromonia.Music;
 public partial class MusicPlayer : AudioStreamPlayer
 {
     private Library.MusicLibrary _library = null!;
+    private UI.ToastNotification _toast = null!;
     public event System.Action<Result>? OnPlaybackFailed;
-    public event System.Action<Result<Library.ResourceEntry>>? OnPlaybackStarted;
 
     private bool _ready;
 
     public override void _Ready()
     {
         _library = GetNodeOrNull<Library.MusicLibrary>("/root/MusicLibrary");
-        _ready = _library is not null;
+        _toast = GetNodeOrNull<UI.ToastNotification>("/root/ToastNotification");
+        _ready = _library is not null && _toast is not null;
 
         ProcessMode = ProcessModeEnum.Always;
         Finished += OnFinished;
         Bus = "Music";
     }
 
-    public Result TryPlayMusic() => IsPlaying() ? Result.Ok() : PlayCurrent();
+    public void Play()
+    {
+        if (!IsPlaying()) PlayCurrent();
+    }
 
     private void OnFinished()
     {
         if (!_ready) return;
 
         _library.MoveNext();
-        var result = PlayCurrent();
-        if (result) return;
-
-        GD.PrintErr(result.Message);
-        OnPlaybackFailed?.Invoke(result);
+        PlayCurrent();
     }
 
-    private Result PlayCurrent()
+    private void PlayCurrent()
     {
         if (!_ready)
         {
-            var err = Result.Fail("MusicLibrary is not ready on PlayCurrent");
+            var err = Result.Fail("MusicPlayer is not ready. Library or ToastNotification is missing.");
             OnPlaybackFailed?.Invoke(err);
-            GD.PrintErr(err.Message);
-            return err;
+            return;
         }
 
         var result = _library.LoadCurrentResource();
-        if (!result) return Result.Fail(result.ErrorMessage);
+        if (!result)
+        {
+            OnPlaybackFailed?.Invoke(Result.Fail(result.ErrorMessage));
+            return;
+        }
 
         Stream = result.Value;
-        Play();
-        OnPlaybackStarted?.Invoke(_library.Current());
-        return Result.Ok();
+        base.Play();
+
+        var currentResult = _library.Current();
+        if (!currentResult)
+        {
+            OnPlaybackFailed?.Invoke(Result.Fail(currentResult.ErrorMessage));
+            return;
+        }
+
+        var entry = currentResult.Value;
+        string subtitle = $"{entry.Name} by {entry.Author}\nPerformed by: {entry.Metadata["performer"]}";
+        _toast.ShowToast("Now Playing", subtitle);
     }
 }

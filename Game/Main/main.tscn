@@ -16,7 +16,6 @@
 [ext_resource type="AudioStream" uid="uid://1p0dls4yx42x" path="res://Main/Sounds/water_drop_4.wav" id="14_guo5i"]
 [ext_resource type="AudioStream" uid="uid://wcjppkue661g" path="res://Main/Sounds/water_drop_5.wav" id="15_0gq1e"]
 [ext_resource type="AudioStream" uid="uid://c6eeadg1almjq" path="res://Main/Sounds/paint_stroke.wav" id="16_l5bfp"]
-[ext_resource type="PackedScene" uid="uid://dqy2nbiy1clia" path="res://UI/toast_notification.tscn" id="17_toast"]
 [ext_resource type="PackedScene" uid="uid://cmb2txx7wyrt2" path="res://UI/gallery_plaque.tscn" id="18_plaq"]
 [ext_resource type="PackedScene" uid="uid://bn6boo2mrte5h" path="res://UI/onboarding_tutorial.tscn" id="19_onboarding"]
 [ext_resource type="PackedScene" uid="uid://dpsa82hd38ds2" path="res://UI/pause_menu.tscn" id="20_pause"]
@@ -136,12 +135,6 @@ offset_top = -505.0
 offset_bottom = -465.0
 
 [node name="HUDLayer" type="CanvasLayer" parent="." unique_id=555555555]
-
-[node name="ToastNotification" parent="HUDLayer" unique_id=1286608618 instance=ExtResource("17_toast")]
-offset_left = -350.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = 100.0
 
 [node name="TransitionProgressBar" type="TextureProgressBar" parent="HUDLayer" unique_id=1084965424]
 anchors_preset = 12
