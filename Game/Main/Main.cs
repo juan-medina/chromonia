@@ -41,6 +41,7 @@ public partial class Main : Node2D
     [Export] private GalleryPlaque _galleryPlaque = null!;
     [Export] private TextureProgressBar _transitionProgressBar = null!;
     [Export] private Camera2D _camera = null!;
+    [Export] private PackedScene _blobClusterScene = null!;
 
     private bool _isAdvancingToNextRound;
 
@@ -416,7 +417,9 @@ public partial class Main : Node2D
         {
             var energy = (i % 2 == 0) ? Energy.A : Energy.B;
             float speed = (float)GD.RandRange(MinBlobSpeed, MaxBlobSpeed);
-            var cluster = new BlobCluster(energy, speed);
+            var cluster = _blobClusterScene.Instantiate<BlobCluster>();
+            cluster.Energy = energy;
+            cluster.Speed = speed;
 
             float px = (float)GD.RandRange(bounds.Position.X + 70f, bounds.End.X - 70f);
             float py = (float)GD.RandRange(bounds.Position.Y + 70f, bounds.End.Y - 70f);

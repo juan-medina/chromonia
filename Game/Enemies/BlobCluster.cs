@@ -8,11 +8,11 @@ namespace Chromonia.Enemies;
 
 public partial class BlobCluster : Node2D
 {
-    private RigidBody2D _core = null!;
-    private float _speed;
-    private Energy _energy;
-    private bool IsDissolving { get; set; }
+    [Export] private RigidBody2D _core = null!;
+    [Export] public float Speed { get; set; }
+    [Export] public Energy Energy { get; set; }
 
+    private bool IsDissolving { get; set; }
 
     private const int MinBlobs = 4;
     private const int MaxBlobs = 6;
@@ -22,48 +22,22 @@ public partial class BlobCluster : Node2D
     private const float WobbleFrequency = 50f;
     private const float MaxWobbleAngle = 3.0f;
 
-    // Noise to create erratic movement
     private FastNoiseLite _noise = null!;
     private double _timePassed;
 
-    public BlobCluster()
-    {
-    }
-
-    public BlobCluster(Energy energy, float speed)
-    {
-        _energy = energy;
-        _speed = speed;
-        _noise = new FastNoiseLite { Seed = (int)GD.Randi(), Frequency = 0.5f };
-    }
-
     public override void _Ready()
     {
-        // Create the invisible Core physics body that drives the cluster
-        _core = new RigidBody2D
-        {
-            GravityScale = 0,
-            LinearDampMode = RigidBody2D.DampMode.Replace,
-            LinearDamp = 0.5f,
-            CollisionLayer = 2,
-            CollisionMask = 1,
-            PhysicsMaterialOverride = new PhysicsMaterial { Bounce = 1.0f, Friction = 0.0f }
-        };
-
-        // The core needs a collision shape to bounce off walls. We keep it small.
-        _core.AddChild(new CollisionShape2D { Shape = new CircleShape2D { Radius = 10f } });
-        AddChild(_core);
+        _noise = new FastNoiseLite { Seed = (int)GD.Randi(), Frequency = 0.5f };
 
         float angle = (float)GD.RandRange(0, Mathf.Tau);
-        _core.LinearVelocity = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * _speed;
+        _core.LinearVelocity = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * Speed;
 
         int subBlobs = GD.RandRange(MinBlobs, MaxBlobs);
         for (int i = 0; i < subBlobs; i++)
         {
             float radius = GD.RandRange(MinRadius, MaxRadius);
-            var blob = new BlobEnemy(_energy, radius);
+            var blob = new BlobEnemy(Energy, radius);
 
-            // Random offset so they don't spawn exactly inside each other
             float spawnAngle = (float)GD.RandRange(0, Mathf.Tau);
             blob.Position = new Vector2(Mathf.Cos(spawnAngle), Mathf.Sin(spawnAngle)) * 30f;
 
@@ -77,8 +51,6 @@ public partial class BlobCluster : Node2D
                 RestLength = 0f,
                 Stiffness = 150f,
                 Damping = 2f,
-                // Sub-blobs in the same cluster won't physically collide with the core
-                // (though they might collide with each other depending on physics layers)
                 DisableCollision = true
             };
             AddChild(spring);
@@ -91,16 +63,11 @@ public partial class BlobCluster : Node2D
 
         _timePassed += delta;
 
-        // The noise creates a smooth, continuous 'wobble' to make the movement feel organic instead of perfectly straight.
-        // WobbleFrequency controls how fast it sweeps through the noise pattern.
-        // MaxWobbleAngle is the maximum angle (in radians) it can veer off-course per second.
         float wobbleRate = _noise.GetNoise1D((float)_timePassed * WobbleFrequency) * MaxWobbleAngle;
-
         _core.LinearVelocity = _core.LinearVelocity.Rotated(wobbleRate * (float)delta);
 
-        // Strictly enforce the exact speed at all times so it never slows down or speeds up
         if (_core.LinearVelocity.LengthSquared() > 0.1f)
-            _core.LinearVelocity = _core.LinearVelocity.Normalized() * _speed;
+            _core.LinearVelocity = _core.LinearVelocity.Normalized() * Speed;
     }
 
     public bool Dissolve()

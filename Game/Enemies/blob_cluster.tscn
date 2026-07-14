@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://c6vo7sx3q88bo"]
+
+[ext_resource type="Script" uid="uid://df27grt0yq0ao" path="res://Enemies/BlobCluster.cs" id="1_script"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_core"]
+friction = 0.0
+bounce = 1.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_core"]
+
+[node name="BlobCluster" type="Node2D" unique_id=1244069214 node_paths=PackedStringArray("_core")]
+script = ExtResource("1_script")
+_core = NodePath("Core")
+
+[node name="Core" type="RigidBody2D" parent="." unique_id=1421440954]
+collision_layer = 2
+physics_material_override = SubResource("PhysicsMaterial_core")
+gravity_scale = 0.0
+linear_damp_mode = 1
+linear_damp = 0.5
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Core" unique_id=595793257]
+shape = SubResource("CircleShape2D_core")

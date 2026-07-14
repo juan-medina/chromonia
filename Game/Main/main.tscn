@@ -19,6 +19,7 @@
 [ext_resource type="PackedScene" uid="uid://cmb2txx7wyrt2" path="res://UI/gallery_plaque.tscn" id="18_plaq"]
 [ext_resource type="PackedScene" uid="uid://bn6boo2mrte5h" path="res://UI/onboarding_tutorial.tscn" id="19_onboarding"]
 [ext_resource type="PackedScene" uid="uid://dpsa82hd38ds2" path="res://UI/pause_menu.tscn" id="20_pause"]
+[ext_resource type="PackedScene" uid="uid://c6vo7sx3q88bo" path="res://Enemies/blob_cluster.tscn" id="21_cluster"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_lbhrr"]
 shader = ExtResource("2_ib3t1")
@@ -54,7 +55,7 @@ stream_2/stream = ExtResource("13_l5bfp")
 stream_3/stream = ExtResource("14_guo5i")
 stream_4/stream = ExtResource("15_0gq1e")
 
-[node name="Main" type="Node2D" unique_id=1676047802 node_paths=PackedStringArray("_maskViewport", "_maskRoot", "_painting", "_playfield", "_arrow", "_progressBar", "_blobsLayer", "_perimeterLine", "_drawingLine", "_dropShadow", "_borderPhysics", "_sfxDrawLoop", "_sfxSafeLoop", "_sfxErase", "_sfxSnap", "_sfxWaterDrop", "_sfxPaintStroke", "_toastNotification", "_galleryPlaque", "_transitionProgressBar", "_camera")]
+[node name="Main" type="Node2D" unique_id=1676047802 node_paths=PackedStringArray("_maskViewport", "_maskRoot", "_painting", "_playfield", "_arrow", "_progressBar", "_blobsLayer", "_perimeterLine", "_drawingLine", "_dropShadow", "_borderPhysics", "_sfxDrawLoop", "_sfxSafeLoop", "_sfxErase", "_sfxSnap", "_sfxWaterDrop", "_sfxPaintStroke", "_galleryPlaque", "_transitionProgressBar", "_camera")]
 script = ExtResource("1_liyct")
 _maskViewport = NodePath("SubViewport")
 _maskRoot = NodePath("SubViewport/MaskRoot")
@@ -73,10 +74,10 @@ _sfxErase = NodePath("SfxErase")
 _sfxSnap = NodePath("SfxSnap")
 _sfxWaterDrop = NodePath("SfxWaterDrop")
 _sfxPaintStroke = NodePath("SfxPaintStroke")
-_toastNotification = NodePath("HUDLayer/ToastNotification")
 _galleryPlaque = NodePath("Painting/GalleryPlaque")
 _transitionProgressBar = NodePath("HUDLayer/TransitionProgressBar")
 _camera = NodePath("Camera2D")
+_blobClusterScene = ExtResource("21_cluster")
 
 [node name="Painting" type="Sprite2D" parent="." unique_id=1516573035]
 material = SubResource("ShaderMaterial_lbhrr")
