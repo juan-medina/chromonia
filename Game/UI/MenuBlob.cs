@@ -24,13 +24,11 @@ public partial class MenuBlob : Node2D
         }
     }
 
-    public float Radius { get; set; }
+    [Export] public float Radius { get; set; }
 
     public override void _Ready()
     {
         _growDelay = (float)GD.RandRange(0f, MaxGrowDelay);
-        var shader = ResourceLoader.Load<Shader>("res://Enemies/blob_soft.gdshader");
-        Material = new ShaderMaterial { Shader = shader };
     }
 
     public override void _Process(double delta)

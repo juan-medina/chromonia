@@ -27,6 +27,7 @@ public partial class MainMenu : Node2D
     [Export] private Label _logoText = null!;
     [Export] private Sprite2D _blobsDisplay = null!;
 
+    [Export] private PackedScene _menuBlobScene = null!;
     private PaintingLibrary _paintingLibrary = null!;
 
     private const int MaxBlobs = 15;
@@ -105,7 +106,7 @@ public partial class MainMenu : Node2D
         _blobs = new BlobData[MaxBlobs];
         for (int i = 0; i < _blobs.Length; i++)
         {
-            var b = new MenuBlob();
+            var b = _menuBlobScene.Instantiate<MenuBlob>();
             b.Radius = (float)GD.RandRange(70f, 180f);
             b.ZIndex = 0;
             _blobsLayer.AddChild(b);

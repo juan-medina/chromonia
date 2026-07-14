@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://bpg8i5edn7ci5"]
 
 [ext_resource type="Script" uid="uid://ra5cldy4cf6g" path="res://UI/MainMenu.cs" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://w8a6asw8faor" path="res://UI/menu_blob.tscn" id="2_cafmx"]
 [ext_resource type="Theme" uid="uid://djb8idhiocumf" path="res://UI/main_theme.tres" id="2_theme"]
 [ext_resource type="Texture2D" uid="uid://da27hv6rxfri3" path="res://Background/canvas.jpg" id="3_bg"]
 [ext_resource type="PackedScene" uid="uid://da8d3k1iu6o82" path="res://UI/modern_menu_button.tscn" id="4_mmb"]
@@ -52,6 +53,7 @@ _blobsLayer = NodePath("BlobsViewport/BlobsLayer")
 _blobsViewport = NodePath("BlobsViewport")
 _logoText = NodePath("UILayer/MenuControl/LogoContainer/LogoText")
 _blobsDisplay = NodePath("BlobsDisplay")
+_menuBlobScene = ExtResource("2_cafmx")
 
 [node name="BackgroundLayer" type="CanvasLayer" parent="." unique_id=987654321]
 layer = -1

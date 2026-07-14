@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://w8a6asw8faor"]
+
+[ext_resource type="Script" uid="uid://dc8sxnxt0rtcx" path="res://UI/MenuBlob.cs" id="1_script"]
+[ext_resource type="Shader" uid="uid://ce4xfv1peottt" path="res://Enemies/blob_soft.gdshader" id="2_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_blob"]
+shader = ExtResource("2_shader")
+
+[node name="MenuBlob" type="Node2D" unique_id=1754224080]
+material = SubResource("ShaderMaterial_blob")
+script = ExtResource("1_script")
