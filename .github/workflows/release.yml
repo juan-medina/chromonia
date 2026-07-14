@@ -26,8 +26,8 @@ jobs:
                       preset: Linux
                       output: chromonia
                       velopack: false
-                    - os: macos-latest
-                      rid: osx-x64
+                    - os: macos-15
+                      rid: osx-universal
                       preset: macOS
                       output: chromonia.zip
                       velopack: false
@@ -38,6 +38,8 @@ jobs:
         steps:
             -   name: Checkout
                 uses: actions/checkout@v4
+                with:
+                    lfs: true
 
             -   name: Setup .NET
                 uses: actions/setup-dotnet@v4
@@ -58,6 +60,12 @@ jobs:
                     use-dotnet: true
                     include-templates: true
                     cache: true
+
+            -   name: Cache Godot import cache
+                uses: actions/cache@v4
+                with:
+                    path: Game/.godot/imported
+                    key: godot-import-${{ matrix.rid }}
 
             -   name: Import project assets
                 shell: bash
@@ -108,7 +116,7 @@ jobs:
 
             # macOS: Godot already exports a .zip, upload directly
             -   name: Upload to release (macOS)
-                if: matrix.rid == 'osx-x64'
+                if: matrix.rid == 'osx-universal'
                 shell: bash
                 run: gh release upload ${{ github.ref_name }} publish/${{ matrix.rid }}/${{ matrix.output }}
                 env:
