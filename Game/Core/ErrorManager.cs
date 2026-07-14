@@ -12,6 +12,8 @@ public partial class ErrorManager : Node
     private const string UserMessage = "Chromonia ran into a problem and needs to close.";
     private const string DialogTitle = "Unexpected Error";
 
+    private bool _isShowingError;
+
     public override void _Ready()
     {
         ProcessMode = ProcessModeEnum.Always;
@@ -26,11 +28,31 @@ public partial class ErrorManager : Node
     public void NotifyFatalError(string technicalMessage)
     {
         GD.PrintErr(technicalMessage);
-        OS.Alert(UserMessage, DialogTitle);
-        GetTree().Quit();
+        if (_isShowingError) return;
+        _isShowingError = true;
+
+        var dialog = new AcceptDialog
+        {
+            Title = DialogTitle,
+            DialogText = UserMessage,
+            ProcessMode = ProcessModeEnum.Always
+        };
+
+        dialog.Confirmed += OnDialogClosed;
+        dialog.CloseRequested += OnDialogClosed;
+
+        AddChild(dialog);
+        GetTree().Paused = true;
+        dialog.PopupCentered();
     }
 
     public void NotifyFatalError(Result result) => NotifyFatalError(result.Message);
+
+    private void OnDialogClosed()
+    {
+        GetTree().Paused = false;
+        GetTree().Quit();
+    }
 
     private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
