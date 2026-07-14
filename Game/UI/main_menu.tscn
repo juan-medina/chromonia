@@ -6,7 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://da8d3k1iu6o82" path="res://UI/modern_menu_button.tscn" id="4_mmb"]
 [ext_resource type="Script" uid="uid://cxa4gc08jqgpb" path="res://UI/Components/InputPromptIcon.cs" id="5_icon"]
 [ext_resource type="Shader" uid="uid://dwmn3qansqxuf" path="res://Enemies/blob_merge.gdshader" id="6_shader"]
-[ext_resource type="Shader" path="res://UI/chrome_text.gdshader" id="7_chrome_shader"]
+[ext_resource type="Shader" uid="uid://bn0txsyhy731a" path="res://UI/chrome_text.gdshader" id="7_chrome_shader"]
 
 [sub_resource type="Environment" id="Environment_menu"]
 background_mode = 3
