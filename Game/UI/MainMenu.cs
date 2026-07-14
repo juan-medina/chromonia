@@ -11,10 +11,14 @@ namespace Chromonia.UI;
 
 public partial class MainMenu : Node2D
 {
+    [Export] private Control _mainButtonsContainer = null!;
+    [Export] private Control _optionsContainer = null!;
     [Export] private Button _playButton = null!;
     [Export] private Button _optionsButton = null!;
     [Export] private Button _aboutButton = null!;
     [Export] private Button _exitButton = null!;
+    [Export] private Components.SettingsPanel _settingsPanel = null!;
+    [Export] private Button _backButton = null!;
     [Export] private CanvasGroup _blobsLayer = null!;
     [Export] private SubViewport _blobsViewport = null!;
     [Export] private Label _logoText = null!;
@@ -96,6 +100,7 @@ public partial class MainMenu : Node2D
         _optionsButton.Pressed += OnOptionsPressed;
         _aboutButton.Pressed += OnAboutPressed;
         _exitButton.Pressed += OnExitPressed;
+        _backButton.Pressed += OnBackPressed;
 
         // first button is focus
         _playButton.GrabFocus();
@@ -166,7 +171,58 @@ public partial class MainMenu : Node2D
         _transitionManager.TransitionToGame();
     }
 
-    private static void OnOptionsPressed() => GD.Print("Options Pressed");
+    private void OnOptionsPressed()
+    {
+        GetTree().Root.GuiDisableInput = true;
+
+        var tween = CreateTween();
+        tween.TweenProperty(_mainButtonsContainer, "modulate:a", 0.0f, 0.15f);
+
+        tween.TweenCallback(Callable.From(() =>
+        {
+            _mainButtonsContainer.Visible = false;
+            _optionsContainer.Visible = true;
+            _optionsContainer.Modulate = new Color(1, 1, 1, 0);
+            _settingsPanel.Refresh();
+        }));
+
+        tween.TweenProperty(_optionsContainer, "modulate:a", 1.0f, 0.15f);
+        tween.TweenCallback(Callable.From(() =>
+        {
+            GetTree().Root.GuiDisableInput = false;
+            _settingsPanel.GetFirstFocusableControl().GrabFocus();
+        }));
+    }
+
+    private void OnBackPressed()
+    {
+        GetTree().Root.GuiDisableInput = true;
+
+        var tween = CreateTween();
+        tween.TweenProperty(_optionsContainer, "modulate:a", 0.0f, 0.15f);
+
+        tween.TweenCallback(Callable.From(() =>
+        {
+            _optionsContainer.Visible = false;
+            _mainButtonsContainer.Visible = true;
+            _mainButtonsContainer.Modulate = new Color(1, 1, 1, 0);
+        }));
+
+        tween.TweenProperty(_mainButtonsContainer, "modulate:a", 1.0f, 0.15f);
+        tween.TweenCallback(Callable.From(() =>
+        {
+            GetTree().Root.GuiDisableInput = false;
+            _optionsButton.GrabFocus();
+        }));
+    }
+
+    public override void _UnhandledInput(InputEvent @event)
+    {
+        if (!_optionsContainer.Visible || !@event.IsActionPressed("ui_cancel")) return;
+        OnBackPressed();
+        GetViewport().SetInputAsHandled();
+    }
+
     private static void OnAboutPressed() => GD.Print("About Pressed");
     private void OnExitPressed() => GetTree().Quit();
 
