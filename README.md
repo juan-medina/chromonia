@@ -1,7 +1,7 @@
 # Chromonia
 
 <p align="center">
-  <img src="logo.svg" alt="Chromonia" width="128"/>
+  <img src="Game/icon.svg" alt="Chromonia" width="128"/>
 </p>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-478CBF.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
