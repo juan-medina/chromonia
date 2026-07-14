@@ -32,6 +32,9 @@ jobs:
                       output: chromonia.zip
                       velopack: false
 
+        permissions:
+            contents: write
+
         steps:
             -   name: Checkout
                 uses: actions/checkout@v4
@@ -55,13 +58,6 @@ jobs:
                     use-dotnet: true
                     include-templates: true
                     cache: true
-
-            -   name: Cache Godot import cache
-                uses: actions/cache@v4
-                with:
-                    path: Game/.godot/imported
-                    key: godot-import-${{ runner.os }}
-                    restore-keys: godot-import-${{ runner.os }}-
 
             -   name: Import project assets
                 shell: bash
@@ -103,52 +99,29 @@ jobs:
                       --mainExe chromonia.exe `
                       --outputDir velopack-out
 
-            -   name: Upload artifact (Windows Velopack)
+            -   name: Upload to release (Windows Velopack)
                 if: matrix.velopack
-                uses: actions/upload-artifact@v4
-                with:
-                    name: Chromonia-${{ matrix.rid }}
-                    path: velopack-out/
+                shell: bash
+                run: gh release upload ${{ github.ref_name }} velopack-out/*
+                env:
+                    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
             # macOS: Godot already exports a .zip, upload directly
-            -   name: Upload artifact (macOS)
+            -   name: Upload to release (macOS)
                 if: matrix.rid == 'osx-x64'
-                uses: actions/upload-artifact@v4
-                with:
-                    name: Chromonia-${{ matrix.rid }}
-                    path: publish/${{ matrix.rid }}/${{ matrix.output }}
+                shell: bash
+                run: gh release upload ${{ github.ref_name }} publish/${{ matrix.rid }}/${{ matrix.output }}
+                env:
+                    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-            # Linux: zip the binary
-            -   name: Zip publish output (Linux)
+            # Linux: zip the binary and upload
+            -   name: Zip and upload to release (Linux)
                 if: matrix.rid == 'linux-x64'
                 shell: bash
                 run: |
                     cd publish/${{ matrix.rid }}
                     zip -r ../../Chromonia-${{ matrix.rid }}.zip .
-
-            -   name: Upload artifact (Linux)
-                if: matrix.rid == 'linux-x64'
-                uses: actions/upload-artifact@v4
-                with:
-                    name: Chromonia-${{ matrix.rid }}
-                    path: Chromonia-${{ matrix.rid }}.zip
-
-    release:
-        name: Attach to GitHub Release
-        needs: build
-        runs-on: ubuntu-latest
-        permissions:
-            contents: write
-
-        steps:
-            -   name: Download all artifacts
-                uses: actions/download-artifact@v4
-                with:
-                    path: artifacts
-
-            -   name: Upload to release
-                shell: bash
-                run: gh release upload ${{ github.ref_name }} $(find artifacts -type f)
+                    cd ../..
+                    gh release upload ${{ github.ref_name }} Chromonia-${{ matrix.rid }}.zip
                 env:
                     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                    GH_REPO: ${{ github.repository }}
