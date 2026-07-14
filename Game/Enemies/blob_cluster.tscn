@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://c6vo7sx3q88bo"]
 
 [ext_resource type="Script" uid="uid://df27grt0yq0ao" path="res://Enemies/BlobCluster.cs" id="1_script"]
+[ext_resource type="PackedScene" path="res://Enemies/blob_enemy.tscn" id="2_blob"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_core"]
 friction = 0.0
@@ -11,6 +12,7 @@ bounce = 1.0
 [node name="BlobCluster" type="Node2D" unique_id=1244069214 node_paths=PackedStringArray("_core")]
 script = ExtResource("1_script")
 _core = NodePath("Core")
+_blobEnemyScene = ExtResource("2_blob")
 
 [node name="Core" type="RigidBody2D" parent="." unique_id=1421440954]
 collision_layer = 2

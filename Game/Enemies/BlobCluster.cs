@@ -9,6 +9,7 @@ namespace Chromonia.Enemies;
 public partial class BlobCluster : Node2D
 {
     [Export] private RigidBody2D _core = null!;
+    [Export] private PackedScene _blobEnemyScene = null!;
     [Export] public float Speed { get; set; }
     [Export] public Energy Energy { get; set; }
 
@@ -36,7 +37,9 @@ public partial class BlobCluster : Node2D
         for (int i = 0; i < subBlobs; i++)
         {
             float radius = GD.RandRange(MinRadius, MaxRadius);
-            var blob = new BlobEnemy(Energy, radius);
+            var blob = _blobEnemyScene.Instantiate<BlobEnemy>();
+            blob.Energy = Energy;
+            blob.Radius = radius;
 
             float spawnAngle = (float)GD.RandRange(0, Mathf.Tau);
             blob.Position = new Vector2(Mathf.Cos(spawnAngle), Mathf.Sin(spawnAngle)) * 30f;
