@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://da8d3k1iu6o82" path="res://UI/modern_menu_button.tscn" id="4_mmb"]
 [ext_resource type="Script" uid="uid://cxa4gc08jqgpb" path="res://UI/Components/InputPromptIcon.cs" id="5_icon"]
 [ext_resource type="Shader" uid="uid://dwmn3qansqxuf" path="res://Enemies/blob_merge.gdshader" id="6_shader"]
+[ext_resource type="Shader" path="res://UI/chrome_text.gdshader" id="7_chrome_shader"]
 
 [sub_resource type="Environment" id="Environment_menu"]
 background_mode = 3
@@ -14,6 +15,10 @@ glow_blend_mode = 0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_blobs"]
 shader = ExtResource("6_shader")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_chrome"]
+shader = ExtResource("7_chrome_shader")
+shader_parameter/height = 144.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prompts"]
 content_margin_left = 20.0
@@ -28,13 +33,16 @@ corner_radius_bottom_left = 20
 shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 10
 
-[node name="MainMenu" type="Node2D" unique_id=1004905813 node_paths=PackedStringArray("_playButton", "_optionsButton", "_aboutButton", "_exitButton", "_blobsLayer")]
+[node name="MainMenu" type="Node2D" unique_id=1004905813 node_paths=PackedStringArray("_playButton", "_optionsButton", "_aboutButton", "_exitButton", "_blobsLayer", "_blobsViewport", "_logoText", "_blobsDisplay")]
 script = ExtResource("1_script")
 _playButton = NodePath("UILayer/MenuControl/MarginContainer/VBoxContainer/PlayButton")
 _optionsButton = NodePath("UILayer/MenuControl/MarginContainer/VBoxContainer/OptionsButton")
 _aboutButton = NodePath("UILayer/MenuControl/MarginContainer/VBoxContainer/AboutButton")
 _exitButton = NodePath("UILayer/MenuControl/MarginContainer/VBoxContainer/ExitButton")
-_blobsLayer = NodePath("BlobsLayer")
+_blobsLayer = NodePath("BlobsViewport/BlobsLayer")
+_blobsViewport = NodePath("BlobsViewport")
+_logoText = NodePath("UILayer/MenuControl/LogoContainer/LogoText")
+_blobsDisplay = NodePath("BlobsDisplay")
 
 [node name="BackgroundLayer" type="CanvasLayer" parent="." unique_id=987654321]
 layer = -1
@@ -54,8 +62,17 @@ stretch_mode = 6
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=433407142]
 environment = SubResource("Environment_menu")
 
-[node name="BlobsLayer" type="CanvasGroup" parent="." unique_id=999999999]
+[node name="BlobsViewport" type="SubViewport" parent="." unique_id=555111222]
+transparent_bg = true
+size = Vector2i(1920, 1080)
+render_target_update_mode = 4
+
+[node name="ViewportCamera" type="Camera2D" parent="BlobsViewport" unique_id=777888999]
+
+[node name="BlobsLayer" type="CanvasGroup" parent="BlobsViewport" unique_id=999999999]
 material = SubResource("ShaderMaterial_blobs")
+
+[node name="BlobsDisplay" type="Sprite2D" parent="." unique_id=333444555]
 
 [node name="UILayer" type="CanvasLayer" parent="." unique_id=111222333]
 
@@ -67,6 +84,52 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("2_theme")
+
+[node name="LogoContainer" type="Control" parent="UILayer/MenuControl" unique_id=123987456]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -500.0
+offset_top = -200.0
+offset_right = 500.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LogoShadow" type="Label" parent="UILayer/MenuControl/LogoContainer" unique_id=987123654]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 20
+theme_override_constants/outline_size = 40
+theme_override_constants/shadow_outline_size = 40
+theme_override_font_sizes/font_size = 144
+text = "CHROMONIA"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LogoText" type="Label" parent="UILayer/MenuControl/LogoContainer" unique_id=741852963]
+material = SubResource("ShaderMaterial_chrome")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 144
+text = "CHROMONIA"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="MarginContainer" type="MarginContainer" parent="UILayer/MenuControl" unique_id=182236546]
 layout_mode = 1

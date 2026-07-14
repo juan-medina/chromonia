@@ -15,6 +15,9 @@ public partial class MainMenu : Node2D
     [Export] private Button _aboutButton = null!;
     [Export] private Button _exitButton = null!;
     [Export] private CanvasGroup _blobsLayer = null!;
+    [Export] private SubViewport _blobsViewport = null!;
+    [Export] private Label _logoText = null!;
+    [Export] private Sprite2D _blobsDisplay = null!;
 
     private PaintingLibrary _library = null!;
     private const int MaxBlobs = 15;
@@ -48,6 +51,15 @@ public partial class MainMenu : Node2D
 
         SetupButtons();
         CreateBlobs();
+        SetupChromeEffect();
+    }
+
+    private void SetupChromeEffect()
+    {
+        var viewportTex = _blobsViewport.GetTexture();
+        _blobsDisplay.Texture = viewportTex;
+
+        if (_logoText.Material is ShaderMaterial mat) mat.SetShaderParameter("reflection_map", viewportTex);
     }
 
     private bool InitLibrary()
@@ -100,6 +112,7 @@ public partial class MainMenu : Node2D
 
     public override void _Process(double delta)
     {
+        // color cycle blobs in HDR colors
         float fDelta = (float)delta;
 
         _colorPhase += fDelta * 0.1f;
