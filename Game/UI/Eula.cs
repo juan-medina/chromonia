@@ -16,23 +16,40 @@ public partial class Eula : Control
 
     private UiAudioManager _uiAudioManager = null!;
     private TransitionManager _transitionManager = null!;
+    private SettingsManager _settingsManager = null!;
 
     public override void _Ready()
     {
-        _uiAudioManager = GetNode<UiAudioManager>("/root/UiAudioManager");
+        _settingsManager = GetNode<SettingsManager>("/root/SettingsManager");
         _transitionManager = GetNode<TransitionManager>("/root/TransitionManager");
+        _uiAudioManager = GetNode<UiAudioManager>("/root/UiAudioManager");
+
+        _transitionManager.OnTransitionFailed += OnFatalAppError;
+
+        var version = ProjectSettings.GetSetting("application/config/version").ToString();
+        var minorVersion = GetMinorVersion(version);
+
+        if (_settingsManager.IsEulaAccepted(minorVersion))
+        {
+            _transitionManager.SkipToMenu();
+            return;
+        }
+
+        Visible = true;
 
         if (!SetupText()) return;
 
+        _version.Text = $"v{version}";
         _acceptButton.Pressed += OnAcceptPressed;
         _declineButton.Pressed += OnDeclinePressed;
-
         _acceptButton.GrabFocus();
-
-        // setup sounds in the buttons
         _uiAudioManager.ConnectMenuSounds(this);
+    }
 
-        _version.Text = $"v{ProjectSettings.GetSetting("application/config/version")}";
+    private static string GetMinorVersion(string version)
+    {
+        var parts = version.Split('.');
+        return parts.Length >= 2 ? $"{parts[0]}.{parts[1]}" : version;
     }
 
     private bool SetupText()
@@ -48,7 +65,6 @@ public partial class Eula : Control
         return true;
     }
 
-
     private void OnDeclinePressed()
     {
         GetTree().Quit();
@@ -56,6 +72,8 @@ public partial class Eula : Control
 
     private void OnAcceptPressed()
     {
+        var version = ProjectSettings.GetSetting("application/config/version").ToString();
+        _settingsManager.SetEulaAccepted(GetMinorVersion(version));
         _transitionManager.TransitionToMenu();
     }
 

@@ -21,6 +21,7 @@ shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 10
 
 [node name="EULA" type="Control" unique_id=279453505 node_paths=PackedStringArray("_acceptButton", "_declineButton", "_bigTextPanel", "_version")]
+visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

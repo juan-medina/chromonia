@@ -41,10 +41,34 @@ public partial class TransitionManager : CanvasLayer
         ChangeSceneInternal(_mainMenuScene);
     }
 
+    public void SkipToMenu()
+    {
+        if (_isTransitioning) return;
+        ChangeSceneInstant(_mainMenuScene);
+    }
+
     public void TransitionToGame()
     {
         if (_isTransitioning) return;
         ChangeSceneInternal(_gameScene);
+    }
+
+    private async void ChangeSceneInstant(PackedScene scene)
+    {
+        try
+        {
+            _isTransitioning = true;
+            GetTree().CallDeferred(SceneTree.MethodName.ChangeSceneToPacked, scene);
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        }
+        catch (Exception ex)
+        {
+            OnTransitionFailed?.Invoke(Result.Fail($"Scene transition failed: {ex.Message}"));
+        }
+        finally
+        {
+            _isTransitioning = false;
+        }
     }
 
     private async void ChangeSceneInternal(PackedScene targetScene)
