@@ -20,7 +20,7 @@ corner_radius_bottom_left = 20
 shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 10
 
-[node name="EULA" type="Control" unique_id=279453505 node_paths=PackedStringArray("_acceptButton", "_declineButton", "_bigTextPanel")]
+[node name="EULA" type="Control" unique_id=279453505 node_paths=PackedStringArray("_acceptButton", "_declineButton", "_bigTextPanel", "_version")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -31,6 +31,7 @@ script = ExtResource("1_5otqx")
 _acceptButton = NodePath("UILayer/MenuControl/AboutContainer/VBoxContainer/HBoxContainer/AcceptButton")
 _declineButton = NodePath("UILayer/MenuControl/AboutContainer/VBoxContainer/HBoxContainer/DeclineButton")
 _bigTextPanel = NodePath("UILayer/MenuControl/AboutContainer/VBoxContainer/BigTextPanel")
+_version = NodePath("UILayer/MenuControl/AboutContainer/VBoxContainer/HeaderHBox/Version")
 
 [node name="BackgroundLayer" type="CanvasLayer" parent="." unique_id=1836287512]
 layer = -1
@@ -74,11 +75,22 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 20
 
-[node name="EULATitle" type="Label" parent="UILayer/MenuControl/AboutContainer/VBoxContainer" unique_id=345157674]
+[node name="HeaderHBox" type="HBoxContainer" parent="UILayer/MenuControl/AboutContainer/VBoxContainer" unique_id=1934949833]
 layout_mode = 2
+
+[node name="EULATitle" type="Label" parent="UILayer/MenuControl/AboutContainer/VBoxContainer/HeaderHBox" unique_id=345157674]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 0, 1, 1)
 theme_override_font_sizes/font_size = 72
 text = "End-User License Agreement"
+
+[node name="Version" type="Label" parent="UILayer/MenuControl/AboutContainer/VBoxContainer/HeaderHBox" unique_id=231048608]
+layout_mode = 2
+size_flags_vertical = 8
+theme_override_colors/font_color = Color(1, 0, 1, 1)
+theme_override_font_sizes/font_size = 28
+text = "v0.0.00000"
 
 [node name="HSeparator1" type="HSeparator" parent="UILayer/MenuControl/AboutContainer/VBoxContainer" unique_id=1650488962]
 layout_mode = 2

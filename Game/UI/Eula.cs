@@ -12,6 +12,7 @@ public partial class Eula : Control
     [Export] private Button _acceptButton = null!;
     [Export] private Button _declineButton = null!;
     [Export] private Components.BigTextPanel _bigTextPanel = null!;
+    [Export] private Label _version = null!;
 
     private UiAudioManager _uiAudioManager = null!;
     private TransitionManager _transitionManager = null!;
@@ -30,6 +31,8 @@ public partial class Eula : Control
 
         // setup sounds in the buttons
         _uiAudioManager.ConnectMenuSounds(this);
+
+        _version.Text = $"v{ProjectSettings.GetSetting("application/config/version")}";
     }
 
     private bool SetupText()
