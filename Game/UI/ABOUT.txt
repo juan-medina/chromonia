@@ -1,4 +1,6 @@
 [center]
+[img=128]res://icon.png[/img]
+
 [b]CHROMONIA[/b]
 A meditative territory-claiming game.
 

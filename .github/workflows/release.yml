@@ -1,0 +1,130 @@
+# SPDX-FileCopyrightText: 2026 Juan Medina
+# SPDX-License-Identifier: MIT
+
+name: Release
+
+on:
+    push:
+        tags:
+            - 'v*.*.*'
+
+jobs:
+    build:
+        name: Build ${{ matrix.rid }}
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - os: windows-latest
+                      rid: win-x64
+                      preset: Windows Desktop
+                      output: chromonia.exe
+                      velopack: true
+                    - os: ubuntu-latest
+                      rid: linux-x64
+                      preset: Linux
+                      output: chromonia
+                      velopack: false
+                    - os: macos-latest
+                      rid: osx-x64
+                      preset: macOS
+                      output: chromonia.zip
+                      velopack: false
+
+        steps:
+            -   name: Checkout
+                uses: actions/checkout@v4
+
+            -   name: Setup .NET
+                uses: actions/setup-dotnet@v4
+                with:
+                    dotnet-version: '8.0.x'
+
+            -   name: Setup Godot
+                uses: chickensoft-games/setup-godot@v2
+                with:
+                    version: 4.6.1
+                    use-dotnet: true
+                    include-templates: true
+
+            -   name: Import project assets
+                shell: bash
+                working-directory: Game
+                run: godot --headless --editor --quit-after 300 || true
+
+            -   name: Export
+                shell: bash
+                working-directory: Game
+                env:
+                    EnableVersionBump: false
+                run: |
+                    mkdir -p ../publish/${{ matrix.rid }}
+                    godot --headless --export-release "${{ matrix.preset }}" ../publish/${{ matrix.rid }}/${{ matrix.output }}
+
+            # Windows: pack with Velopack
+            -   name: Install Velopack CLI
+                if: matrix.velopack
+                run: dotnet tool install -g vpk
+
+            -   name: Pack installer (Windows)
+                if: matrix.velopack
+                shell: pwsh
+                run: |
+                    $version = $env:GITHUB_REF_NAME -replace '^v', ''
+                    vpk pack `
+                      --packId Chromonia `
+                      --packVersion $version `
+                      --packDir publish/win-x64 `
+                      --mainExe chromonia.exe `
+                      --outputDir velopack-out
+
+            -   name: Upload artifact (Windows Velopack)
+                if: matrix.velopack
+                uses: actions/upload-artifact@v4
+                with:
+                    name: Chromonia-${{ matrix.rid }}
+                    path: velopack-out/
+
+            # macOS: Godot already exports a .zip, upload directly
+            -   name: Upload artifact (macOS)
+                if: matrix.rid == 'osx-x64'
+                uses: actions/upload-artifact@v4
+                with:
+                    name: Chromonia-${{ matrix.rid }}
+                    path: publish/${{ matrix.rid }}/${{ matrix.output }}
+
+            # Linux: zip the binary
+            -   name: Zip publish output (Linux)
+                if: matrix.rid == 'linux-x64'
+                shell: bash
+                run: |
+                    cd publish/${{ matrix.rid }}
+                    zip -r ../../Chromonia-${{ matrix.rid }}.zip .
+
+            -   name: Upload artifact (Linux)
+                if: matrix.rid == 'linux-x64'
+                uses: actions/upload-artifact@v4
+                with:
+                    name: Chromonia-${{ matrix.rid }}
+                    path: Chromonia-${{ matrix.rid }}.zip
+
+    release:
+        name: Attach to GitHub Release
+        needs: build
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+
+        steps:
+            -   name: Download all artifacts
+                uses: actions/download-artifact@v4
+                with:
+                    path: artifacts
+
+            -   name: Upload to release
+                shell: bash
+                run: gh release upload ${{ github.ref_name }} $(find artifacts -type f)
+                env:
+                    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                    GH_REPO: ${{ github.repository }}

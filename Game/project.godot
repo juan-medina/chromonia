@@ -11,12 +11,12 @@ config_version=5
 [application]
 
 config/name="Chromonia"
-config/version="0.8.3458"
+config/version="0.8.3482"
 run/main_scene="uid://31g8304281y2"
 config/features=PackedStringArray("4.6", "C#", "Forward Plus")
 boot_splash/bg_color=Color(0, 0, 0, 1)
 boot_splash/show_image=false
-config/icon="res://icon.svg"
+config/icon="uid://c65bm8i311sx1"
 
 [audio]
 
@@ -94,5 +94,6 @@ pause_game={
 [rendering]
 
 rendering_device/driver.windows="d3d12"
+textures/vram_compression/import_etc2_astc=true
 viewport/hdr_2d=true
 environment/defaults/default_clear_color=Color(0, 0, 0, 1)
