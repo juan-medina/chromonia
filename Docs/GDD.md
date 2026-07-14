@@ -340,6 +340,24 @@ Because the game uses C# (.NET), careful management of Garbage Collection (GC) p
 **Never use hardcoded colour names (e.g., `Red`, `Blue`, `White`) for variables, materials, nodes, or logic references.** If a colour's visual representation changes later, references like `smRed` or `isBlue` become dangerously misleading and create technical debt. 
 - Always use semantic names based on **state or function** (e.g., `StunnedMaterial`, `ImmuneMaterial`, `ColorA`, `ColorB`).
 
+### 6.8 Error Handling
+
+Failures are represented with the `Result` / `Result<T>` struct (`Core/Result.cs`) rather than exceptions, and are ultimately surfaced through the `ErrorManager` autoload (`Core/ErrorManager.cs`), which logs the technical message, pauses the tree, and shows a blocking "Unexpected Error" dialog before quitting. There are two distinct classes of failure, handled differently by design:
+
+1. **Load-time errors are always a hard, immediate crash.**
+   - **Rule:** A failure while loading or validating data the game depends on to start correctly (library JSON parsing, an entry missing required metadata, an asset a library references) is unrecoverable. It is reported to `ErrorManager.NotifyFatalError` as soon as it's detected, with no attempt to skip the bad entry or continue.
+   - **Examples:** `ResourceLibrary<T>._Ready()` crashing via `ErrorManager` when `TryLoadEntries` fails; `MusicLibrary.ValidateEntry` failing an entry that is missing the required `performer` metadata key.
+   - **Why:** These represent broken content or configuration in the build itself, not something a player can trigger by playing normally. Crashing loudly and immediately — wherever the bad build happens to run — surfaces the bug so it gets fixed, instead of silently skipping the bad entry and letting the mistake resurface later as a confusing, unrelated symptom.
+
+2. **Runtime errors are reported through events, not thrown at the point of failure.**
+   - **Rule:** A failure that can occur during normal play, after startup already succeeded (e.g. a specific listed asset fails to resolve mid-session), is never handled by the low-level system crashing itself. Instead the system exposes an `event Action<Result>? OnXFailed` and reports the failure through it; the owning screen (`Main`, `MainMenu`, `Eula`) subscribes and routes it to `ErrorManager` via a shared `OnFatalAppError(Result err) => _errorManager.NotifyFatalError(err)`.
+   - **Examples:** `ResourceLibrary<T>.OnLoadFailed`, `MusicPlayer.OnPlaybackFailed`, `TransitionManager.OnTransitionFailed`.
+   - **Why:** This decouples *detecting* a failure from *deciding what to do about it*. Today every one of these still ends in a crash, but because the failing system only reports the `Result` rather than acting on it, the app-level policy can change later (e.g. downgrade some of these to a recoverable toast) without touching the systems that raise them.
+
+3. **Scene wiring and autoload lookups are set up to crash on purpose if misconfigured.**
+   - **Rule:** Node references from the editor use `[Export] private T _thing = null!;` and are never null-checked in code. Autoload lookups always use `GetNode<T>("/root/X")`, never `GetNodeOrNull<T>`. If a `.tscn` is missing a wired node, or `project.godot` is missing an autoload, the game null-references and crashes the moment the field is used.
+   - **Why:** A misconfigured scene or missing autoload is a development-time mistake, not a condition the running game should defend against. Guarding it with a null check would hide the mistake until it resurfaces later as a stranger, harder-to-trace bug in an unrelated codepath — a crash at the offending line is more useful than graceful degradation.
+
 ---
 
 ## 7. Project Structure
@@ -368,14 +386,15 @@ To maintain a clean and manageable project, the following rules dictate how Godo
    - **Examples:** Core UI layers, backgrounds, static physics containers, static line drawing containers, and entities with complex Sprite layers, particles, or animations.
    - **Why:** This leverages Godot's WYSIWYG capabilities, allowing designers to tweak visuals, Z-indexes, and materials without recompiling C# code. It reduces `_Ready()` boilerplate and ensures the scene tree in the editor matches runtime reality as closely as possible.
 
-2. **Use Pure C# Classes for Highly Dynamic or Procedural Entities**
-   - **Rule:** Use `new Node()` or inherit directly from Godot Node classes in pure C# when the entity is completely procedural, mathematically generated, or its node hierarchy structure is randomized at runtime.
-   - **Examples:** The `BlobCluster` (which randomly creates 4-6 `BlobEnemy` sub-nodes and wires them together with physics joints on the fly), dynamically generated polygons for claimed area physics.
-   - **Why:** Building highly randomized node structures (especially those requiring physics joint `NodePath` assignments between dynamically created siblings) is much cleaner and safer in pure code.
+2. **Use `.tscn` + `Instantiate<T>()` for Dynamically Spawned Entities**
+   - **Rule:** If an entity has a fixed visual/node structure (materials, shaders, physics settings) but needs to be spawned dynamically at runtime, create it as a `.tscn` and instantiate it via `packedScene.Instantiate<T>()`. The parent scene holds the `PackedScene` as an `[Export]` assigned in the editor. Runtime-specific values (e.g. speed, energy type, radius) are set as `[Export]` properties on the instantiated node before it is added to the tree.
+   - **Examples:** `BlobEnemy`, `BlobCluster`, `MenuBlob`.
+   - **Why:** Resources defined in `.tscn` (materials, shaders, physics materials) are ref-counted and managed entirely by Godot's native lifecycle. When the scene unloads, Godot frees them deterministically — no GC pressure, no leaked RIDs. Creating these resources in C# code (`new ShaderMaterial`, `new PhysicsMaterial`) bypasses this lifecycle and can cause resource leaks at scene transitions.
 
-3. **Use Code Instantiation (`ResourceLoader.Load<PackedScene>`) for Prefabs**
-   - **Rule:** If an entity has a fixed visual/node structure but needs to be spawned dynamically in varying quantities, create it as a `.tscn` and instantiate it via C#.
-   - **Examples:** Bullets, visual effects, standard enemies (if they had specific sprite hierarchies).
+3. **Use Pure C# for Runtime-Generated Geometry Only**
+   - **Rule:** Use `new Node()` only when the node hierarchy or geometry is truly determined at runtime and cannot be pre-authored — specifically when shape data comes from gameplay state.
+   - **Examples:** Claim area `Polygon2D` and `StaticBody2D` with `SegmentShape2D` built from the player's drawn polygon, border physics built from the painting dimensions.
+   - **Why:** This geometry is mathematically derived from runtime state and has no fixed structure to put in a scene file.
 
 ---
 
