@@ -32,6 +32,7 @@ public partial class MainMenu : Node2D
     private const int MaxBlobs = 15;
     private TransitionManager _transitionManager = null!;
     private UiAudioManager _uiAudioManager = null!;
+    private ErrorManager _errorManager = null!;
     private BlobData[] _blobs = [];
     private MusicPlayer _music = null!;
     private float _colorPhase;
@@ -52,6 +53,7 @@ public partial class MainMenu : Node2D
 
     public override void _Ready()
     {
+        _errorManager = GetNode<ErrorManager>("/root/ErrorManager");
         _transitionManager = GetNode<TransitionManager>("/root/TransitionManager");
         _uiAudioManager = GetNode<UiAudioManager>("/root/UiAudioManager");
 
@@ -70,7 +72,7 @@ public partial class MainMenu : Node2D
     {
         if (!IsInstanceValid(_bigTextPanel))
         {
-            HandleFatalError("AboutPanel is missing in the scene tree.");
+            _errorManager.NotifyFatalError("AboutPanel is missing in the scene tree.");
             return false;
         }
 
@@ -91,7 +93,7 @@ public partial class MainMenu : Node2D
     {
         _paintingLibrary = GetNodeOrNull<PaintingLibrary>("/root/PaintingLibrary");
         if (_paintingLibrary is not null) return true;
-        HandleFatalError("PaintingLibrary global autoload is missing.");
+        _errorManager.NotifyFatalError("PaintingLibrary global autoload is missing.");
         return false;
     }
 
@@ -100,7 +102,7 @@ public partial class MainMenu : Node2D
         _music = GetNodeOrNull<MusicPlayer>("/root/MusicPlayer");
         if (_music is null)
         {
-            HandleFatalError("MusicPlayer global autoload is missing.");
+            _errorManager.NotifyFatalError("MusicPlayer global autoload is missing.");
             return false;
         }
 
@@ -244,12 +246,5 @@ public partial class MainMenu : Node2D
 
     private void OnExitPressed() => GetTree().Quit();
 
-    private void OnFatalAppError(Result err) => HandleFatalError(err.Message);
-
-    private void HandleFatalError(string errorMessage)
-    {
-        GD.PrintErr($"Transition Failed: {errorMessage}");
-        OS.Alert("Something went wrong loading the game.", "Transition Error");
-        GetTree().Quit();
-    }
+    private void OnFatalAppError(Result err) => _errorManager.NotifyFatalError(err);
 }

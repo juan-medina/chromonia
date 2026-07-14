@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using Chromonia.Library;
 using Godot;
 using Chromonia.Core;
 using Chromonia.Enemies;
@@ -18,8 +17,9 @@ namespace Chromonia.Main;
 public partial class Main : Node2D
 {
     private PaintingLibrary _library = null!;
-    private Chromonia.Music.MusicPlayer _music = null!;
+    private Music.MusicPlayer _music = null!;
     private TransitionManager _transition = null!;
+    private ErrorManager _errorManager = null!;
 
     [Export] private SubViewport _maskViewport = null!;
     [Export] private Node2D _maskRoot = null!;
@@ -100,13 +100,19 @@ public partial class Main : Node2D
         camera.ForceUpdateScroll();
     }
 
-    private bool InitGlobals() => InitLibrary() && InitMusic() && InitTransitionManager();
+    private bool InitGlobals() => InitErrorManager() && InitLibrary() && InitMusic() && InitTransitionManager();
+
+    private bool InitErrorManager()
+    {
+        _errorManager = GetNode<ErrorManager>("/root/ErrorManager");
+        return true;
+    }
 
     private bool InitLibrary()
     {
         _library = GetNodeOrNull<PaintingLibrary>("/root/PaintingLibrary");
         if (_library is not null) return true;
-        HandleFatalError("PaintingLibrary global autoload is missing.");
+        _errorManager.NotifyFatalError("PaintingLibrary global autoload is missing.");
         return false;
     }
 
@@ -118,7 +124,7 @@ public partial class Main : Node2D
             _music.OnPlaybackFailed += OnFatalAppError;
             return true;
         }
-        HandleFatalError("MusicPlayer global autoload is missing.");
+        _errorManager.NotifyFatalError("MusicPlayer global autoload is missing.");
         return false;
     }
 
@@ -127,7 +133,7 @@ public partial class Main : Node2D
         _transition = GetNode<TransitionManager>("/root/TransitionManager");
         if (_transition is null)
         {
-            HandleFatalError("TransitionManager global autoload is missing.");
+            _errorManager.NotifyFatalError("TransitionManager global autoload is missing.");
             return false;
         }
 
@@ -183,7 +189,7 @@ public partial class Main : Node2D
         base._ExitTree();
     }
 
-    private void OnFatalAppError(Result err) => HandleFatalError(err.Message);
+    private void OnFatalAppError(Result err) => _errorManager.NotifyFatalError(err);
 
     private void HandleClaimTriggered(int hitSegmentIndex)
     {
@@ -423,7 +429,7 @@ public partial class Main : Node2D
             material.SetShaderParameter("reveal_progress", 0.0f);
         }
         else
-            HandleFatalError(
+            _errorManager.NotifyFatalError(
                 "Painting material is not a ShaderMaterial. Please ensure the painting uses the correct shader.");
     }
 
@@ -526,10 +532,4 @@ public partial class Main : Node2D
         _playerSystem.ResetToStart();
     }
 
-    private void HandleFatalError(string errorMessage)
-    {
-        GD.PrintErr($"Game Initialization Failed: {errorMessage}");
-        OS.Alert("Something went wrong loading Chromonia.", "Initialization Error");
-        GetTree().Quit();
-    }
 }

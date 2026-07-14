@@ -17,9 +17,11 @@ public partial class Eula : Control
     private UiAudioManager _uiAudioManager = null!;
     private TransitionManager _transitionManager = null!;
     private SettingsManager _settingsManager = null!;
+    private ErrorManager _errorManager = null!;
 
     public override void _Ready()
     {
+        _errorManager = GetNode<ErrorManager>("/root/ErrorManager");
         _settingsManager = GetNode<SettingsManager>("/root/SettingsManager");
         _transitionManager = GetNode<TransitionManager>("/root/TransitionManager");
         _uiAudioManager = GetNode<UiAudioManager>("/root/UiAudioManager");
@@ -56,7 +58,7 @@ public partial class Eula : Control
     {
         if (!IsInstanceValid(_bigTextPanel))
         {
-            HandleFatalError("AboutPanel is missing in the scene tree.");
+            _errorManager.NotifyFatalError("AboutPanel is missing in the scene tree.");
             return false;
         }
 
@@ -77,12 +79,5 @@ public partial class Eula : Control
         _transitionManager.TransitionToMenu();
     }
 
-    private void OnFatalAppError(Result err) => HandleFatalError(err.Message);
-
-    private void HandleFatalError(string errorMessage)
-    {
-        GD.PrintErr($"Transition Failed: {errorMessage}");
-        OS.Alert("Something went wrong loading the game.", "Transition Error");
-        GetTree().Quit();
-    }
+    private void OnFatalAppError(Result err) => _errorManager.NotifyFatalError(err);
 }

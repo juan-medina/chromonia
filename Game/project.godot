@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Chromonia"
-config/version="0.8.3444"
+config/version="0.8.3448"
 run/main_scene="uid://31g8304281y2"
 config/features=PackedStringArray("4.6", "C#", "Forward Plus")
 boot_splash/bg_color=Color(0, 0, 0, 1)
@@ -24,6 +24,7 @@ buses/default_bus_layout="uid://drsl4y4op4opw"
 
 [autoload]
 
+ErrorManager="*res://Core/ErrorManager.cs"
 SettingsManager="*res://Core/SettingsManager.cs"
 InputManager="*res://Core/InputManager.cs"
 PaintingLibrary="*uid://dl7mukxiiwvoo"
