@@ -7,7 +7,8 @@
 [ext_resource type="Script" uid="uid://cxa4gc08jqgpb" path="res://UI/Components/InputPromptIcon.cs" id="5_icon"]
 [ext_resource type="Shader" uid="uid://dwmn3qansqxuf" path="res://Enemies/blob_merge.gdshader" id="6_shader"]
 [ext_resource type="Shader" uid="uid://bn0txsyhy731a" path="res://UI/chrome_text.gdshader" id="7_chrome_shader"]
-[ext_resource type="PackedScene" path="res://UI/Components/settings_panel.tscn" id="8_sp"]
+[ext_resource type="PackedScene" uid="uid://b6j27h8f0b1a2" path="res://UI/Components/settings_panel.tscn" id="8_sp"]
+[ext_resource type="PackedScene" uid="uid://c6a8gak2b1l3a" path="res://UI/Components/about_panel.tscn" id="9_ap"]
 
 [sub_resource type="Environment" id="Environment_menu"]
 background_mode = 3
@@ -34,16 +35,19 @@ corner_radius_bottom_left = 20
 shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 10
 
-[node name="MainMenu" type="Node2D" unique_id=1004905813 node_paths=PackedStringArray("_mainButtonsContainer", "_optionsContainer", "_playButton", "_optionsButton", "_aboutButton", "_exitButton", "_settingsPanel", "_backButton", "_blobsLayer", "_blobsViewport", "_logoText", "_blobsDisplay")]
+[node name="MainMenu" type="Node2D" unique_id=1004905813 node_paths=PackedStringArray("_mainButtonsContainer", "_optionsContainer", "_aboutContainer", "_playButton", "_optionsButton", "_aboutButton", "_exitButton", "_settingsPanel", "_aboutPanel", "_backButton", "_aboutBackButton", "_blobsLayer", "_blobsViewport", "_logoText", "_blobsDisplay")]
 script = ExtResource("1_script")
 _mainButtonsContainer = NodePath("UILayer/MenuControl/MarginContainer")
 _optionsContainer = NodePath("UILayer/MenuControl/OptionsContainer")
+_aboutContainer = NodePath("UILayer/MenuControl/AboutContainer")
 _playButton = NodePath("UILayer/MenuControl/MarginContainer/VBoxContainer/PlayButton")
 _optionsButton = NodePath("UILayer/MenuControl/MarginContainer/VBoxContainer/OptionsButton")
 _aboutButton = NodePath("UILayer/MenuControl/MarginContainer/VBoxContainer/AboutButton")
 _exitButton = NodePath("UILayer/MenuControl/MarginContainer/VBoxContainer/ExitButton")
 _settingsPanel = NodePath("UILayer/MenuControl/OptionsContainer/VBoxContainer/SettingsPanel")
+_aboutPanel = NodePath("UILayer/MenuControl/AboutContainer/VBoxContainer/AboutPanel")
 _backButton = NodePath("UILayer/MenuControl/OptionsContainer/VBoxContainer/BackButton")
+_aboutBackButton = NodePath("UILayer/MenuControl/AboutContainer/VBoxContainer/AboutBackButton")
 _blobsLayer = NodePath("BlobsViewport/BlobsLayer")
 _blobsViewport = NodePath("BlobsViewport")
 _logoText = NodePath("UILayer/MenuControl/LogoContainer/LogoText")
@@ -175,7 +179,8 @@ size_flags_horizontal = 1
 focus_neighbor_bottom = NodePath("../PlayButton")
 text = "Exit"
 
-[node name="OptionsContainer" type="MarginContainer" parent="UILayer/MenuControl"]
+[node name="OptionsContainer" type="MarginContainer" parent="UILayer/MenuControl" unique_id=1730489044]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -184,32 +189,69 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 120
 theme_override_constants/margin_bottom = 120
-visible = false
 
-[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/MenuControl/OptionsContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/MenuControl/OptionsContainer" unique_id=1238292170]
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 8
 theme_override_constants/separation = 20
 
-[node name="OptionsTitle" type="Label" parent="UILayer/MenuControl/OptionsContainer/VBoxContainer"]
+[node name="OptionsTitle" type="Label" parent="UILayer/MenuControl/OptionsContainer/VBoxContainer" unique_id=613316677]
 layout_mode = 2
-theme_override_font_sizes/font_size = 72
 theme_override_colors/font_color = Color(1, 0, 1, 1)
+theme_override_font_sizes/font_size = 72
 text = "OPTIONS"
 
-[node name="HSeparator1" type="HSeparator" parent="UILayer/MenuControl/OptionsContainer/VBoxContainer"]
+[node name="HSeparator1" type="HSeparator" parent="UILayer/MenuControl/OptionsContainer/VBoxContainer" unique_id=189198166]
 layout_mode = 2
 
-[node name="SettingsPanel" parent="UILayer/MenuControl/OptionsContainer/VBoxContainer" instance=ExtResource("8_sp")]
+[node name="SettingsPanel" parent="UILayer/MenuControl/OptionsContainer/VBoxContainer" unique_id=1566546771 instance=ExtResource("8_sp")]
 layout_mode = 2
 
-[node name="HSeparator2" type="HSeparator" parent="UILayer/MenuControl/OptionsContainer/VBoxContainer"]
+[node name="HSeparator2" type="HSeparator" parent="UILayer/MenuControl/OptionsContainer/VBoxContainer" unique_id=1699597505]
 layout_mode = 2
 
-[node name="BackButton" parent="UILayer/MenuControl/OptionsContainer/VBoxContainer" instance=ExtResource("4_mmb")]
+[node name="BackButton" parent="UILayer/MenuControl/OptionsContainer/VBoxContainer" unique_id=393245214 instance=ExtResource("4_mmb")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 48
+text = "Back"
+
+[node name="AboutContainer" type="MarginContainer" parent="UILayer/MenuControl" unique_id=115270551]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 40
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/MenuControl/AboutContainer" unique_id=909954231]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="AboutTitle" type="Label" parent="UILayer/MenuControl/AboutContainer/VBoxContainer" unique_id=1234220423]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 1, 1)
+theme_override_font_sizes/font_size = 72
+text = "ABOUT"
+
+[node name="HSeparator1" type="HSeparator" parent="UILayer/MenuControl/AboutContainer/VBoxContainer" unique_id=570353552]
+layout_mode = 2
+
+[node name="AboutPanel" parent="UILayer/MenuControl/AboutContainer/VBoxContainer" unique_id=1817264104 instance=ExtResource("9_ap")]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HSeparator2" type="HSeparator" parent="UILayer/MenuControl/AboutContainer/VBoxContainer" unique_id=1385441144]
+layout_mode = 2
+
+[node name="AboutBackButton" parent="UILayer/MenuControl/AboutContainer/VBoxContainer" unique_id=1375737990 instance=ExtResource("4_mmb")]
+layout_mode = 2
 text = "Back"
 
 [node name="PromptMargin" type="MarginContainer" parent="UILayer/MenuControl" unique_id=1567012696]

@@ -13,12 +13,15 @@ public partial class MainMenu : Node2D
 {
     [Export] private Control _mainButtonsContainer = null!;
     [Export] private Control _optionsContainer = null!;
+    [Export] private Control _aboutContainer = null!;
     [Export] private Button _playButton = null!;
     [Export] private Button _optionsButton = null!;
     [Export] private Button _aboutButton = null!;
     [Export] private Button _exitButton = null!;
     [Export] private Components.SettingsPanel _settingsPanel = null!;
+    [Export] private Components.AboutPanel _aboutPanel = null!;
     [Export] private Button _backButton = null!;
+    [Export] private Button _aboutBackButton = null!;
     [Export] private CanvasGroup _blobsLayer = null!;
     [Export] private SubViewport _blobsViewport = null!;
     [Export] private Label _logoText = null!;
@@ -54,12 +57,26 @@ public partial class MainMenu : Node2D
 
         _transitionManager.OnTransitionFailed += OnFatalAppError;
 
+        if (!SetupAbout()) return;
         if (!InitPaintingLibrary()) return;
         if (!InitMusic()) return;
 
         SetupButtons();
         CreateBlobs();
         SetupChromeEffect();
+    }
+
+    private bool SetupAbout()
+    {
+        if (!IsInstanceValid(_aboutPanel))
+        {
+            HandleFatalError("AboutPanel is missing in the scene tree.");
+            return false;
+        }
+
+        _aboutPanel.OnLoadFailed += OnFatalAppError;
+        _aboutPanel.Init();
+        return true;
     }
 
     private void SetupChromeEffect()
@@ -101,6 +118,7 @@ public partial class MainMenu : Node2D
         _aboutButton.Pressed += OnAboutPressed;
         _exitButton.Pressed += OnExitPressed;
         _backButton.Pressed += OnBackPressed;
+        _aboutBackButton.Pressed += OnAboutBackPressed;
 
         // first button is focus
         _playButton.GrabFocus();
@@ -162,6 +180,7 @@ public partial class MainMenu : Node2D
     {
         if (IsInstanceValid(_music)) _music.OnPlaybackFailed -= OnFatalAppError;
         if (IsInstanceValid(_transitionManager)) _transitionManager.OnTransitionFailed -= OnFatalAppError;
+        if (IsInstanceValid(_aboutPanel)) _aboutPanel.OnLoadFailed -= OnFatalAppError;
     }
 
     private void OnPlayPressed()
@@ -171,59 +190,58 @@ public partial class MainMenu : Node2D
         _transitionManager.TransitionToGame();
     }
 
-    private void OnOptionsPressed()
+    private void TransitionToMenu(Control hideMenu, Control showMenu, Control focusControl,
+        System.Action? onShowCallback = null)
     {
         GetTree().Root.GuiDisableInput = true;
 
         var tween = CreateTween();
-        tween.TweenProperty(_mainButtonsContainer, "modulate:a", 0.0f, 0.15f);
+        tween.TweenProperty(hideMenu, "modulate:a", 0.0f, 0.15f);
 
         tween.TweenCallback(Callable.From(() =>
         {
-            _mainButtonsContainer.Visible = false;
-            _optionsContainer.Visible = true;
-            _optionsContainer.Modulate = new Color(1, 1, 1, 0);
-            _settingsPanel.Refresh();
+            hideMenu.Visible = false;
+            showMenu.Visible = true;
+            showMenu.Modulate = new Color(1, 1, 1, 0);
+            onShowCallback?.Invoke();
         }));
 
-        tween.TweenProperty(_optionsContainer, "modulate:a", 1.0f, 0.15f);
-        tween.TweenCallback(Callable.From(() =>
-        {
-            GetTree().Root.GuiDisableInput = false;
-            _settingsPanel.GetFirstFocusableControl().GrabFocus();
-        }));
-    }
-
-    private void OnBackPressed()
-    {
-        GetTree().Root.GuiDisableInput = true;
-
-        var tween = CreateTween();
-        tween.TweenProperty(_optionsContainer, "modulate:a", 0.0f, 0.15f);
-
-        tween.TweenCallback(Callable.From(() =>
-        {
-            _optionsContainer.Visible = false;
-            _mainButtonsContainer.Visible = true;
-            _mainButtonsContainer.Modulate = new Color(1, 1, 1, 0);
-        }));
-
-        tween.TweenProperty(_mainButtonsContainer, "modulate:a", 1.0f, 0.15f);
+        tween.TweenProperty(showMenu, "modulate:a", 1.0f, 0.15f);
         tween.TweenCallback(Callable.From(() =>
         {
             GetTree().Root.GuiDisableInput = false;
-            _optionsButton.GrabFocus();
+            focusControl.GrabFocus();
         }));
     }
+
+    private void OnOptionsPressed() =>
+        TransitionToMenu(_mainButtonsContainer, _optionsContainer, _settingsPanel.GetFirstFocusableControl(),
+            _settingsPanel.Refresh);
+
+    private void OnBackPressed() =>
+        TransitionToMenu(_optionsContainer, _mainButtonsContainer, _optionsButton);
+
+    private void OnAboutPressed() =>
+        TransitionToMenu(_mainButtonsContainer, _aboutContainer, _aboutBackButton);
+
+    private void OnAboutBackPressed() =>
+        TransitionToMenu(_aboutContainer, _mainButtonsContainer, _aboutButton);
 
     public override void _UnhandledInput(InputEvent @event)
     {
-        if (!_optionsContainer.Visible || !@event.IsActionPressed("ui_cancel")) return;
-        OnBackPressed();
-        GetViewport().SetInputAsHandled();
+        if (!@event.IsActionPressed("ui_cancel")) return;
+        if (_optionsContainer.Visible)
+        {
+            OnBackPressed();
+            GetViewport().SetInputAsHandled();
+        }
+        else if (_aboutContainer.Visible)
+        {
+            OnAboutBackPressed();
+            GetViewport().SetInputAsHandled();
+        }
     }
 
-    private static void OnAboutPressed() => GD.Print("About Pressed");
     private void OnExitPressed() => GetTree().Quit();
 
     private void OnFatalAppError(Result err) => HandleFatalError(err.Message);

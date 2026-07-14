@@ -1,0 +1,56 @@
+[center]
+[b]CHROMONIA[/b]
+A meditative territory-claiming game.
+
+[b]GAME DESIGN & PROGRAMMING[/b]
+[url=https://juan-medina.com/]Juan Medina[/url]
+
+[b]ENGINE[/b]
+Built with [url=https://godotengine.org/]Godot Engine 4[/url].
+(Licensed: MIT)
+
+[b]PAINTINGS[/b]
+Sourced from [url=https://artvee.com/]Artvee[/url] and public domain museum archives.
+(Licensed: Public Domain CC-0)
+
+[b]MUSIC[/b]
+Sourced from [url=https://musopen.org/]Musopen[/url].
+(Licensed: Public Domain CC-0)
+[i]Performances by:[/i]
+[url=https://musopen.org/music/performer/edward-rosser/]Edward Rosser[/url]
+[url=https://musopen.org/music/performer/simone-renzi/]Simone Renzi[/url]
+[url=https://musopen.org/music/performer/aya-higuchi/]Aya Higuchi[/url]
+[url=https://musopen.org/music/performer/paul-pitman/]Paul Pitman[/url]
+[url=https://musopen.org/music/performer/sam-chan/]Sam Chan[/url]
+[url=https://musopen.org/music/performer/shelley-katz/]Shelley Katz[/url]
+[url=https://musopen.org/music/performer/colin-carr/]Colin Carr[/url]
+[url=https://musopen.org/music/performer/luis-sarro/]Luis Sarro[/url]
+[url=https://musopen.org/music/performer/markus-staab/]Markus Staab[/url]
+[url=https://musopen.org/music/performer/isabella-stewart-gardner-museum/]Isabella Stewart Gardner Museum[/url]
+[url=https://musopen.org/music/performer/musopen-string-quartet/]Musopen String Quartet[/url]
+[url=https://musopen.org/music/performer/therese-dussaut/]Thérèse Dussaut[/url]
+
+[b]SOUND EFFECTS[/b]
+"pencil_continue_loop.wav" by [url=https://freesound.org/s/180441/]sseletskyy[/url]
+"Pencil Eraser Erasing" by [url=https://freesound.org/s/383861/]deleted_user_7146007[/url]
+"Stick Snap 1.wav" by [url=https://freesound.org/s/319231/]worthahep88[/url]
+"Water drop" by [url=https://freesound.org/s/156907/]Elfman-Rox[/url]
+(Licensed: Creative Commons 0)
+
+[b]UI ASSETS[/b]
+Input prompts by [url=https://kenney.nl/assets/input-prompts]Kenney.nl[/url]
+(Licensed: Creative Commons 0)
+
+-----------------------------------------------
+
+Copyright 2026 Juan Medina
+All rights reserved
+
+[url=https://github.com/juan-medina/chromonia]Full source-code on GitHub[/url]
+
+[url=https://github.com/juan-medina/chromonia/issues]Report bugs or feedback[/url]
+
+-----------------------------------------------
+
+Thank you for playing!
+[/center]
