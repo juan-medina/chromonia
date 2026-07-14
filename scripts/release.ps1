@@ -25,7 +25,7 @@ if (-not (Test-Path $versionPropsPath)) {
 	exit 1
 }
 
-$releaseNotesPath = Join-Path $repoRoot "release-notes.md"
+$releaseNotesPath = Join-Path $repoRoot "Game/release-notes.md"
 if (-not (Test-Path $releaseNotesPath)) {
 	Write-Error "release-notes.md not found at $releaseNotesPath"
 	exit 1
