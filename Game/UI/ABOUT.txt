@@ -43,8 +43,10 @@ Input prompts by [url=https://kenney.nl/assets/input-prompts]Kenney.nl[/url]
 
 -----------------------------------------------
 
-Copyright 2026 Juan Medina
-All rights reserved
+Copyright 2026 Juan Medina. All rights reserved.
+
+The game's source code is open-source and available under the MIT License.
+The name "Chromonia", its branding, and the compiled game distribution are protected by the EULA.
 
 [url=https://github.com/juan-medina/chromonia]Full source-code on GitHub[/url]
 

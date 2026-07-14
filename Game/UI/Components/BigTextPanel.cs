@@ -7,7 +7,7 @@ using Chromonia.Core;
 
 namespace Chromonia.UI.Components;
 
-public partial class AboutPanel : PanelContainer
+public partial class BigTextPanel : PanelContainer
 {
     [Export] private RichTextLabel _richTextLabel = null!;
     private ScrollContainer _scrollContainer = null!;
@@ -20,10 +20,6 @@ public partial class AboutPanel : PanelContainer
         _richTextLabel.MetaClicked += OnMetaClicked;
     }
 
-    public void Init()
-    {
-        LoadAboutText();
-    }
 
     public override void _Process(double delta)
     {
@@ -34,9 +30,8 @@ public partial class AboutPanel : PanelContainer
         }
     }
 
-    private void LoadAboutText()
+    public void Init(string path)
     {
-        const string path = "res://UI/ABOUT.txt";
         if (FileAccess.FileExists(path))
         {
             using var file = FileAccess.Open(path, FileAccess.ModeFlags.Read);

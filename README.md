@@ -13,16 +13,16 @@ A meditative territory-claiming game.
 [Juan Medina](https://juan-medina.com/)
 
 ### Engine
-Built with [Godot Engine 4](https://godotengine.org/).  
+Built with [Godot Engine 4](https://godotengine.org/).
 *(Licensed: MIT)*
 
 ### Paintings
-Sourced from [Artvee](https://artvee.com/) and public domain museum archives.  
+Sourced from [Artvee](https://artvee.com/) and public domain museum archives.
 *(Licensed: Public Domain CC-0)*
 
 ### Music
-Sourced from [Musopen](https://musopen.org/).  
-*(Licensed: Public Domain CC-0)*  
+Sourced from [Musopen](https://musopen.org/).
+*(Licensed: Public Domain CC-0)*
 
 **Performances by:**
 - [Edward Rosser](https://musopen.org/music/performer/edward-rosser/)
@@ -42,20 +42,25 @@ Sourced from [Musopen](https://musopen.org/).
 - ["pencil_continue_loop.wav"](https://freesound.org/s/180441/) by sseletskyy
 - ["Pencil Eraser Erasing"](https://freesound.org/s/383861/) by deleted_user_7146007
 - ["Stick Snap 1.wav"](https://freesound.org/s/319231/) by worthahep88
-- ["Water drop"](https://freesound.org/s/156907/) by Elfman-Rox  
-*(Licensed: Creative Commons 0)*
+- ["Water drop"](https://freesound.org/s/156907/) by Elfman-Rox
+  *(Licensed: Creative Commons 0)*
 
 ### UI Assets
-- Input prompts by [Kenney.nl](https://kenney.nl/assets/input-prompts)  
-*(Licensed: Creative Commons 0)*
+- Input prompts by [Kenney.nl](https://kenney.nl/assets/input-prompts)
+  *(Licensed: Creative Commons 0)*
 
 ---
 
-**License**
+## License
 
-This project is licensed under the MIT License — see `LICENSE` for details.
+This project uses a dual-licensing structure to keep the code open while protecting the game's identity:
 
-**Contact**
+* **Source Code:** The programming code in this repository is open-source and licensed under the [MIT License](LICENSE). You are free to study, modify, merge, and use the code in your own projects.
+* **Branding & Build:** The name **"Chromonia"**, its branding, logos, and compiled game distributions are protected under our [End-User License Agreemen](EULA.md). You may not redistribute modified builds of the game under the "Chromonia" name or use its official branding for commercial purposes without explicit permission.
 
-Author: [Juan Medina](https://juan-medina.com) (copyright 2026)  
+---
+
+## Contact
+
+Author: [Juan Medina](https://juan-medina.com) (Copyright © 2026)
 [Report bugs or feedback](https://github.com/juan-medina/chromonia/issues)

@@ -5,6 +5,9 @@
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  <ItemGroup>
+    <Content Include="UI\EULA.txt" />
+  </ItemGroup>
 
 
     <!-- Import version from version.props so the assembly carries the same version -->

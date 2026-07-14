@@ -8,7 +8,7 @@
 [ext_resource type="Shader" uid="uid://dwmn3qansqxuf" path="res://Enemies/blob_merge.gdshader" id="6_shader"]
 [ext_resource type="Shader" uid="uid://bn0txsyhy731a" path="res://UI/chrome_text.gdshader" id="7_chrome_shader"]
 [ext_resource type="PackedScene" uid="uid://b6j27h8f0b1a2" path="res://UI/Components/settings_panel.tscn" id="8_sp"]
-[ext_resource type="PackedScene" uid="uid://c6a8gak2b1l3a" path="res://UI/Components/about_panel.tscn" id="9_ap"]
+[ext_resource type="PackedScene" uid="uid://c6a8gak2b1l3a" path="res://UI/Components/big_text_panel.tscn" id="9_ap"]
 
 [sub_resource type="Environment" id="Environment_menu"]
 background_mode = 3
@@ -35,7 +35,7 @@ corner_radius_bottom_left = 20
 shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 10
 
-[node name="MainMenu" type="Node2D" unique_id=1004905813 node_paths=PackedStringArray("_mainButtonsContainer", "_optionsContainer", "_aboutContainer", "_playButton", "_optionsButton", "_aboutButton", "_exitButton", "_settingsPanel", "_aboutPanel", "_backButton", "_aboutBackButton", "_blobsLayer", "_blobsViewport", "_logoText", "_blobsDisplay")]
+[node name="MainMenu" type="Node2D" unique_id=1004905813 node_paths=PackedStringArray("_mainButtonsContainer", "_optionsContainer", "_aboutContainer", "_playButton", "_optionsButton", "_aboutButton", "_exitButton", "_settingsPanel", "_bigTextPanel", "_backButton", "_aboutBackButton", "_blobsLayer", "_blobsViewport", "_logoText", "_blobsDisplay")]
 script = ExtResource("1_script")
 _mainButtonsContainer = NodePath("UILayer/MenuControl/MarginContainer")
 _optionsContainer = NodePath("UILayer/MenuControl/OptionsContainer")
@@ -45,7 +45,7 @@ _optionsButton = NodePath("UILayer/MenuControl/MarginContainer/VBoxContainer/Opt
 _aboutButton = NodePath("UILayer/MenuControl/MarginContainer/VBoxContainer/AboutButton")
 _exitButton = NodePath("UILayer/MenuControl/MarginContainer/VBoxContainer/ExitButton")
 _settingsPanel = NodePath("UILayer/MenuControl/OptionsContainer/VBoxContainer/SettingsPanel")
-_aboutPanel = NodePath("UILayer/MenuControl/AboutContainer/VBoxContainer/AboutPanel")
+_bigTextPanel = NodePath("UILayer/MenuControl/AboutContainer/VBoxContainer/BigTextPanel")
 _backButton = NodePath("UILayer/MenuControl/OptionsContainer/VBoxContainer/BackButton")
 _aboutBackButton = NodePath("UILayer/MenuControl/AboutContainer/VBoxContainer/AboutBackButton")
 _blobsLayer = NodePath("BlobsViewport/BlobsLayer")
@@ -243,7 +243,7 @@ text = "ABOUT"
 [node name="HSeparator1" type="HSeparator" parent="UILayer/MenuControl/AboutContainer/VBoxContainer" unique_id=570353552]
 layout_mode = 2
 
-[node name="AboutPanel" parent="UILayer/MenuControl/AboutContainer/VBoxContainer" unique_id=1817264104 instance=ExtResource("9_ap")]
+[node name="BigTextPanel" parent="UILayer/MenuControl/AboutContainer/VBoxContainer" unique_id=1817264104 instance=ExtResource("9_ap")]
 layout_mode = 2
 size_flags_vertical = 3
 

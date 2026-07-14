@@ -19,7 +19,7 @@ public partial class MainMenu : Node2D
     [Export] private Button _aboutButton = null!;
     [Export] private Button _exitButton = null!;
     [Export] private Components.SettingsPanel _settingsPanel = null!;
-    [Export] private Components.AboutPanel _aboutPanel = null!;
+    [Export] private Components.BigTextPanel _bigTextPanel = null!;
     [Export] private Button _backButton = null!;
     [Export] private Button _aboutBackButton = null!;
     [Export] private CanvasGroup _blobsLayer = null!;
@@ -68,14 +68,14 @@ public partial class MainMenu : Node2D
 
     private bool SetupAbout()
     {
-        if (!IsInstanceValid(_aboutPanel))
+        if (!IsInstanceValid(_bigTextPanel))
         {
             HandleFatalError("AboutPanel is missing in the scene tree.");
             return false;
         }
 
-        _aboutPanel.OnLoadFailed += OnFatalAppError;
-        _aboutPanel.Init();
+        _bigTextPanel.OnLoadFailed += OnFatalAppError;
+        _bigTextPanel.Init("res://UI/ABOUT.txt");
         return true;
     }
 
@@ -180,7 +180,7 @@ public partial class MainMenu : Node2D
     {
         if (IsInstanceValid(_music)) _music.OnPlaybackFailed -= OnFatalAppError;
         if (IsInstanceValid(_transitionManager)) _transitionManager.OnTransitionFailed -= OnFatalAppError;
-        if (IsInstanceValid(_aboutPanel)) _aboutPanel.OnLoadFailed -= OnFatalAppError;
+        if (IsInstanceValid(_bigTextPanel)) _bigTextPanel.OnLoadFailed -= OnFatalAppError;
     }
 
     private void OnPlayPressed()
