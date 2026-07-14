@@ -16,11 +16,12 @@ corner_radius_bottom_left = 15
 shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 15
 
-[node name="OnboardingTutorial" type="CanvasLayer" unique_id=2001773936]
+[node name="OnboardingTutorial" type="CanvasLayer" unique_id=2001773936 node_paths=PackedStringArray("_centerContainer")]
 process_mode = 4
 layer = 50
 visible = false
 script = ExtResource("1_script")
+_centerContainer = NodePath("CenterContainer")
 
 [node name="CenterContainer" type="CenterContainer" parent="." unique_id=188411935]
 anchors_preset = 15

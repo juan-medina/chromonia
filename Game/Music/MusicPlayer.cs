@@ -12,13 +12,10 @@ public partial class MusicPlayer : AudioStreamPlayer
     private UI.ToastNotification _toast = null!;
     public event System.Action<Result>? OnPlaybackFailed;
 
-    private bool _ready;
-
     public override void _Ready()
     {
-        _library = GetNodeOrNull<Library.MusicLibrary>("/root/MusicLibrary");
-        _toast = GetNodeOrNull<UI.ToastNotification>("/root/ToastNotification");
-        _ready = _library is not null && _toast is not null;
+        _library = GetNode<Library.MusicLibrary>("/root/MusicLibrary");
+        _toast = GetNode<UI.ToastNotification>("/root/ToastNotification");
 
         ProcessMode = ProcessModeEnum.Always;
         Finished += OnFinished;
@@ -32,21 +29,12 @@ public partial class MusicPlayer : AudioStreamPlayer
 
     private void OnFinished()
     {
-        if (!_ready) return;
-
         _library.MoveNext();
         PlayCurrent();
     }
 
     private void PlayCurrent()
     {
-        if (!_ready)
-        {
-            var err = Result.Fail("MusicPlayer is not ready. Library or ToastNotification is missing.");
-            OnPlaybackFailed?.Invoke(err);
-            return;
-        }
-
         var result = _library.LoadCurrentResource();
         if (!result)
         {

@@ -12,6 +12,7 @@ public partial class PauseMenu : CanvasLayer
     [Export] private Button _restartButton = null!;
     [Export] private SettingsPanel _settingsPanel = null!;
     [Export] private Button _quitButton = null!;
+    [Export] private ColorRect _colorRect = null!;
 
     private Transition.TransitionManager _transitionManager = null!;
     private UiAudioManager _uiAudioManager = null!;
@@ -67,20 +68,17 @@ public partial class PauseMenu : CanvasLayer
         _resumeButton.GrabFocus();
 
         // Fade in
-        var colorRect = GetNode<Control>("ColorRect");
-        colorRect.Modulate = new Color(1, 1, 1, 0);
+        _colorRect.Modulate = new Color(1, 1, 1, 0);
 
         CreateTween().SetPauseMode(Tween.TweenPauseMode.Process)
-            .TweenProperty(colorRect, "modulate", new Color(1, 1, 1), 0.15f);
+            .TweenProperty(_colorRect, "modulate", new Color(1, 1, 1), 0.15f);
     }
 
     private void CloseMenu()
     {
-        var colorRect = GetNode<Control>("ColorRect");
-
         var tween = CreateTween();
         tween.SetPauseMode(Tween.TweenPauseMode.Process);
-        tween.TweenProperty(colorRect, "modulate", new Color(1, 1, 1, 0), 0.15f);
+        tween.TweenProperty(_colorRect, "modulate", new Color(1, 1, 1, 0), 0.15f);
         tween.TweenCallback(new Callable(this, MethodName.FinishClose));
     }
 

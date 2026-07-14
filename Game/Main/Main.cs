@@ -40,6 +40,7 @@ public partial class Main : Node2D
     [Export] private AudioStreamPlayer _sfxPaintStroke = null!;
     [Export] private GalleryPlaque _galleryPlaque = null!;
     [Export] private TextureProgressBar _transitionProgressBar = null!;
+    [Export] private Camera2D _camera = null!;
 
     private bool _isAdvancingToNextRound;
 
@@ -82,10 +83,16 @@ public partial class Main : Node2D
 
     public override void _Ready()
     {
-        if (!InitGlobals()) return;
+        _errorManager = GetNode<ErrorManager>("/root/ErrorManager");
+        _library = GetNode<PaintingLibrary>("/root/PaintingLibrary");
+        _music = GetNode<Music.MusicPlayer>("/root/MusicPlayer");
+        _transition = GetNode<TransitionManager>("/root/TransitionManager");
 
-        if (!InitSystems()) return;
+        _library.OnLoadFailed += OnFatalAppError;
+        _music.OnPlaybackFailed += OnFatalAppError;
+        _transition.OnTransitionFailed += OnFatalAppError;
 
+        InitSystems();
         SetupLevel();
 
         // Workaround for Godot 4 Camera2D not centering correctly
@@ -94,73 +101,23 @@ public partial class Main : Node2D
 
     private void OnWindowResized()
     {
-        var camera = GetNode<Camera2D>("Camera2D");
-        camera.Enabled = false;
-        camera.Enabled = true;
-        camera.ForceUpdateScroll();
+        _camera.Enabled = false;
+        _camera.Enabled = true;
+        _camera.ForceUpdateScroll();
     }
 
-    private bool InitGlobals() => InitErrorManager() && InitLibrary() && InitMusic() && InitTransitionManager();
-
-    private bool InitErrorManager()
-    {
-        _errorManager = GetNode<ErrorManager>("/root/ErrorManager");
-        return true;
-    }
-
-    private bool InitLibrary()
-    {
-        _library = GetNodeOrNull<PaintingLibrary>("/root/PaintingLibrary");
-        if (_library is not null) return true;
-        _errorManager.NotifyFatalError("PaintingLibrary global autoload is missing.");
-        return false;
-    }
-
-    private bool InitMusic()
-    {
-        _music = GetNodeOrNull<Music.MusicPlayer>("/root/MusicPlayer");
-        if (_music is not null)
-        {
-            _music.OnPlaybackFailed += OnFatalAppError;
-            return true;
-        }
-        _errorManager.NotifyFatalError("MusicPlayer global autoload is missing.");
-        return false;
-    }
-
-    private bool InitTransitionManager()
-    {
-        _transition = GetNode<TransitionManager>("/root/TransitionManager");
-        if (_transition is null)
-        {
-            _errorManager.NotifyFatalError("TransitionManager global autoload is missing.");
-            return false;
-        }
-
-        _transition.OnTransitionFailed += OnFatalAppError;
-
-        return true;
-    }
-
-    private bool InitSystems()
+    private void InitSystems()
     {
         _playerSystem = new PlayerSystem(_arrow, _drawingLine);
         _playerSystem.OnClaimTriggered += HandleClaimTriggered;
 
         _collisionSystem = new CollisionSystem(_playfield, _arrow);
         _claimSystem = new ClaimSystem(_playfield, _maskRoot, _perimeterLine, _arrow);
-
-        return true;
     }
 
     private void SetupLevel()
     {
-        var result = TryLoadCurrentPainting();
-        if (!result)
-        {
-            OnFatalAppError(result);
-            return;
-        }
+        if (!TryLoadCurrentPainting()) return;
 
         SpawnEnemies(_scaledWidth, _scaledHeight);
         SetupArrow();
@@ -183,6 +140,9 @@ public partial class Main : Node2D
 
         if (IsInstanceValid(_transition))
             _transition.OnTransitionFailed -= OnFatalAppError;
+
+        if (IsInstanceValid(_library))
+            _library.OnLoadFailed -= OnFatalAppError;
 
         GetTree().Root.SizeChanged -= OnWindowResized;
 

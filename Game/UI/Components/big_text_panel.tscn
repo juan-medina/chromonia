@@ -9,11 +9,12 @@ corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
-[node name="BigTextPanel" type="PanelContainer" unique_id=1792995619 node_paths=PackedStringArray("_richTextLabel")]
+[node name="BigTextPanel" type="PanelContainer" unique_id=1792995619 node_paths=PackedStringArray("_richTextLabel", "_scrollContainer")]
 custom_minimum_size = Vector2(800, 600)
 theme_override_styles/panel = SubResource("StyleBoxFlat_about")
 script = ExtResource("1_qrlej")
 _richTextLabel = NodePath("MarginContainer/ScrollContainer/RichTextLabel")
+_scrollContainer = NodePath("MarginContainer/ScrollContainer")
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=765788908]
 layout_mode = 2

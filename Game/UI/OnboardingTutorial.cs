@@ -7,6 +7,8 @@ namespace Chromonia.UI;
 
 public partial class OnboardingTutorial : CanvasLayer
 {
+    [Export] private CenterContainer _centerContainer = null!;
+
     private static bool _hasSeenThisSession;
 
     public override void _Ready()
@@ -28,9 +30,8 @@ public partial class OnboardingTutorial : CanvasLayer
     private void FadeOut()
     {
         _hasSeenThisSession = true;
-        var control = GetNode<Control>("CenterContainer");
         var tween = CreateTween();
-        tween.TweenProperty(control, "modulate:a", 0.0f, 1.0f);
+        tween.TweenProperty(_centerContainer, "modulate:a", 0.0f, 1.0f);
         tween.TweenCallback(new Callable(this, MethodName.FinishFade));
     }
 

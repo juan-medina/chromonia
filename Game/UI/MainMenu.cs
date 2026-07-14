@@ -56,29 +56,23 @@ public partial class MainMenu : Node2D
         _errorManager = GetNode<ErrorManager>("/root/ErrorManager");
         _transitionManager = GetNode<TransitionManager>("/root/TransitionManager");
         _uiAudioManager = GetNode<UiAudioManager>("/root/UiAudioManager");
+        _paintingLibrary = GetNode<PaintingLibrary>("/root/PaintingLibrary");
+        _music = GetNode<MusicPlayer>("/root/MusicPlayer");
 
         _transitionManager.OnTransitionFailed += OnFatalAppError;
+        _music.OnPlaybackFailed += OnFatalAppError;
 
-        if (!SetupAbout()) return;
-        if (!InitPaintingLibrary()) return;
-        if (!InitMusic()) return;
-
+        SetupAbout();
+        _music.Play();
         SetupButtons();
         CreateBlobs();
         SetupChromeEffect();
     }
 
-    private bool SetupAbout()
+    private void SetupAbout()
     {
-        if (!IsInstanceValid(_bigTextPanel))
-        {
-            _errorManager.NotifyFatalError("AboutPanel is missing in the scene tree.");
-            return false;
-        }
-
         _bigTextPanel.OnLoadFailed += OnFatalAppError;
         _bigTextPanel.Init("res://UI/ABOUT.txt");
-        return true;
     }
 
     private void SetupChromeEffect()
@@ -88,29 +82,6 @@ public partial class MainMenu : Node2D
 
         if (_logoText.Material is ShaderMaterial mat) mat.SetShaderParameter("reflection_map", viewportTex);
     }
-
-    private bool InitPaintingLibrary()
-    {
-        _paintingLibrary = GetNodeOrNull<PaintingLibrary>("/root/PaintingLibrary");
-        if (_paintingLibrary is not null) return true;
-        _errorManager.NotifyFatalError("PaintingLibrary global autoload is missing.");
-        return false;
-    }
-
-    private bool InitMusic()
-    {
-        _music = GetNodeOrNull<MusicPlayer>("/root/MusicPlayer");
-        if (_music is null)
-        {
-            _errorManager.NotifyFatalError("MusicPlayer global autoload is missing.");
-            return false;
-        }
-
-        _music.OnPlaybackFailed += OnFatalAppError;
-        _music.Play();
-        return true;
-    }
-
 
     private void SetupButtons()
     {

@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Juan Medina
 // SPDX-License-Identifier: MIT
 
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using Chromonia.Core;
@@ -20,6 +21,10 @@ public abstract partial class ResourceLibrary<T> : Node where T : Resource
     protected abstract string JsonPath { get; }
     protected abstract string FolderPath { get; }
 
+    public event Action<Result>? OnLoadFailed;
+
+    protected virtual Result ValidateEntry(ResourceEntry entry) => Result.Ok();
+
     private readonly List<ResourceEntry> _entries = [];
     private int _index;
 
@@ -28,16 +33,12 @@ public abstract partial class ResourceLibrary<T> : Node where T : Resource
         var result = TryLoadEntries();
         if (!result)
         {
-            GD.PrintErr($"{GetType().Name} Critical Initialization Failure: {result.Message}");
+            GetNode<ErrorManager>("/root/ErrorManager")
+                .NotifyFatalError($"{GetType().Name} failed to load: {result.Message}");
             return;
         }
 
         Shuffle();
-        OnLibraryReady();
-    }
-
-    protected virtual void OnLibraryReady()
-    {
     }
 
     public Result<ResourceEntry> Current()
@@ -68,9 +69,11 @@ public abstract partial class ResourceLibrary<T> : Node where T : Resource
 
         var path = FolderPath + entryResult.Value.File;
         var resource = ResourceLoader.Load<T>(path);
-        return resource is not null
-            ? Result<T>.Ok(resource)
-            : Result<T>.Fail($"Could not load resource: {path}");
+        if (resource is not null) return Result<T>.Ok(resource);
+
+        var error = Result.Fail($"Could not load resource: {path}");
+        OnLoadFailed?.Invoke(error);
+        return Result<T>.Fail(error.Message);
     }
 
     private Result TryLoadEntries()
@@ -91,12 +94,17 @@ public abstract partial class ResourceLibrary<T> : Node where T : Resource
                     foreach (var prop in metaElement.EnumerateObject())
                         metadata[prop.Name] = prop.Value.GetString() ?? string.Empty;
 
-                _entries.Add(new ResourceEntry(
+                var entry = new ResourceEntry(
                     fileProp,
                     element.GetProperty("name").GetString() ?? "Unknown",
                     element.GetProperty("author").GetString() ?? "Unknown",
                     metadata
-                ));
+                );
+
+                var validation = ValidateEntry(entry);
+                if (!validation) return Result.Fail($"Invalid entry '{entry.Name}': {validation.Message}");
+
+                _entries.Add(entry);
             }
         }
         catch (JsonException ex)
@@ -111,7 +119,6 @@ public abstract partial class ResourceLibrary<T> : Node where T : Resource
     {
         if (_entries.Count <= 1) return;
 
-        // the entry AT the current index
         var at = _entries.Count > 0 && _index < _entries.Count ? _entries[_index] : null;
 
         // In-place Fisher-Yates shuffle, 0 allocations. Iterating back to front ensures each
@@ -126,7 +133,6 @@ public abstract partial class ResourceLibrary<T> : Node where T : Resource
         if (at is not null && at.File == _entries[0].File)
             (_entries[0], _entries[1]) = (_entries[1], _entries[0]);
 
-        // we start from the beginning
         _index = 0;
     }
 }

@@ -54,7 +54,7 @@ stream_2/stream = ExtResource("13_l5bfp")
 stream_3/stream = ExtResource("14_guo5i")
 stream_4/stream = ExtResource("15_0gq1e")
 
-[node name="Main" type="Node2D" unique_id=1676047802 node_paths=PackedStringArray("_maskViewport", "_maskRoot", "_painting", "_playfield", "_arrow", "_progressBar", "_blobsLayer", "_perimeterLine", "_drawingLine", "_dropShadow", "_borderPhysics", "_sfxDrawLoop", "_sfxSafeLoop", "_sfxErase", "_sfxSnap", "_sfxWaterDrop", "_sfxPaintStroke", "_toastNotification", "_galleryPlaque", "_transitionProgressBar")]
+[node name="Main" type="Node2D" unique_id=1676047802 node_paths=PackedStringArray("_maskViewport", "_maskRoot", "_painting", "_playfield", "_arrow", "_progressBar", "_blobsLayer", "_perimeterLine", "_drawingLine", "_dropShadow", "_borderPhysics", "_sfxDrawLoop", "_sfxSafeLoop", "_sfxErase", "_sfxSnap", "_sfxWaterDrop", "_sfxPaintStroke", "_toastNotification", "_galleryPlaque", "_transitionProgressBar", "_camera")]
 script = ExtResource("1_liyct")
 _maskViewport = NodePath("SubViewport")
 _maskRoot = NodePath("SubViewport/MaskRoot")
@@ -76,6 +76,7 @@ _sfxPaintStroke = NodePath("SfxPaintStroke")
 _toastNotification = NodePath("HUDLayer/ToastNotification")
 _galleryPlaque = NodePath("Painting/GalleryPlaque")
 _transitionProgressBar = NodePath("HUDLayer/TransitionProgressBar")
+_camera = NodePath("Camera2D")
 
 [node name="Painting" type="Sprite2D" parent="." unique_id=1516573035]
 material = SubResource("ShaderMaterial_lbhrr")

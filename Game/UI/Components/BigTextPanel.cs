@@ -10,13 +10,12 @@ namespace Chromonia.UI.Components;
 public partial class BigTextPanel : PanelContainer
 {
     [Export] private RichTextLabel _richTextLabel = null!;
-    private ScrollContainer _scrollContainer = null!;
+    [Export] private ScrollContainer _scrollContainer = null!;
 
     public event Action<Result>? OnLoadFailed;
 
     public override void _Ready()
     {
-        _scrollContainer = GetNode<ScrollContainer>("MarginContainer/ScrollContainer");
         _richTextLabel.MetaClicked += OnMetaClicked;
     }
 
