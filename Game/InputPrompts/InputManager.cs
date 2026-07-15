@@ -20,14 +20,22 @@ public partial class InputManager : Node
 
     public event Action<InputDeviceType>? OnDeviceChanged;
 
+    private ToastNotification.ToastNotification _toast = null!;
+
     public override void _Ready()
     {
         ProcessMode = ProcessModeEnum.Always;
+
+        _toast = GetNode<ToastNotification.ToastNotification>("/root/ToastNotification");
 
         Input.JoyConnectionChanged += OnJoyConnectionChanged;
 
         var connectedJoypads = Input.GetConnectedJoypads();
         if (connectedJoypads.Count > 0) CurrentDevice = DetectJoypadDevice(connectedJoypads[0]);
+
+        Input.MouseMode = CurrentDevice == InputDeviceType.KeyboardAndMouse
+            ? Input.MouseModeEnum.Visible
+            : Input.MouseModeEnum.Hidden;
     }
 
     private void OnJoyConnectionChanged(long device, bool connected)
@@ -37,12 +45,16 @@ public partial class InputManager : Node
             var newDevice = DetectJoypadDevice((int)device);
             if (newDevice == CurrentDevice) return;
             CurrentDevice = newDevice;
+            Input.MouseMode = Input.MouseModeEnum.Hidden;
+            _toast.ShowToast("Controller connected", Input.GetJoyName((int)device));
         }
         else
         {
             var joypads = Input.GetConnectedJoypads();
             if (joypads.Count != 0 || CurrentDevice == InputDeviceType.KeyboardAndMouse) return;
             CurrentDevice = InputDeviceType.KeyboardAndMouse;
+            Input.MouseMode = Input.MouseModeEnum.Visible;
+            _toast.ShowToast("Controller disconnected", "Switched to keyboard and mouse");
         }
 
         OnDeviceChanged?.Invoke(CurrentDevice);
@@ -68,6 +80,9 @@ public partial class InputManager : Node
 
         if (newDevice == CurrentDevice) return;
         CurrentDevice = newDevice;
+        Input.MouseMode = newDevice == InputDeviceType.KeyboardAndMouse
+            ? Input.MouseModeEnum.Visible
+            : Input.MouseModeEnum.Hidden;
         OnDeviceChanged?.Invoke(CurrentDevice);
     }
 
