@@ -5,6 +5,7 @@
 - The game is now smaller and loads faster thanks to some internal cleanup
 - You'll see a notification when you plug in or unplug a controller
 - The mouse cursor hides when using a controller
+- Adding difficulty selection to play
 
 ## Bug fixes
 
