@@ -29,9 +29,6 @@ jobs:
                       preset: macOS
                       output: chromonia.zip
 
-        permissions:
-            contents: write
-
         steps:
             -   name: Checkout
                 uses: actions/checkout@v4
@@ -58,12 +55,6 @@ jobs:
                     include-templates: true
                     cache: true
 
-            -   name: Cache Godot import cache
-                uses: actions/cache@v4
-                with:
-                    path: Game/.godot/imported
-                    key: godot-import-${{ matrix.rid }}
-
             -   name: Import project assets
                 shell: bash
                 working-directory: Game
@@ -79,6 +70,45 @@ jobs:
                 run: |
                     mkdir -p ../publish/${{ matrix.rid }}
                     godot --headless --export-release "${{ matrix.preset }}" ../publish/${{ matrix.rid }}/${{ matrix.output }}
+
+            -   name: Upload build artifact
+                uses: actions/upload-artifact@v4
+                with:
+                    name: publish-${{ matrix.rid }}
+                    path: publish/${{ matrix.rid }}
+
+    pack:
+        name: Pack ${{ matrix.rid }}
+        needs: build
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - os: windows-latest
+                      rid: win-x64
+                    - os: ubuntu-latest
+                      rid: linux-x64
+                    - os: macos-15
+                      rid: osx-universal
+
+        permissions:
+            contents: write
+
+        steps:
+            -   name: Checkout
+                uses: actions/checkout@v4
+
+            -   name: Setup .NET
+                uses: actions/setup-dotnet@v4
+                with:
+                    dotnet-version: '8.0.x'
+
+            -   name: Download build artifact
+                uses: actions/download-artifact@v4
+                with:
+                    name: publish-${{ matrix.rid }}
+                    path: publish/${{ matrix.rid }}
 
             -   name: Cache Velopack CLI
                 uses: actions/cache@v4
@@ -130,8 +160,59 @@ jobs:
                       --channel linux \
                       --outputDir velopack-out
 
-            -   name: Upload to release
+            -   name: Upload to GitHub release
                 shell: bash
                 run: gh release upload ${{ github.ref_name }} velopack-out/*
                 env:
                     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    publish-itch:
+        name: Publish itch.io ${{ matrix.rid }}
+        needs: build
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - rid: win-x64
+                      channel: windows
+                    - rid: linux-x64
+                      channel: linux
+                    - rid: osx-universal
+                      channel: mac
+
+        steps:
+            -   name: Download build artifact
+                uses: actions/download-artifact@v4
+                with:
+                    name: publish-${{ matrix.rid }}
+                    path: publish/${{ matrix.rid }}
+
+            -   name: Install butler
+                run: |
+                    curl -L -o butler.zip https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
+                    unzip butler.zip
+                    chmod +x butler
+                    ./butler -V
+
+            -   name: Package (Windows / Linux)
+                if: matrix.rid != 'osx-universal'
+                run: |
+                    version=$(echo $GITHUB_REF_NAME | sed 's/^v//')
+                    cd publish/${{ matrix.rid }}
+                    zip -r ../../chromonia-${version}-${{ matrix.channel }}.zip .
+
+            -   name: Package (macOS)
+                if: matrix.rid == 'osx-universal'
+                run: |
+                    version=$(echo $GITHUB_REF_NAME | sed 's/^v//')
+                    unzip publish/osx-universal/chromonia.zip -d publish/osx-universal/app
+                    cd publish/osx-universal/app
+                    zip -r ../../../chromonia-${version}-${{ matrix.channel }}.zip .
+
+            -   name: Upload to itch.io
+                run: |
+                    version=$(echo $GITHUB_REF_NAME | sed 's/^v//')
+                    ./butler push chromonia-${version}-${{ matrix.channel }}.zip juanmedina/chromonia:${{ matrix.channel }} --userversion $version
+                env:
+                    BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
