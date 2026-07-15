@@ -15,13 +15,7 @@ public partial class AppUpdater : Node
     private UpdateManager? _manager;
     private UpdateInfo? _update;
 
-    public AppUpdater()
-    {
-        // Executes immediately when Godot initializes this Autoload.
-        // If it's an installer hook, Velopack exits cleanly here before
-        // Godot starts spinning up the rest of the game loop.
-        VelopackApp.Build().Run();
-    }
+
 
     public override void _Ready()
     {
