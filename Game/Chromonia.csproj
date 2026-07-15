@@ -8,6 +8,9 @@
   <ItemGroup>
     <Content Include="UI\EULA.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Velopack" Version="0.0.*" />
+  </ItemGroup>
 
 
     <!-- Import version from version.props so the assembly carries the same version -->

@@ -15,26 +15,30 @@ corner_radius_bottom_left = 15
 shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 15
 
-[node name="ToastNotification" type="CanvasLayer" unique_id=161130978 node_paths=PackedStringArray("_titleLabel", "_subtitleLabel", "_marginContainer")]
-layer = 100
+[node name="ToastNotification" type="CanvasLayer" unique_id=161130978 node_paths=PackedStringArray("_titleLabel", "_subtitleLabel", "_container")]
 process_mode = 3
+layer = 100
 script = ExtResource("1_toast")
 _titleLabel = NodePath("MarginContainer/PanelContainer/VBoxContainer/TitleLabel")
 _subtitleLabel = NodePath("MarginContainer/PanelContainer/VBoxContainer/SubtitleLabel")
-_marginContainer = NodePath("MarginContainer")
+_container = NodePath("MarginContainer")
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=741852963]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 grow_horizontal = 0
+mouse_filter = 0
+mouse_default_cursor_shape = 2
 
 [node name="PanelContainer" type="PanelContainer" parent="MarginContainer" unique_id=825611092]
 layout_mode = 2
+mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_toast")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/PanelContainer" unique_id=704505630]
 layout_mode = 2
+mouse_filter = 2
 theme_override_constants/separation = 5
 alignment = 1
 

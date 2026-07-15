@@ -2,7 +2,8 @@
 
 ## What's new
 
-- First release
+- Optimize imports
 
 ## Bug fixes
 
+- Auto updater is not working
