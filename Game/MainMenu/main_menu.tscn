@@ -36,7 +36,7 @@ corner_radius_bottom_left = 20
 shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 10
 
-[node name="MainMenu" type="Node2D" unique_id=1004905813 node_paths=PackedStringArray("_mainButtonsContainer", "_optionsContainer", "_aboutContainer", "_playButton", "_optionsButton", "_aboutButton", "_exitButton", "_settingsPanel", "_bigTextPanel", "_backButton", "_aboutBackButton", "_difficultyContainer", "_normalButton", "_mediumButton", "_hardButton", "_zenButton", "_difficultyDescription", "_difficultyBackButton", "_blobsLayer", "_blobsViewport", "_logoText", "_blobsDisplay")]
+[node name="MainMenu" type="Node2D" unique_id=1004905813 node_paths=PackedStringArray("_mainButtonsContainer", "_optionsContainer", "_aboutContainer", "_playButton", "_optionsButton", "_aboutButton", "_exitButton", "_settingsPanel", "_bigTextPanel", "_backButton", "_aboutBackButton", "_difficultyContainer", "_normalButton", "_mediumButton", "_hardButton", "_zenButton", "_difficultyDescription", "_difficultyBackButton", "_blobsLayer", "_blobsViewport", "_logoText", "_blobsDisplay", "_promptMargin")]
 script = ExtResource("1_script")
 _mainButtonsContainer = NodePath("UILayer/MenuControl/MarginContainer")
 _optionsContainer = NodePath("UILayer/MenuControl/OptionsContainer")
@@ -60,6 +60,7 @@ _blobsLayer = NodePath("BlobsViewport/BlobsLayer")
 _blobsViewport = NodePath("BlobsViewport")
 _logoText = NodePath("UILayer/MenuControl/LogoContainer/LogoText")
 _blobsDisplay = NodePath("BlobsDisplay")
+_promptMargin = NodePath("UILayer/MenuControl/PromptMargin")
 _menuBlobScene = ExtResource("2_cafmx")
 
 [node name="BackgroundLayer" type="CanvasLayer" parent="." unique_id=987654321]

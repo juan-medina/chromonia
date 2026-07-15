@@ -16,11 +16,42 @@ public enum InputDeviceType
 
 public partial class InputManager : Node
 {
+    private const float IdleTimeout = 30f;
+
     public InputDeviceType CurrentDevice { get; private set; } = InputDeviceType.KeyboardAndMouse;
 
     public event Action<InputDeviceType>? OnDeviceChanged;
+    public event Action? OnIdleStarted;
+    public event Action? OnInputResumed;
 
     private ToastNotification.ToastNotification _toast = null!;
+    private float _idleTimer;
+    private bool _isIdle;
+    private bool _isTracking;
+
+    public void StartIdleTracking()
+    {
+        _idleTimer = 0f;
+        _isIdle = false;
+        _isTracking = true;
+    }
+
+    public void StopIdleTracking()
+    {
+        _isTracking = false;
+        _isIdle = false;
+    }
+
+    public override void _Process(double delta)
+    {
+        if (!_isTracking || _isIdle) return;
+
+        _idleTimer += (float)delta;
+        if (_idleTimer < IdleTimeout) return;
+
+        _isIdle = true;
+        OnIdleStarted?.Invoke();
+    }
 
     public override void _Ready()
     {
@@ -63,19 +94,36 @@ public partial class InputManager : Node
     public override void _Input(InputEvent @event)
     {
         InputDeviceType newDevice = CurrentDevice;
+        bool significantInput = false;
 
         switch (@event)
         {
             case InputEventKey or InputEventMouseButton:
+                newDevice = InputDeviceType.KeyboardAndMouse;
+                significantInput = true;
+                break;
             case InputEventMouseMotion mouseMotion when mouseMotion.Relative.Length() > 2.0f:
                 newDevice = InputDeviceType.KeyboardAndMouse;
+                significantInput = true;
                 break;
             case InputEventJoypadButton joypadButton:
                 newDevice = DetectJoypadDevice(joypadButton.Device);
+                significantInput = true;
                 break;
             case InputEventJoypadMotion joypadMotion when Mathf.Abs(joypadMotion.AxisValue) > 0.5f:
                 newDevice = DetectJoypadDevice(joypadMotion.Device);
+                significantInput = true;
                 break;
+        }
+
+        if (significantInput && _isTracking)
+        {
+            _idleTimer = 0f;
+            if (_isIdle)
+            {
+                _isIdle = false;
+                OnInputResumed?.Invoke();
+            }
         }
 
         if (newDevice == CurrentDevice) return;

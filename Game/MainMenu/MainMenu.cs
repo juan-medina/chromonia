@@ -35,10 +35,14 @@ public partial class MainMenu : Node2D
     [Export] private SubViewport _blobsViewport = null!;
     [Export] private Label _logoText = null!;
     [Export] private Sprite2D _blobsDisplay = null!;
+    [Export] private Control _promptMargin = null!;
 
     [Export] private PackedScene _menuBlobScene = null!;
     private PaintingLibrary _paintingLibrary = null!;
     private SettingsManager _settingsManager = null!;
+    private InputPrompts.InputManager _inputManager = null!;
+    private ToastNotification.ToastNotification _toast = null!;
+    private Tween? _screensaverTween;
 
     private static readonly Dictionary<GameDifficulty, string> DifficultyDescriptions = new()
     {
@@ -79,8 +83,14 @@ public partial class MainMenu : Node2D
         _music = GetNode<MusicPlayer>("/root/MusicPlayer");
         _settingsManager = GetNode<SettingsManager>("/root/SettingsManager");
 
+        _inputManager = GetNode<InputPrompts.InputManager>("/root/InputManager");
+        _toast = GetNode<ToastNotification.ToastNotification>("/root/ToastNotification");
+
         _transitionManager.OnTransitionFailed += OnFatalAppError;
         _music.OnPlaybackFailed += OnFatalAppError;
+        _inputManager.OnIdleStarted += OnIdleStarted;
+        _inputManager.OnInputResumed += OnInputResumed;
+        _inputManager.StartIdleTracking();
 
         SetupAbout();
         _music.Play();
@@ -185,6 +195,40 @@ public partial class MainMenu : Node2D
         if (IsInstanceValid(_music)) _music.OnPlaybackFailed -= OnFatalAppError;
         if (IsInstanceValid(_transitionManager)) _transitionManager.OnTransitionFailed -= OnFatalAppError;
         if (IsInstanceValid(_bigTextPanel)) _bigTextPanel.OnLoadFailed -= OnFatalAppError;
+        if (IsInstanceValid(_inputManager))
+        {
+            _inputManager.OnIdleStarted -= OnIdleStarted;
+            _inputManager.OnInputResumed -= OnInputResumed;
+            _inputManager.StopIdleTracking();
+        }
+    }
+
+    private void OnIdleStarted()
+    {
+        if (!_mainButtonsContainer.Visible) return;
+
+        _toast.ShowToast("The canvas drifts", "Press any action to return", 4.0f);
+
+        Input.MouseMode = Input.MouseModeEnum.Hidden;
+
+        _screensaverTween?.Kill();
+        _screensaverTween = CreateTween().SetParallel();
+        _screensaverTween.TweenProperty(_mainButtonsContainer, "modulate:a", 0.0f, 1.0f);
+        _screensaverTween.TweenProperty(_promptMargin, "modulate:a", 0.0f, 1.0f);
+    }
+
+    private void OnInputResumed()
+    {
+        if (!_mainButtonsContainer.Visible) return;
+
+        if (_inputManager.CurrentDevice == InputPrompts.InputDeviceType.KeyboardAndMouse)
+            Input.MouseMode = Input.MouseModeEnum.Visible;
+
+        _screensaverTween?.Kill();
+        _screensaverTween = CreateTween().SetParallel();
+        _screensaverTween.TweenProperty(_mainButtonsContainer, "modulate:a", 1.0f, 0.5f);
+        _screensaverTween.TweenProperty(_promptMargin, "modulate:a", 1.0f, 0.5f);
+        _screensaverTween.TweenCallback(Callable.From(() => _playButton.GrabFocus()));
     }
 
     private void OnPlayPressed() =>
