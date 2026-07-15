@@ -12,14 +12,14 @@ public partial class AppUpdater : Node
     private const string UpdateUrl = "https://github.com/juan-medina/chromonia";
 
     private ToastNotification.ToastNotification _toast = null!;
-
     private UpdateManager? _manager;
     private UpdateInfo? _update;
 
-    static AppUpdater()
+    public AppUpdater()
     {
-        // Must be called as early as possible, before Godot initializes anything.
-        // Handles installer hooks (first run, uninstall) and applies pending updates on restart.
+        // Executes immediately when Godot initializes this Autoload.
+        // If it's an installer hook, Velopack exits cleanly here before
+        // Godot starts spinning up the rest of the game loop.
         VelopackApp.Build().Run();
     }
 
@@ -33,6 +33,13 @@ public partial class AppUpdater : Node
     {
         try
         {
+            // dont check for update when running in the editor
+            if (OS.HasFeature("editor"))
+            {
+                GD.Print("[UpdateManager] Running in Editor - bypassing update check.");
+                return;
+            }
+
             var source = new GithubSource(UpdateUrl, null, false);
             _manager = new UpdateManager(source);
 
@@ -58,7 +65,11 @@ public partial class AppUpdater : Node
 
     private void UpdateClick()
     {
-        if (_update == null) return;
-        _manager?.ApplyUpdatesAndRestart(_update);
+        if (_update == null || _manager == null) return;
+
+        _manager.ApplyUpdatesAndRestart(_update);
+
+        // we apply the update so we quit the game
+        GetTree().Quit();
     }
 }
