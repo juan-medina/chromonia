@@ -7,6 +7,7 @@ using Chromonia.Settings;
 using Chromonia.Theme;
 using Chromonia.Transition;
 using Godot;
+using System.Collections.Generic;
 
 namespace Chromonia.MainMenu;
 
@@ -23,6 +24,13 @@ public partial class MainMenu : Node2D
     [Export] private BigTextPanel _bigTextPanel = null!;
     [Export] private Button _backButton = null!;
     [Export] private Button _aboutBackButton = null!;
+    [Export] private Control _difficultyContainer = null!;
+    [Export] private Button _normalButton = null!;
+    [Export] private Button _mediumButton = null!;
+    [Export] private Button _hardButton = null!;
+    [Export] private Button _zenButton = null!;
+    [Export] private Label _difficultyDescription = null!;
+    [Export] private Button _difficultyBackButton = null!;
     [Export] private CanvasGroup _blobsLayer = null!;
     [Export] private SubViewport _blobsViewport = null!;
     [Export] private Label _logoText = null!;
@@ -30,6 +38,15 @@ public partial class MainMenu : Node2D
 
     [Export] private PackedScene _menuBlobScene = null!;
     private PaintingLibrary _paintingLibrary = null!;
+    private SettingsManager _settingsManager = null!;
+
+    private static readonly Dictionary<GameDifficulty, string> DifficultyDescriptions = new()
+    {
+        [GameDifficulty.Normal] = "A quiet canvas. Two pairs drift through open space.",
+        [GameDifficulty.Medium] = "The canvas stirs. Three pairs roam the unclaimed field.",
+        [GameDifficulty.Hard]   = "Four pairs fill the space. Room to breathe, but barely.",
+        [GameDifficulty.Zen]    = "Still waters. Just you and the painting."
+    };
 
     private const int MaxBlobs = 15;
     private TransitionManager _transitionManager = null!;
@@ -60,6 +77,7 @@ public partial class MainMenu : Node2D
         _audioTheme = GetNode<AudioTheme>("/root/AudioTheme");
         _paintingLibrary = GetNode<PaintingLibrary>("/root/PaintingLibrary");
         _music = GetNode<MusicPlayer>("/root/MusicPlayer");
+        _settingsManager = GetNode<SettingsManager>("/root/SettingsManager");
 
         _transitionManager.OnTransitionFailed += OnFatalAppError;
         _music.OnPlaybackFailed += OnFatalAppError;
@@ -94,6 +112,17 @@ public partial class MainMenu : Node2D
         _exitButton.Pressed += OnExitPressed;
         _backButton.Pressed += OnBackPressed;
         _aboutBackButton.Pressed += OnAboutBackPressed;
+        _difficultyBackButton.Pressed += OnDifficultyBackPressed;
+
+        _normalButton.Pressed += () => OnDifficultySelected(GameDifficulty.Normal);
+        _mediumButton.Pressed += () => OnDifficultySelected(GameDifficulty.Medium);
+        _hardButton.Pressed += () => OnDifficultySelected(GameDifficulty.Hard);
+        _zenButton.Pressed += () => OnDifficultySelected(GameDifficulty.Zen);
+
+        _normalButton.FocusEntered += () => UpdateDifficultyDescription(GameDifficulty.Normal);
+        _mediumButton.FocusEntered += () => UpdateDifficultyDescription(GameDifficulty.Medium);
+        _hardButton.FocusEntered += () => UpdateDifficultyDescription(GameDifficulty.Hard);
+        _zenButton.FocusEntered += () => UpdateDifficultyDescription(GameDifficulty.Zen);
 
         // first button is focus
         _playButton.GrabFocus();
@@ -158,11 +187,23 @@ public partial class MainMenu : Node2D
         if (IsInstanceValid(_bigTextPanel)) _bigTextPanel.OnLoadFailed -= OnFatalAppError;
     }
 
-    private void OnPlayPressed()
+    private void OnPlayPressed() =>
+        TransitionToMenu(_mainButtonsContainer, _difficultyContainer, _normalButton,
+            () => UpdateDifficultyDescription(_settingsManager.Difficulty));
+
+    private void OnDifficultyBackPressed() =>
+        TransitionToMenu(_difficultyContainer, _mainButtonsContainer, _playButton);
+
+    private void OnDifficultySelected(GameDifficulty difficulty)
     {
-        // get a new set of paintings every time we play
+        _settingsManager.SetDifficulty(difficulty);
         _paintingLibrary.Shuffle();
         _transitionManager.TransitionToGame();
+    }
+
+    private void UpdateDifficultyDescription(GameDifficulty difficulty)
+    {
+        _difficultyDescription.Text = DifficultyDescriptions[difficulty];
     }
 
     private void TransitionToMenu(Control hideMenu, Control showMenu, Control focusControl,
@@ -205,7 +246,12 @@ public partial class MainMenu : Node2D
     public override void _UnhandledInput(InputEvent @event)
     {
         if (!@event.IsActionPressed("ui_cancel")) return;
-        if (_optionsContainer.Visible)
+        if (_difficultyContainer.Visible)
+        {
+            OnDifficultyBackPressed();
+            GetViewport().SetInputAsHandled();
+        }
+        else if (_optionsContainer.Visible)
         {
             OnBackPressed();
             GetViewport().SetInputAsHandled();

@@ -36,7 +36,7 @@ corner_radius_bottom_left = 20
 shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 10
 
-[node name="MainMenu" type="Node2D" unique_id=1004905813 node_paths=PackedStringArray("_mainButtonsContainer", "_optionsContainer", "_aboutContainer", "_playButton", "_optionsButton", "_aboutButton", "_exitButton", "_settingsPanel", "_bigTextPanel", "_backButton", "_aboutBackButton", "_blobsLayer", "_blobsViewport", "_logoText", "_blobsDisplay")]
+[node name="MainMenu" type="Node2D" unique_id=1004905813 node_paths=PackedStringArray("_mainButtonsContainer", "_optionsContainer", "_aboutContainer", "_playButton", "_optionsButton", "_aboutButton", "_exitButton", "_settingsPanel", "_bigTextPanel", "_backButton", "_aboutBackButton", "_difficultyContainer", "_normalButton", "_mediumButton", "_hardButton", "_zenButton", "_difficultyDescription", "_difficultyBackButton", "_blobsLayer", "_blobsViewport", "_logoText", "_blobsDisplay")]
 script = ExtResource("1_script")
 _mainButtonsContainer = NodePath("UILayer/MenuControl/MarginContainer")
 _optionsContainer = NodePath("UILayer/MenuControl/OptionsContainer")
@@ -49,6 +49,13 @@ _settingsPanel = NodePath("UILayer/MenuControl/OptionsContainer/VBoxContainer/Se
 _bigTextPanel = NodePath("UILayer/MenuControl/AboutContainer/VBoxContainer/BigTextPanel")
 _backButton = NodePath("UILayer/MenuControl/OptionsContainer/VBoxContainer/BackButton")
 _aboutBackButton = NodePath("UILayer/MenuControl/AboutContainer/VBoxContainer/AboutBackButton")
+_difficultyContainer = NodePath("UILayer/MenuControl/DifficultyContainer")
+_normalButton = NodePath("UILayer/MenuControl/DifficultyContainer/VBoxContainer/NormalButton")
+_mediumButton = NodePath("UILayer/MenuControl/DifficultyContainer/VBoxContainer/MediumButton")
+_hardButton = NodePath("UILayer/MenuControl/DifficultyContainer/VBoxContainer/HardButton")
+_zenButton = NodePath("UILayer/MenuControl/DifficultyContainer/VBoxContainer/ZenButton")
+_difficultyDescription = NodePath("UILayer/MenuControl/DifficultyContainer/VBoxContainer/DifficultyDescription")
+_difficultyBackButton = NodePath("UILayer/MenuControl/DifficultyContainer/VBoxContainer/DifficultyBackButton")
 _blobsLayer = NodePath("BlobsViewport/BlobsLayer")
 _blobsViewport = NodePath("BlobsViewport")
 _logoText = NodePath("UILayer/MenuControl/LogoContainer/LogoText")
@@ -253,6 +260,65 @@ size_flags_vertical = 3
 layout_mode = 2
 
 [node name="AboutBackButton" parent="UILayer/MenuControl/AboutContainer/VBoxContainer" unique_id=1375737990 instance=ExtResource("4_mmb")]
+layout_mode = 2
+text = "Back"
+
+[node name="DifficultyContainer" type="MarginContainer" parent="UILayer/MenuControl" unique_id=200000001]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 120
+theme_override_constants/margin_bottom = 120
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/MenuControl/DifficultyContainer" unique_id=200000002]
+custom_minimum_size = Vector2(520, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 8
+theme_override_constants/separation = 20
+
+[node name="DifficultyTitle" type="Label" parent="UILayer/MenuControl/DifficultyContainer/VBoxContainer" unique_id=200000003]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 1, 1)
+theme_override_font_sizes/font_size = 72
+text = "DIFFICULTY"
+
+[node name="HSeparator1" type="HSeparator" parent="UILayer/MenuControl/DifficultyContainer/VBoxContainer" unique_id=200000004]
+layout_mode = 2
+
+[node name="NormalButton" parent="UILayer/MenuControl/DifficultyContainer/VBoxContainer" unique_id=200000005 instance=ExtResource("4_mmb")]
+layout_mode = 2
+size_flags_horizontal = 1
+text = "Normal"
+
+[node name="MediumButton" parent="UILayer/MenuControl/DifficultyContainer/VBoxContainer" unique_id=200000006 instance=ExtResource("4_mmb")]
+layout_mode = 2
+size_flags_horizontal = 1
+text = "Medium"
+
+[node name="HardButton" parent="UILayer/MenuControl/DifficultyContainer/VBoxContainer" unique_id=200000007 instance=ExtResource("4_mmb")]
+layout_mode = 2
+size_flags_horizontal = 1
+text = "Hard"
+
+[node name="ZenButton" parent="UILayer/MenuControl/DifficultyContainer/VBoxContainer" unique_id=200000008 instance=ExtResource("4_mmb")]
+layout_mode = 2
+size_flags_horizontal = 1
+text = "Zen"
+
+[node name="DifficultyDescription" type="Label" parent="UILayer/MenuControl/DifficultyContainer/VBoxContainer" unique_id=200000009]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+autowrap_mode = 2
+
+[node name="HSeparator2" type="HSeparator" parent="UILayer/MenuControl/DifficultyContainer/VBoxContainer" unique_id=200000010]
+layout_mode = 2
+
+[node name="DifficultyBackButton" parent="UILayer/MenuControl/DifficultyContainer/VBoxContainer" unique_id=200000011 instance=ExtResource("4_mmb")]
 layout_mode = 2
 text = "Back"
 

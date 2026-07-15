@@ -7,6 +7,7 @@ using Godot;
 using Chromonia.Enemies;
 using Chromonia.Energy;
 using Chromonia.PlayerSystem;
+using Chromonia.Settings;
 using BlobEnemy = Chromonia.Enemies.BlobEnemy;
 using PaintingLibrary = Chromonia.Library.PaintingLibrary;
 using TransitionManager = Chromonia.Transition.TransitionManager;
@@ -60,9 +61,10 @@ public partial class Main : Node2D
     private const float TotalWaitTime = RevealTime + PlaqueDisplayTime + TransitionDelay;
     private const float MinBlobSpeed = 50f;
     private const float MaxBlobSpeed = 350f;
-    private const int ClusterCount = 8;
     private const float StartImmunityDuration = 1.5f;
-    private const float ToReveal = 0.35f;
+
+    private int _clusterCount;
+    private float _toReveal;
 
     private int _paintingWidth = ViewportWidth;
     private int _paintingHeight = ViewportHeight;
@@ -91,6 +93,9 @@ public partial class Main : Node2D
         _library.OnLoadFailed += OnFatalAppError;
         _music.OnPlaybackFailed += OnFatalAppError;
         _transition.OnTransitionFailed += OnFatalAppError;
+
+        var settings = GetNode<SettingsManager>("/root/SettingsManager");
+        (_toReveal, _clusterCount) = GetDifficultySettings(settings.Difficulty);
 
         InitSystems();
         SetupLevel();
@@ -122,6 +127,7 @@ public partial class Main : Node2D
         SpawnEnemies(_scaledWidth, _scaledHeight);
         SetupArrow();
         SetupTransitionProgressBar();
+        _progressBar.SetGoal(_toReveal);
     }
 
     private void SetupTransitionProgressBar()
@@ -407,11 +413,21 @@ public partial class Main : Node2D
         _collisionSystem.AddBlobs(blobs);
     }
 
+    private static (float toReveal, int clusterCount) GetDifficultySettings(GameDifficulty difficulty) =>
+        difficulty switch
+        {
+            GameDifficulty.Normal => (0.35f, 4),
+            GameDifficulty.Medium => (0.40f, 6),
+            GameDifficulty.Hard   => (0.45f, 8),
+            GameDifficulty.Zen    => (0.45f, 0),
+            _                     => (0.35f, 4)
+        };
+
     private void SpawnEnemies(float width, float height)
     {
         var bounds = new Rect2(-width / 2f, -height / 2f, width, height);
 
-        for (int i = 0; i < ClusterCount; i++)
+        for (int i = 0; i < _clusterCount; i++)
         {
             var energy = (i % 2 == 0) ? Energy.Energy.A : Energy.Energy.B;
             float speed = (float)GD.RandRange(MinBlobSpeed, MaxBlobSpeed);
@@ -479,7 +495,8 @@ public partial class Main : Node2D
 
         _progressBar.UpdateProgress(_claimedAreaA / _totalArea, _claimedAreaB / _totalArea);
 
-        if (_claimedAreaA / _totalArea >= ToReveal && _claimedAreaB / _totalArea >= ToReveal) Reveal();
+        const float epsilon = 0.001f;
+        if (_claimedAreaA / _totalArea >= _toReveal - epsilon && _claimedAreaB / _totalArea >= _toReveal - epsilon) Reveal();
     }
 
     private void KillPlayer()

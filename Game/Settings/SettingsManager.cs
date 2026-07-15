@@ -11,12 +11,14 @@ public partial class SettingsManager : Node
     private const string SectionDisplay = "display";
     private const string SectionAudio = "audio";
     private const string SectionEula = "eula";
+    private const string SectionGameplay = "gameplay";
 
     public bool Fullscreen { get; private set; }
     public float MasterVolume { get; private set; } = 1.0f;
     public float MusicVolume { get; private set; } = 1.0f;
     public float SfxVolume { get; private set; } = 1.0f;
     public string EulaAcceptedVersion { get; private set; } = "";
+    public GameDifficulty Difficulty { get; private set; } = GameDifficulty.Normal;
 
     private float _baseMasterDb;
     private float _baseMusicDb;
@@ -48,6 +50,7 @@ public partial class SettingsManager : Node
             MusicVolume = (float)config.GetValue(SectionAudio, "music_volume", 1.0f);
             SfxVolume = (float)config.GetValue(SectionAudio, "sfx_volume", 1.0f);
             EulaAcceptedVersion = (string)config.GetValue(SectionEula, "accepted_version", "");
+            Difficulty = (GameDifficulty)(int)config.GetValue(SectionGameplay, "difficulty", (int)GameDifficulty.Normal);
         }
         else
         {
@@ -67,6 +70,7 @@ public partial class SettingsManager : Node
         config.SetValue(SectionAudio, "music_volume", MusicVolume);
         config.SetValue(SectionAudio, "sfx_volume", SfxVolume);
         config.SetValue(SectionEula, "accepted_version", EulaAcceptedVersion);
+        config.SetValue(SectionGameplay, "difficulty", (int)Difficulty);
 
         var err = config.Save(ConfigPath);
         if (err != Error.Ok)
@@ -80,6 +84,12 @@ public partial class SettingsManager : Node
     public void SetEulaAccepted(string minorVersion)
     {
         EulaAcceptedVersion = minorVersion;
+        SaveSettings();
+    }
+
+    public void SetDifficulty(GameDifficulty difficulty)
+    {
+        Difficulty = difficulty;
         SaveSettings();
     }
 

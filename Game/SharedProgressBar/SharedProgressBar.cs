@@ -30,6 +30,22 @@ public partial class SharedProgressBar : Control
         _fillB.Modulate = Energy.Energy.B.Fill();
         _markerA.Modulate = Energy.Energy.A.Marker();
         _markerB.Modulate = Energy.Energy.B.Marker();
+
+        PositionMarkers(GoalPercentage);
+    }
+
+    public void SetGoal(float goal)
+    {
+        GoalPercentage = goal;
+        PositionMarkers(goal);
+    }
+
+    private void PositionMarkers(float goal)
+    {
+        _markerA.AnchorLeft = goal;
+        _markerA.AnchorRight = goal;
+        _markerB.AnchorLeft = 1.0f - goal;
+        _markerB.AnchorRight = 1.0f - goal;
     }
 
     public void UpdateProgress(float percentA, float percentB)
