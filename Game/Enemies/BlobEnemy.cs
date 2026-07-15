@@ -1,26 +1,26 @@
 // SPDX-FileCopyrightText: 2026 Juan Medina
 // SPDX-License-Identifier: MIT
 
-using Chromonia.Main;
+using Chromonia.Energy;
 using Godot;
 
 namespace Chromonia.Enemies;
 
 public partial class BlobEnemy : RigidBody2D
 {
-    [Export] public Energy Energy { get; set; }
+    [Export] public Energy.Energy Energy { get; set; }
     [Export] public float Radius { get; set; }
     [Export] private CollisionShape2D _collisionShape = null!;
 
-    public Energy BaseEnergy { get; private set; }
-    public Energy CurrentEnergy { get; private set; }
+    public Energy.Energy BaseEnergy { get; private set; }
+    public Energy.Energy CurrentEnergy { get; private set; }
     public bool IsDissolving { get; private set; }
     private Color DisplayColor { get; set; }
 
     public const string GroupName = "Blobs";
     public const float DissolveTime = 0.5F;
 
-    public void SetMerged(bool isMerged) => CurrentEnergy = isMerged ? Energy.Combined : BaseEnergy;
+    public void SetMerged(bool isMerged) => CurrentEnergy = isMerged ? Chromonia.Energy.Energy.Combined : BaseEnergy;
 
     public override void _Ready()
     {

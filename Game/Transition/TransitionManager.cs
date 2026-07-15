@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: MIT
 
 using System;
-using Chromonia.Core;
 using Godot;
 
 namespace Chromonia.Transition;
@@ -13,7 +12,7 @@ public partial class TransitionManager : CanvasLayer
     [Export] private PackedScene _mainMenuScene = null!;
     [Export] private PackedScene _gameScene = null!;
 
-    public event Action<Result>? OnTransitionFailed;
+    public event Action<Result.Result>? OnTransitionFailed;
 
     private bool _isTransitioning;
     private const float FadeDuration = 0.5f;
@@ -63,7 +62,7 @@ public partial class TransitionManager : CanvasLayer
         }
         catch (Exception ex)
         {
-            OnTransitionFailed?.Invoke(Result.Fail($"Scene transition failed: {ex.Message}"));
+            OnTransitionFailed?.Invoke(Result.Result.Fail($"Scene transition failed: {ex.Message}"));
         }
         finally
         {
@@ -99,7 +98,7 @@ public partial class TransitionManager : CanvasLayer
         }
         catch (Exception ex)
         {
-            OnTransitionFailed?.Invoke(Result.Fail($"Scene transition failed: {ex.Message}"));
+            OnTransitionFailed?.Invoke(Result.Result.Fail($"Scene transition failed: {ex.Message}"));
         }
         finally
         {

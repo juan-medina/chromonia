@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://1dt0ixkayaeh"]
 
 [ext_resource type="Script" uid="uid://dvfr6lqa3g0ux" path="res://Transition/TransitionManager.cs" id="1_tmcs"]
-[ext_resource type="PackedScene" uid="uid://bpg8i5edn7ci5" path="res://UI/main_menu.tscn" id="2_menu"]
+[ext_resource type="PackedScene" uid="uid://bpg8i5edn7ci5" path="res://MainMenu/main_menu.tscn" id="2_menu"]
 [ext_resource type="PackedScene" uid="uid://bujvwvf4xmwo0" path="res://Main/main.tscn" id="3_game"]
 
 [node name="TransitionManager" type="CanvasLayer" unique_id=1454320545 node_paths=PackedStringArray("_fadeRect")]

@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
-using Chromonia.Core;
+using Chromonia.Result;
 using Godot;
 
 namespace Chromonia.Library;
@@ -21,9 +21,9 @@ public abstract partial class ResourceLibrary<T> : Node where T : Resource
     protected abstract string JsonPath { get; }
     protected abstract string FolderPath { get; }
 
-    public event Action<Result>? OnLoadFailed;
+    public event Action<Result.Result>? OnLoadFailed;
 
-    protected virtual Result ValidateEntry(ResourceEntry entry) => Result.Ok();
+    protected virtual Result.Result ValidateEntry(ResourceEntry entry) => Result.Result.Ok();
 
     private readonly List<ResourceEntry> _entries = [];
     private int _index;
@@ -33,7 +33,7 @@ public abstract partial class ResourceLibrary<T> : Node where T : Resource
         var result = TryLoadEntries();
         if (!result)
         {
-            GetNode<ErrorManager>("/root/ErrorManager")
+            GetNode<ErrorManager.ErrorManager>("/root/ErrorManager")
                 .NotifyFatalError($"{GetType().Name} failed to load: {result.Message}");
             return;
         }
@@ -71,15 +71,15 @@ public abstract partial class ResourceLibrary<T> : Node where T : Resource
         var resource = ResourceLoader.Load<T>(path);
         if (resource is not null) return Result<T>.Ok(resource);
 
-        var error = Result.Fail($"Could not load resource: {path}");
+        var error = Result.Result.Fail($"Could not load resource: {path}");
         OnLoadFailed?.Invoke(error);
         return Result<T>.Fail(error.Message);
     }
 
-    private Result TryLoadEntries()
+    private Result.Result TryLoadEntries()
     {
         using var file = FileAccess.Open(JsonPath, FileAccess.ModeFlags.Read);
-        if (file is null) return Result.Fail($"Could not open {JsonPath}");
+        if (file is null) return Result.Result.Fail($"Could not open {JsonPath}");
 
         try
         {
@@ -102,17 +102,17 @@ public abstract partial class ResourceLibrary<T> : Node where T : Resource
                 );
 
                 var validation = ValidateEntry(entry);
-                if (!validation) return Result.Fail($"Invalid entry '{entry.Name}': {validation.Message}");
+                if (!validation) return Result.Result.Fail($"Invalid entry '{entry.Name}': {validation.Message}");
 
                 _entries.Add(entry);
             }
         }
         catch (JsonException ex)
         {
-            return Result.Fail($"Failed to parse JSON: {ex.Message}");
+            return Result.Result.Fail($"Failed to parse JSON: {ex.Message}");
         }
 
-        return _entries.Count == 0 ? Result.Fail("No items found.") : Result.Ok();
+        return _entries.Count == 0 ? Result.Result.Fail("No items found.") : Result.Result.Ok();
     }
 
     public void Shuffle()

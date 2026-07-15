@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Juan Medina
 // SPDX-License-Identifier: MIT
 
-using Chromonia.Core;
 using Godot;
 
 namespace Chromonia.Music;
@@ -9,13 +8,13 @@ namespace Chromonia.Music;
 public partial class MusicPlayer : AudioStreamPlayer
 {
     private Library.MusicLibrary _library = null!;
-    private UI.ToastNotification _toast = null!;
-    public event System.Action<Result>? OnPlaybackFailed;
+    private ToastNotification.ToastNotification _toast = null!;
+    public event System.Action<Result.Result>? OnPlaybackFailed;
 
     public override void _Ready()
     {
         _library = GetNode<Library.MusicLibrary>("/root/MusicLibrary");
-        _toast = GetNode<UI.ToastNotification>("/root/ToastNotification");
+        _toast = GetNode<ToastNotification.ToastNotification>("/root/ToastNotification");
 
         ProcessMode = ProcessModeEnum.Always;
         Finished += OnFinished;
@@ -38,7 +37,7 @@ public partial class MusicPlayer : AudioStreamPlayer
         var result = _library.LoadCurrentResource();
         if (!result)
         {
-            OnPlaybackFailed?.Invoke(Result.Fail(result.ErrorMessage));
+            OnPlaybackFailed?.Invoke(Result.Result.Fail(result.ErrorMessage));
             return;
         }
 
@@ -48,7 +47,7 @@ public partial class MusicPlayer : AudioStreamPlayer
         var currentResult = _library.Current();
         if (!currentResult)
         {
-            OnPlaybackFailed?.Invoke(Result.Fail(currentResult.ErrorMessage));
+            OnPlaybackFailed?.Invoke(Result.Result.Fail(currentResult.ErrorMessage));
             return;
         }
 

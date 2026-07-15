@@ -1,0 +1,58 @@
+[gd_scene format=3 uid="uid://b6j27h8f0b1a2"]
+
+[ext_resource type="Script" uid="uid://b02qo542y67vk" path="res://Settings/SettingsPanel.cs" id="1_script"]
+[ext_resource type="PackedScene" path="res://Theme/modern_slider.tscn" id="2_ms"]
+[ext_resource type="PackedScene" path="res://Theme/modern_check_button.tscn" id="3_mcb"]
+
+[node name="SettingsPanel" type="VBoxContainer" node_paths=PackedStringArray("_fullscreenToggle", "_masterSlider", "_musicSlider", "_sfxSlider", "_masterLabel", "_musicLabel", "_sfxLabel")]
+theme_override_constants/separation = 20
+script = ExtResource("1_script")
+_fullscreenToggle = NodePath("FullscreenToggle")
+_masterSlider = NodePath("MasterSlider")
+_musicSlider = NodePath("MusicSlider")
+_sfxSlider = NodePath("SfxSlider")
+_masterLabel = NodePath("MasterLabel")
+_musicLabel = NodePath("MusicLabel")
+_sfxLabel = NodePath("SfxLabel")
+
+[node name="SettingsLabel" type="Label" parent="."]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 1, 1)
+theme_override_font_sizes/font_size = 32
+text = "Settings"
+
+[node name="FullscreenToggle" parent="." instance=ExtResource("3_mcb")]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Fullscreen"
+
+[node name="MasterLabel" type="Label" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Master Volume"
+
+[node name="MasterSlider" parent="." instance=ExtResource("2_ms")]
+custom_minimum_size = Vector2(300, 28)
+layout_mode = 2
+value = 1.0
+
+[node name="MusicLabel" type="Label" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Music Volume"
+
+[node name="MusicSlider" parent="." instance=ExtResource("2_ms")]
+custom_minimum_size = Vector2(300, 28)
+layout_mode = 2
+value = 1.0
+
+[node name="SfxLabel" type="Label" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "SFX Volume"
+
+[node name="SfxSlider" parent="." instance=ExtResource("2_ms")]
+custom_minimum_size = Vector2(300, 28)
+layout_mode = 2
+value = 1.0

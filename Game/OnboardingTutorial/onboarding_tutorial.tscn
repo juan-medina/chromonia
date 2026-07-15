@@ -1,0 +1,81 @@
+[gd_scene format=3 uid="uid://bn6boo2mrte5h"]
+
+[ext_resource type="Script" uid="uid://cg1ei02b8mmoy" path="res://OnboardingTutorial/OnboardingTutorial.cs" id="1_script"]
+[ext_resource type="Script" uid="uid://cxa4gc08jqgpb" path="res://InputPrompts/InputPromptIcon.cs" id="2_icon"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_onboarding"]
+content_margin_left = 40.0
+content_margin_top = 20.0
+content_margin_right = 40.0
+content_margin_bottom = 20.0
+bg_color = Color(0.15, 0.15, 0.15, 0.85)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 15
+
+[node name="OnboardingTutorial" type="CanvasLayer" unique_id=2001773936 node_paths=PackedStringArray("_centerContainer")]
+process_mode = 4
+layer = 50
+visible = false
+script = ExtResource("1_script")
+_centerContainer = NodePath("CenterContainer")
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=188411935]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="CenterContainer" unique_id=841175534]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_onboarding")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/PanelContainer" unique_id=1539032458]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/PanelContainer/VBoxContainer" unique_id=1050224835]
+layout_mode = 2
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="Label" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer/HBoxContainer" unique_id=430175234]
+layout_mode = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 32
+text = "Draw Lines"
+
+[node name="InputPromptIcon" type="TextureRect" parent="CenterContainer/PanelContainer/VBoxContainer/HBoxContainer" unique_id=730135573]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+script = ExtResource("2_icon")
+ActionName = "Move"
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="CenterContainer/PanelContainer/VBoxContainer" unique_id=88875354]
+layout_mode = 2
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="Label" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer/HBoxContainer2" unique_id=2123574914]
+layout_mode = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 32
+text = "Cycle Color"
+
+[node name="InputPromptIcon" type="TextureRect" parent="CenterContainer/PanelContainer/VBoxContainer/HBoxContainer2" unique_id=1711715169]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+script = ExtResource("2_icon")
+ActionName = "energy_cycle"

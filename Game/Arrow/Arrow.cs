@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Juan Medina
 // SPDX-License-Identifier: MIT
 
+using Chromonia.Energy;
 using Chromonia.Main;
 using Godot;
 
@@ -23,7 +24,7 @@ public partial class Arrow : Sprite2D
     private const float RotationSpeed = Mathf.Pi / RotationTime; // Radians per second
     private const float ImmuneTime = 2.0f;
 
-    public Energy CurrentEnergy { get; private set; } = Energy.A;
+    public Energy.Energy CurrentEnergy { get; private set; } = Energy.Energy.A;
     public ArrowState State { get; private set; } = ArrowState.Normal;
 
     private float _stateDurationRemaining;

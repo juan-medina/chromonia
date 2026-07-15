@@ -11,7 +11,7 @@ public partial class BlobCluster : Node2D
     [Export] private RigidBody2D _core = null!;
     [Export] private PackedScene _blobEnemyScene = null!;
     [Export] public float Speed { get; set; }
-    [Export] public Energy Energy { get; set; }
+    [Export] public Energy.Energy Energy { get; set; }
 
     private bool IsDissolving { get; set; }
 

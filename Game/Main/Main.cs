@@ -4,12 +4,11 @@
 using System;
 using System.Collections.Generic;
 using Godot;
-using Chromonia.Core;
 using Chromonia.Enemies;
+using Chromonia.Energy;
+using Chromonia.PlayerSystem;
 using BlobEnemy = Chromonia.Enemies.BlobEnemy;
 using PaintingLibrary = Chromonia.Library.PaintingLibrary;
-using SharedProgressBar = Chromonia.UI.SharedProgressBar;
-using GalleryPlaque = Chromonia.UI.GalleryPlaque;
 using TransitionManager = Chromonia.Transition.TransitionManager;
 
 namespace Chromonia.Main;
@@ -19,14 +18,14 @@ public partial class Main : Node2D
     private PaintingLibrary _library = null!;
     private Music.MusicPlayer _music = null!;
     private TransitionManager _transition = null!;
-    private ErrorManager _errorManager = null!;
+    private ErrorManager.ErrorManager _errorManager = null!;
 
     [Export] private SubViewport _maskViewport = null!;
     [Export] private Node2D _maskRoot = null!;
     [Export] private Sprite2D _painting = null!;
     [Export] private Node2D _playfield = null!;
     [Export] private Arrow.Arrow _arrow = null!;
-    [Export] private SharedProgressBar _progressBar = null!;
+    [Export] private SharedProgressBar.SharedProgressBar _progressBar = null!;
     [Export] private CanvasGroup _blobsLayer = null!;
     [Export] private Line2D _perimeterLine = null!;
     [Export] private Line2D _drawingLine = null!;
@@ -38,7 +37,7 @@ public partial class Main : Node2D
     [Export] private AudioStreamPlayer _sfxSnap = null!;
     [Export] private AudioStreamPlayer _sfxWaterDrop = null!;
     [Export] private AudioStreamPlayer _sfxPaintStroke = null!;
-    [Export] private GalleryPlaque _galleryPlaque = null!;
+    [Export] private GalleryPlaque.GalleryPlaque _galleryPlaque = null!;
     [Export] private TextureProgressBar _transitionProgressBar = null!;
     [Export] private Camera2D _camera = null!;
     [Export] private PackedScene _blobClusterScene = null!;
@@ -76,15 +75,15 @@ public partial class Main : Node2D
     private float _claimedAreaB;
     private float _totalArea;
 
-    private PlayerSystem _playerSystem = null!;
-    private CollisionSystem _collisionSystem = null!;
-    private ClaimSystem _claimSystem = null!;
+    private PlayerSystem.PlayerSystem _playerSystem = null!;
+    private CollisionSystem.CollisionSystem _collisionSystem = null!;
+    private ClaimSystem.ClaimSystem _claimSystem = null!;
 
     private readonly List<BlobEnemy> _trappedBlobsBuffer = new(32);
 
     public override void _Ready()
     {
-        _errorManager = GetNode<ErrorManager>("/root/ErrorManager");
+        _errorManager = GetNode<ErrorManager.ErrorManager>("/root/ErrorManager");
         _library = GetNode<PaintingLibrary>("/root/PaintingLibrary");
         _music = GetNode<Music.MusicPlayer>("/root/MusicPlayer");
         _transition = GetNode<TransitionManager>("/root/TransitionManager");
@@ -109,11 +108,11 @@ public partial class Main : Node2D
 
     private void InitSystems()
     {
-        _playerSystem = new PlayerSystem(_arrow, _drawingLine);
+        _playerSystem = new PlayerSystem.PlayerSystem(_arrow, _drawingLine);
         _playerSystem.OnClaimTriggered += HandleClaimTriggered;
 
-        _collisionSystem = new CollisionSystem(_playfield, _arrow);
-        _claimSystem = new ClaimSystem(_playfield, _maskRoot, _perimeterLine, _arrow);
+        _collisionSystem = new CollisionSystem.CollisionSystem(_playfield, _arrow);
+        _claimSystem = new ClaimSystem.ClaimSystem(_playfield, _maskRoot, _perimeterLine, _arrow);
     }
 
     private void SetupLevel()
@@ -129,9 +128,8 @@ public partial class Main : Node2D
     {
         _transitionProgressBar.Visible = false;
         (_transitionProgressBar.TextureProgress as GradientTexture1D)!.Gradient.Colors =
-            [Energy.A.Fill(), Energy.B.Fill()];
+            [Energy.Energy.A.Fill(), Energy.Energy.B.Fill()];
     }
-
 
 
     public override void _ExitTree()
@@ -150,7 +148,7 @@ public partial class Main : Node2D
         base._ExitTree();
     }
 
-    private void OnFatalAppError(Result err) => _errorManager.NotifyFatalError(err);
+    private void OnFatalAppError(Result.Result err) => _errorManager.NotifyFatalError(err);
 
     private void HandleClaimTriggered(int hitSegmentIndex)
     {
@@ -158,7 +156,7 @@ public partial class Main : Node2D
         var activeArray = _playerSystem.ActiveLine.ToArray();
 
         // create a poligon with those lines
-        var (claimedPoly, newPerimeter, claimedArea) = ClaimSystem.DetermineClaimedPolygon(
+        var (claimedPoly, newPerimeter, claimedArea) = ClaimSystem.ClaimSystem.DetermineClaimedPolygon(
             Perimeter, _playerSystem.StartSegmentIndex, hitSegmentIndex, activeArray);
 
         // get trapped blobs
@@ -291,7 +289,7 @@ public partial class Main : Node2D
         var paintingResult = _library.Current();
         if (!paintingResult)
         {
-            OnFatalAppError(Result.Fail(paintingResult.ErrorMessage));
+            OnFatalAppError(Result.Result.Fail(paintingResult.ErrorMessage));
             return;
         }
 
@@ -331,22 +329,22 @@ public partial class Main : Node2D
         _transition.ReloadCurrentScene();
     }
 
-    private Result TryLoadCurrentPainting()
+    private Result.Result TryLoadCurrentPainting()
     {
         var result = _library.Current();
-        return !result ? Result.Fail(result.ErrorMessage) : TryLoadPainting();
+        return !result ? Result.Result.Fail(result.ErrorMessage) : TryLoadPainting();
     }
 
-    private Result TryLoadPainting()
+    private Result.Result TryLoadPainting()
     {
         var result = _library.LoadCurrentResource();
-        if (!result) return Result.Fail(result.ErrorMessage);
+        if (!result) return Result.Result.Fail(result.ErrorMessage);
 
         _paintingWidth = result.Value.GetWidth();
         _paintingHeight = result.Value.GetHeight();
 
         if (_paintingWidth <= 0 || _paintingHeight <= 0)
-            return Result.Fail($"Invalid painting dimensions: {_paintingWidth}x{_paintingHeight}");
+            return Result.Result.Fail($"Invalid painting dimensions: {_paintingWidth}x{_paintingHeight}");
 
         _painting.Texture = result.Value;
 
@@ -356,7 +354,7 @@ public partial class Main : Node2D
 
         CreateBorder(_scaledWidth, _scaledHeight, BorderColor, BorderThickness);
 
-        return Result.Ok();
+        return Result.Result.Ok();
     }
 
     private void CalculateDimensionsAndScale()
@@ -415,7 +413,7 @@ public partial class Main : Node2D
 
         for (int i = 0; i < ClusterCount; i++)
         {
-            var energy = (i % 2 == 0) ? Energy.A : Energy.B;
+            var energy = (i % 2 == 0) ? Energy.Energy.A : Energy.Energy.B;
             float speed = (float)GD.RandRange(MinBlobSpeed, MaxBlobSpeed);
             var cluster = _blobClusterScene.Instantiate<BlobCluster>();
             cluster.Energy = energy;
@@ -472,7 +470,7 @@ public partial class Main : Node2D
 
     private void UpdateProgressAndCheckWin(float claimedArea)
     {
-        if (_arrow.CurrentEnergy == Energy.A)
+        if (_arrow.CurrentEnergy == Energy.Energy.A)
             _claimedAreaA += claimedArea;
         else
             _claimedAreaB += claimedArea;
@@ -494,5 +492,4 @@ public partial class Main : Node2D
 
         _playerSystem.ResetToStart();
     }
-
 }

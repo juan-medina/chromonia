@@ -1,0 +1,303 @@
+[gd_scene format=3 uid="uid://bpg8i5edn7ci5"]
+
+[ext_resource type="Script" uid="uid://ra5cldy4cf6g" path="res://MainMenu/MainMenu.cs" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://w8a6asw8faor" path="res://MenuBlob/menu_blob.tscn" id="2_cafmx"]
+[ext_resource type="Theme" uid="uid://djb8idhiocumf" path="res://Theme/main_theme.tres" id="2_theme"]
+[ext_resource type="Texture2D" uid="uid://da27hv6rxfri3" path="res://Background/canvas.jpg" id="3_bg"]
+[ext_resource type="PackedScene" uid="uid://da8d3k1iu6o82" path="res://Theme/modern_menu_button.tscn" id="4_mmb"]
+[ext_resource type="Script" uid="uid://cxa4gc08jqgpb" path="res://InputPrompts/InputPromptIcon.cs" id="5_icon"]
+[ext_resource type="Shader" uid="uid://dwmn3qansqxuf" path="res://Enemies/blob_merge.gdshader" id="6_shader"]
+[ext_resource type="Shader" uid="uid://bn0txsyhy731a" path="res://MainMenu/chrome_text.gdshader" id="7_chrome_shader"]
+[ext_resource type="PackedScene" uid="uid://b6j27h8f0b1a2" path="res://Settings/settings_panel.tscn" id="8_sp"]
+[ext_resource type="PackedScene" uid="uid://c6a8gak2b1l3a" path="res://Theme/big_text_panel.tscn" id="9_ap"]
+
+[sub_resource type="Environment" id="Environment_menu"]
+background_mode = 3
+glow_enabled = true
+glow_blend_mode = 0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_blobs"]
+shader = ExtResource("6_shader")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_chrome"]
+shader = ExtResource("7_chrome_shader")
+shader_parameter/height = 144.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prompts"]
+content_margin_left = 20.0
+content_margin_top = 10.0
+content_margin_right = 20.0
+content_margin_bottom = 10.0
+bg_color = Color(0.15, 0.15, 0.15, 0.95)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 10
+
+[node name="MainMenu" type="Node2D" unique_id=1004905813 node_paths=PackedStringArray("_mainButtonsContainer", "_optionsContainer", "_aboutContainer", "_playButton", "_optionsButton", "_aboutButton", "_exitButton", "_settingsPanel", "_bigTextPanel", "_backButton", "_aboutBackButton", "_blobsLayer", "_blobsViewport", "_logoText", "_blobsDisplay")]
+script = ExtResource("1_script")
+_mainButtonsContainer = NodePath("UILayer/MenuControl/MarginContainer")
+_optionsContainer = NodePath("UILayer/MenuControl/OptionsContainer")
+_aboutContainer = NodePath("UILayer/MenuControl/AboutContainer")
+_playButton = NodePath("UILayer/MenuControl/MarginContainer/VBoxContainer/PlayButton")
+_optionsButton = NodePath("UILayer/MenuControl/MarginContainer/VBoxContainer/OptionsButton")
+_aboutButton = NodePath("UILayer/MenuControl/MarginContainer/VBoxContainer/AboutButton")
+_exitButton = NodePath("UILayer/MenuControl/MarginContainer/VBoxContainer/ExitButton")
+_settingsPanel = NodePath("UILayer/MenuControl/OptionsContainer/VBoxContainer/SettingsPanel")
+_bigTextPanel = NodePath("UILayer/MenuControl/AboutContainer/VBoxContainer/BigTextPanel")
+_backButton = NodePath("UILayer/MenuControl/OptionsContainer/VBoxContainer/BackButton")
+_aboutBackButton = NodePath("UILayer/MenuControl/AboutContainer/VBoxContainer/AboutBackButton")
+_blobsLayer = NodePath("BlobsViewport/BlobsLayer")
+_blobsViewport = NodePath("BlobsViewport")
+_logoText = NodePath("UILayer/MenuControl/LogoContainer/LogoText")
+_blobsDisplay = NodePath("BlobsDisplay")
+_menuBlobScene = ExtResource("2_cafmx")
+
+[node name="BackgroundLayer" type="CanvasLayer" parent="." unique_id=987654321]
+layer = -1
+
+[node name="Background" type="TextureRect" parent="BackgroundLayer" unique_id=1759071665]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_bg")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1234567890]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=433407142]
+environment = SubResource("Environment_menu")
+
+[node name="BlobsViewport" type="SubViewport" parent="." unique_id=555111222]
+transparent_bg = true
+size = Vector2i(1920, 1080)
+render_target_update_mode = 4
+
+[node name="ViewportCamera" type="Camera2D" parent="BlobsViewport" unique_id=777888999]
+
+[node name="BlobsLayer" type="CanvasGroup" parent="BlobsViewport" unique_id=999999999]
+material = SubResource("ShaderMaterial_blobs")
+
+[node name="BlobsDisplay" type="Sprite2D" parent="." unique_id=333444555]
+
+[node name="UILayer" type="CanvasLayer" parent="." unique_id=111222333]
+
+[node name="MenuControl" type="Control" parent="UILayer" unique_id=444555666]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+
+[node name="LogoContainer" type="Control" parent="UILayer/MenuControl" unique_id=123987456]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -500.0
+offset_top = -200.0
+offset_right = 500.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LogoShadow" type="Label" parent="UILayer/MenuControl/LogoContainer" unique_id=987123654]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 20
+theme_override_constants/outline_size = 40
+theme_override_constants/shadow_outline_size = 40
+theme_override_font_sizes/font_size = 144
+text = "CHROMONIA"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LogoText" type="Label" parent="UILayer/MenuControl/LogoContainer" unique_id=741852963]
+material = SubResource("ShaderMaterial_chrome")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 144
+text = "CHROMONIA"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="UILayer/MenuControl" unique_id=182236546]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 120
+theme_override_constants/margin_bottom = 120
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/MenuControl/MarginContainer" unique_id=2089571676]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 8
+theme_override_constants/separation = 20
+
+[node name="PlayButton" parent="UILayer/MenuControl/MarginContainer/VBoxContainer" unique_id=477749179 instance=ExtResource("4_mmb")]
+layout_mode = 2
+size_flags_horizontal = 1
+focus_neighbor_top = NodePath("../ExitButton")
+theme_override_font_sizes/font_size = 72
+text = "Play"
+
+[node name="OptionsButton" parent="UILayer/MenuControl/MarginContainer/VBoxContainer" unique_id=1984971053 instance=ExtResource("4_mmb")]
+layout_mode = 2
+size_flags_horizontal = 1
+text = "Options"
+
+[node name="AboutButton" parent="UILayer/MenuControl/MarginContainer/VBoxContainer" unique_id=238710926 instance=ExtResource("4_mmb")]
+layout_mode = 2
+size_flags_horizontal = 1
+text = "About"
+
+[node name="ExitButton" parent="UILayer/MenuControl/MarginContainer/VBoxContainer" unique_id=1149671681 instance=ExtResource("4_mmb")]
+layout_mode = 2
+size_flags_horizontal = 1
+focus_neighbor_bottom = NodePath("../PlayButton")
+text = "Exit"
+
+[node name="OptionsContainer" type="MarginContainer" parent="UILayer/MenuControl" unique_id=1730489044]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 120
+theme_override_constants/margin_bottom = 120
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/MenuControl/OptionsContainer" unique_id=1238292170]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 8
+theme_override_constants/separation = 20
+
+[node name="OptionsTitle" type="Label" parent="UILayer/MenuControl/OptionsContainer/VBoxContainer" unique_id=613316677]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 1, 1)
+theme_override_font_sizes/font_size = 72
+text = "OPTIONS"
+
+[node name="HSeparator1" type="HSeparator" parent="UILayer/MenuControl/OptionsContainer/VBoxContainer" unique_id=189198166]
+layout_mode = 2
+
+[node name="SettingsPanel" parent="UILayer/MenuControl/OptionsContainer/VBoxContainer" unique_id=1566546771 instance=ExtResource("8_sp")]
+layout_mode = 2
+
+[node name="HSeparator2" type="HSeparator" parent="UILayer/MenuControl/OptionsContainer/VBoxContainer" unique_id=1699597505]
+layout_mode = 2
+
+[node name="BackButton" parent="UILayer/MenuControl/OptionsContainer/VBoxContainer" unique_id=393245214 instance=ExtResource("4_mmb")]
+layout_mode = 2
+text = "Back"
+
+[node name="AboutContainer" type="MarginContainer" parent="UILayer/MenuControl" unique_id=115270551]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 40
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/MenuControl/AboutContainer" unique_id=909954231]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="AboutTitle" type="Label" parent="UILayer/MenuControl/AboutContainer/VBoxContainer" unique_id=1234220423]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 1, 1)
+theme_override_font_sizes/font_size = 72
+text = "ABOUT"
+
+[node name="HSeparator1" type="HSeparator" parent="UILayer/MenuControl/AboutContainer/VBoxContainer" unique_id=570353552]
+layout_mode = 2
+
+[node name="BigTextPanel" parent="UILayer/MenuControl/AboutContainer/VBoxContainer" unique_id=1817264104 instance=ExtResource("9_ap")]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HSeparator2" type="HSeparator" parent="UILayer/MenuControl/AboutContainer/VBoxContainer" unique_id=1385441144]
+layout_mode = 2
+
+[node name="AboutBackButton" parent="UILayer/MenuControl/AboutContainer/VBoxContainer" unique_id=1375737990 instance=ExtResource("4_mmb")]
+layout_mode = 2
+text = "Back"
+
+[node name="PromptMargin" type="MarginContainer" parent="UILayer/MenuControl" unique_id=1567012696]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -60.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 30
+
+[node name="PanelContainer" type="PanelContainer" parent="UILayer/MenuControl/PromptMargin" unique_id=1257880099]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_prompts")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="UILayer/MenuControl/PromptMargin/PanelContainer" unique_id=650940234]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="NavIcon" type="TextureRect" parent="UILayer/MenuControl/PromptMargin/PanelContainer/HBoxContainer" unique_id=616678185]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+script = ExtResource("5_icon")
+ActionName = "Move"
+
+[node name="NavLabel" type="Label" parent="UILayer/MenuControl/PromptMargin/PanelContainer/HBoxContainer" unique_id=2135654023]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Navigate"
+
+[node name="AcceptIcon" type="TextureRect" parent="UILayer/MenuControl/PromptMargin/PanelContainer/HBoxContainer" unique_id=51936678]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+script = ExtResource("5_icon")
+
+[node name="AcceptLabel" type="Label" parent="UILayer/MenuControl/PromptMargin/PanelContainer/HBoxContainer" unique_id=372397409]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Select"
