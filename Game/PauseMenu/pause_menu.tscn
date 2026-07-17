@@ -6,6 +6,14 @@
 [ext_resource type="PackedScene" uid="uid://da8d3k1iu6o82" path="res://Theme/modern_menu_button.tscn" id="4_mmb"]
 [ext_resource type="PackedScene" uid="uid://b6j27h8f0b1a2" path="res://Settings/settings_panel.tscn" id="7_sp"]
 
+[ext_resource type="Texture2D" path="res://MainMenu/play.svg" id="icon_play"]
+[ext_resource type="Texture2D" path="res://MainMenu/options.svg" id="icon_options"]
+[ext_resource type="Texture2D" path="res://MainMenu/about.svg" id="icon_about"]
+[ext_resource type="Texture2D" path="res://MainMenu/exit.svg" id="icon_exit"]
+[ext_resource type="Texture2D" path="res://MainMenu/back.svg" id="icon_back"]
+[ext_resource type="Texture2D" path="res://PauseMenu/restart.svg" id="icon_restart"]
+[ext_resource type="Texture2D" path="res://MainMenu/home.svg" id="icon_home"]
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prompts"]
 content_margin_left = 20.0
 content_margin_top = 10.0
@@ -67,11 +75,13 @@ layout_mode = 2
 layout_mode = 2
 focus_neighbor_top = NodePath("../QuitButton")
 text = "Resume"
+icon = ExtResource("icon_play")
 
 [node name="RestartButton" parent="ColorRect/MarginContainer/VBoxContainer" unique_id=427252809 instance=ExtResource("4_mmb")]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
 text = "Restart"
+icon = ExtResource("icon_restart")
 
 [node name="HSeparator2" type="HSeparator" parent="ColorRect/MarginContainer/VBoxContainer" unique_id=391256011]
 layout_mode = 2
@@ -88,6 +98,7 @@ layout_mode = 2
 focus_neighbor_bottom = NodePath("../ResumeButton")
 theme_override_font_sizes/font_size = 36
 text = "Main Menu"
+icon = ExtResource("icon_home")
 
 [node name="PromptMargin" type="MarginContainer" parent="ColorRect" unique_id=1178830627]
 layout_mode = 1
@@ -147,3 +158,6 @@ ActionName = "ui_cancel"
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Back"
+icon = ExtResource("icon_back")
+
+

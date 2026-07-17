@@ -6,6 +6,8 @@
 [ext_resource type="PackedScene" uid="uid://c6a8gak2b1l3a" path="res://Theme/big_text_panel.tscn" id="3_5otqx"]
 [ext_resource type="PackedScene" uid="uid://da8d3k1iu6o82" path="res://Theme/modern_menu_button.tscn" id="4_8shbf"]
 [ext_resource type="Script" uid="uid://cxa4gc08jqgpb" path="res://InputPrompts/InputPromptIcon.cs" id="5_1tioq"]
+[ext_resource type="Texture2D" path="res://Eula/check.svg" id="icon_check"]
+[ext_resource type="Texture2D" path="res://MainMenu/exit.svg" id="icon_exit"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wirnq"]
 content_margin_left = 20.0
@@ -110,10 +112,12 @@ theme_override_constants/separation = 20
 [node name="AcceptButton" parent="UILayer/MenuControl/AboutContainer/VBoxContainer/HBoxContainer" unique_id=231722134 instance=ExtResource("4_8shbf")]
 layout_mode = 2
 text = "Accept"
+icon = ExtResource("icon_check")
 
 [node name="DeclineButton" parent="UILayer/MenuControl/AboutContainer/VBoxContainer/HBoxContainer" unique_id=1983553298 instance=ExtResource("4_8shbf")]
 layout_mode = 2
 text = "Decline"
+icon = ExtResource("icon_exit")
 
 [node name="PromptMargin" type="MarginContainer" parent="UILayer/MenuControl" unique_id=151643467]
 layout_mode = 1
@@ -160,3 +164,5 @@ script = ExtResource("5_1tioq")
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Select"
+
+

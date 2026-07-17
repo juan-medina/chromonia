@@ -10,6 +10,15 @@
 [ext_resource type="Shader" uid="uid://bn0txsyhy731a" path="res://MainMenu/chrome_text.gdshader" id="7_chrome_shader"]
 [ext_resource type="PackedScene" uid="uid://b6j27h8f0b1a2" path="res://Settings/settings_panel.tscn" id="8_sp"]
 [ext_resource type="PackedScene" uid="uid://c6a8gak2b1l3a" path="res://Theme/big_text_panel.tscn" id="9_ap"]
+[ext_resource type="Texture2D" uid="uid://c0wwuf286jmir" path="res://MainMenu/about.svg" id="icon_about"]
+[ext_resource type="Texture2D" uid="uid://b10e3u00c6q0f" path="res://MainMenu/back.svg" id="icon_back"]
+[ext_resource type="Texture2D" uid="uid://l0pqohuarlk1" path="res://MainMenu/diff_hard.svg" id="icon_diff_h"]
+[ext_resource type="Texture2D" uid="uid://c6mbxy4pt65e3" path="res://MainMenu/diff_medium.svg" id="icon_diff_m"]
+[ext_resource type="Texture2D" uid="uid://bma7ignhjbx41" path="res://MainMenu/diff_normal.svg" id="icon_diff_n"]
+[ext_resource type="Texture2D" uid="uid://ctdvnit5yikkf" path="res://MainMenu/diff_zen.svg" id="icon_diff_z"]
+[ext_resource type="Texture2D" uid="uid://cxel6d3y6oj8y" path="res://MainMenu/exit.svg" id="icon_exit"]
+[ext_resource type="Texture2D" uid="uid://bsgytxcihfyuv" path="res://MainMenu/options.svg" id="icon_options"]
+[ext_resource type="Texture2D" uid="uid://b7lcgvsxhufmj" path="res://MainMenu/play.svg" id="icon_play"]
 
 [sub_resource type="Environment" id="Environment_menu"]
 background_mode = 3
@@ -172,22 +181,26 @@ size_flags_horizontal = 1
 focus_neighbor_top = NodePath("../ExitButton")
 theme_override_font_sizes/font_size = 72
 text = "Play"
+icon = ExtResource("icon_play")
 
 [node name="OptionsButton" parent="UILayer/MenuControl/MarginContainer/VBoxContainer" unique_id=1984971053 instance=ExtResource("4_mmb")]
 layout_mode = 2
 size_flags_horizontal = 1
 text = "Options"
+icon = ExtResource("icon_options")
 
 [node name="AboutButton" parent="UILayer/MenuControl/MarginContainer/VBoxContainer" unique_id=238710926 instance=ExtResource("4_mmb")]
 layout_mode = 2
 size_flags_horizontal = 1
 text = "About"
+icon = ExtResource("icon_about")
 
 [node name="ExitButton" parent="UILayer/MenuControl/MarginContainer/VBoxContainer" unique_id=1149671681 instance=ExtResource("4_mmb")]
 layout_mode = 2
 size_flags_horizontal = 1
 focus_neighbor_bottom = NodePath("../PlayButton")
 text = "Exit"
+icon = ExtResource("icon_exit")
 
 [node name="OptionsContainer" type="MarginContainer" parent="UILayer/MenuControl" unique_id=1730489044]
 visible = false
@@ -226,6 +239,7 @@ layout_mode = 2
 [node name="BackButton" parent="UILayer/MenuControl/OptionsContainer/VBoxContainer" unique_id=393245214 instance=ExtResource("4_mmb")]
 layout_mode = 2
 text = "Back"
+icon = ExtResource("icon_back")
 
 [node name="AboutContainer" type="MarginContainer" parent="UILayer/MenuControl" unique_id=115270551]
 visible = false
@@ -265,6 +279,7 @@ layout_mode = 2
 [node name="AboutBackButton" parent="UILayer/MenuControl/AboutContainer/VBoxContainer" unique_id=1375737990 instance=ExtResource("4_mmb")]
 layout_mode = 2
 text = "Back"
+icon = ExtResource("icon_back")
 
 [node name="DifficultyContainer" type="MarginContainer" parent="UILayer/MenuControl" unique_id=200000001]
 visible = false
@@ -298,21 +313,25 @@ layout_mode = 2
 size_flags_horizontal = 1
 focus_neighbor_top = NodePath("../DifficultyBackButton")
 text = "Normal"
+icon = ExtResource("icon_diff_n")
 
 [node name="MediumButton" parent="UILayer/MenuControl/DifficultyContainer/VBoxContainer" unique_id=200000006 instance=ExtResource("4_mmb")]
 layout_mode = 2
 size_flags_horizontal = 1
 text = "Medium"
+icon = ExtResource("icon_diff_m")
 
 [node name="HardButton" parent="UILayer/MenuControl/DifficultyContainer/VBoxContainer" unique_id=200000007 instance=ExtResource("4_mmb")]
 layout_mode = 2
 size_flags_horizontal = 1
 text = "Hard"
+icon = ExtResource("icon_diff_h")
 
 [node name="ZenButton" parent="UILayer/MenuControl/DifficultyContainer/VBoxContainer" unique_id=200000008 instance=ExtResource("4_mmb")]
 layout_mode = 2
 size_flags_horizontal = 1
 text = "Zen"
+icon = ExtResource("icon_diff_z")
 
 [node name="DifficultyDescription" type="Label" parent="UILayer/MenuControl/DifficultyContainer/VBoxContainer" unique_id=200000009]
 layout_mode = 2
@@ -326,6 +345,7 @@ layout_mode = 2
 layout_mode = 2
 focus_neighbor_bottom = NodePath("../NormalButton")
 text = "Back"
+icon = ExtResource("icon_back")
 
 [node name="PromptMargin" type="MarginContainer" parent="UILayer/MenuControl" unique_id=1567012696]
 layout_mode = 1

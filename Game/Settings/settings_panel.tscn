@@ -4,6 +4,17 @@
 [ext_resource type="PackedScene" path="res://Theme/modern_slider.tscn" id="2_ms"]
 [ext_resource type="PackedScene" path="res://Theme/modern_check_button.tscn" id="3_mcb"]
 
+[ext_resource type="Texture2D" path="res://MainMenu/play.svg" id="icon_play"]
+[ext_resource type="Texture2D" path="res://MainMenu/options.svg" id="icon_options"]
+[ext_resource type="Texture2D" path="res://MainMenu/about.svg" id="icon_about"]
+[ext_resource type="Texture2D" path="res://MainMenu/exit.svg" id="icon_exit"]
+[ext_resource type="Texture2D" path="res://MainMenu/back.svg" id="icon_back"]
+[ext_resource type="Texture2D" path="res://MainMenu/home.svg" id="icon_home"]
+[ext_resource type="Texture2D" path="res://Settings/volume_master.svg" id="icon_vol_m"]
+[ext_resource type="Texture2D" path="res://Settings/volume_music.svg" id="icon_vol_mu"]
+[ext_resource type="Texture2D" path="res://Settings/volume_sfx.svg" id="icon_vol_sfx"]
+[ext_resource type="Texture2D" path="res://Settings/fullscreen.svg" id="icon_fs"]
+
 [node name="SettingsPanel" type="VBoxContainer" node_paths=PackedStringArray("_fullscreenToggle", "_masterSlider", "_musicSlider", "_sfxSlider", "_masterLabel", "_musicLabel", "_sfxLabel")]
 theme_override_constants/separation = 20
 script = ExtResource("1_script")
@@ -15,44 +26,69 @@ _masterLabel = NodePath("MasterLabel")
 _musicLabel = NodePath("MusicLabel")
 _sfxLabel = NodePath("SfxLabel")
 
-[node name="SettingsLabel" type="Label" parent="."]
+[node name="SettingsLabel" type="Button" parent="."]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0, 1, 1)
 theme_override_font_sizes/font_size = 32
 text = "Settings"
+icon = ExtResource("icon_options")
+flat = true
+alignment = 0
+focus_mode = 0
+mouse_filter = 2
 
 [node name="FullscreenToggle" parent="." instance=ExtResource("3_mcb")]
 custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 text = "Fullscreen"
+icon = ExtResource("icon_fs")
 
-[node name="MasterLabel" type="Label" parent="."]
+[node name="MasterLabel" type="Button" parent="."]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Master Volume"
+icon = ExtResource("icon_vol_m")
+flat = true
+focus_mode = 0
+mouse_filter = 2
+alignment = 0
 
 [node name="MasterSlider" parent="." instance=ExtResource("2_ms")]
 custom_minimum_size = Vector2(300, 28)
 layout_mode = 2
 value = 1.0
 
-[node name="MusicLabel" type="Label" parent="."]
+[node name="MusicLabel" type="Button" parent="."]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Music Volume"
+icon = ExtResource("icon_vol_mu")
+flat = true
+focus_mode = 0
+mouse_filter = 2
+alignment = 0
 
 [node name="MusicSlider" parent="." instance=ExtResource("2_ms")]
 custom_minimum_size = Vector2(300, 28)
 layout_mode = 2
 value = 1.0
 
-[node name="SfxLabel" type="Label" parent="."]
+[node name="SfxLabel" type="Button" parent="."]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "SFX Volume"
+icon = ExtResource("icon_vol_sfx")
+flat = true
+focus_mode = 0
+mouse_filter = 2
+alignment = 0
 
 [node name="SfxSlider" parent="." instance=ExtResource("2_ms")]
 custom_minimum_size = Vector2(300, 28)
 layout_mode = 2
 value = 1.0
+
+
+
+

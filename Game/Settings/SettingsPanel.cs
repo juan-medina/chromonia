@@ -13,9 +13,9 @@ public partial class SettingsPanel : VBoxContainer
     [Export] private HSlider _sfxSlider = null!;
     [Export] private Button _backButton = null!;
 
-    [Export] private Label _masterLabel = null!;
-    [Export] private Label _musicLabel = null!;
-    [Export] private Label _sfxLabel = null!;
+    [Export] private Button _masterLabel = null!;
+    [Export] private Button _musicLabel = null!;
+    [Export] private Button _sfxLabel = null!;
 
     private SettingsManager _settingsManager = null!;
 
