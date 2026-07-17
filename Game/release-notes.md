@@ -2,7 +2,8 @@
 
 ## What's new
 
-- First Beta release
+- First release
+- Adding wrap on settings menu & difficulty menu
 
 ## Bug fixes
 

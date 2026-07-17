@@ -216,8 +216,9 @@ text = "OPTIONS"
 [node name="HSeparator1" type="HSeparator" parent="UILayer/MenuControl/OptionsContainer/VBoxContainer" unique_id=189198166]
 layout_mode = 2
 
-[node name="SettingsPanel" parent="UILayer/MenuControl/OptionsContainer/VBoxContainer" unique_id=1566546771 instance=ExtResource("8_sp")]
+[node name="SettingsPanel" parent="UILayer/MenuControl/OptionsContainer/VBoxContainer" unique_id=1566546771 node_paths=PackedStringArray("_backButton") instance=ExtResource("8_sp")]
 layout_mode = 2
+_backButton = NodePath("../BackButton")
 
 [node name="HSeparator2" type="HSeparator" parent="UILayer/MenuControl/OptionsContainer/VBoxContainer" unique_id=1699597505]
 layout_mode = 2
@@ -295,6 +296,7 @@ layout_mode = 2
 [node name="NormalButton" parent="UILayer/MenuControl/DifficultyContainer/VBoxContainer" unique_id=200000005 instance=ExtResource("4_mmb")]
 layout_mode = 2
 size_flags_horizontal = 1
+focus_neighbor_top = NodePath("../DifficultyBackButton")
 text = "Normal"
 
 [node name="MediumButton" parent="UILayer/MenuControl/DifficultyContainer/VBoxContainer" unique_id=200000006 instance=ExtResource("4_mmb")]
@@ -322,6 +324,7 @@ layout_mode = 2
 
 [node name="DifficultyBackButton" parent="UILayer/MenuControl/DifficultyContainer/VBoxContainer" unique_id=200000011 instance=ExtResource("4_mmb")]
 layout_mode = 2
+focus_neighbor_bottom = NodePath("../NormalButton")
 text = "Back"
 
 [node name="PromptMargin" type="MarginContainer" parent="UILayer/MenuControl" unique_id=1567012696]

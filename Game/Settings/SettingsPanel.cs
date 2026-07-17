@@ -11,6 +11,7 @@ public partial class SettingsPanel : VBoxContainer
     [Export] private HSlider _masterSlider = null!;
     [Export] private HSlider _musicSlider = null!;
     [Export] private HSlider _sfxSlider = null!;
+    [Export] private Button _backButton = null!;
 
     [Export] private Label _masterLabel = null!;
     [Export] private Label _musicLabel = null!;
@@ -26,6 +27,10 @@ public partial class SettingsPanel : VBoxContainer
         _masterSlider.ValueChanged += OnMasterVolumeChanged;
         _musicSlider.ValueChanged += OnMusicVolumeChanged;
         _sfxSlider.ValueChanged += OnSfxVolumeChanged;
+
+        // wrap options
+        _fullscreenToggle.FocusNeighborTop = _backButton.GetPath();
+        _backButton.FocusNeighborBottom = _fullscreenToggle.GetPath();
     }
 
     private void OnFullscreenToggled(bool toggled) => _settingsManager.SetFullscreen(toggled);

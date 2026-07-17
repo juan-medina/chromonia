@@ -2,9 +2,9 @@
 <!-- SPDX-License-Identifier: MIT -->
 <Project>
   <PropertyGroup>
-    <VersionMajor>0</VersionMajor>
-    <VersionMinor>9</VersionMinor>
-    <VersionBuild>3667</VersionBuild>
+    <VersionMajor>1</VersionMajor>
+    <VersionMinor>0</VersionMinor>
+    <VersionBuild>3674</VersionBuild>
     <Version>$(VersionMajor).$(VersionMinor).$(VersionBuild)</Version>
   </PropertyGroup>
 </Project>

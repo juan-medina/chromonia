@@ -4,9 +4,8 @@
 [ext_resource type="Script" uid="uid://cxa4gc08jqgpb" path="res://InputPrompts/InputPromptIcon.cs" id="2_icon"]
 [ext_resource type="Theme" uid="uid://djb8idhiocumf" path="res://Theme/main_theme.tres" id="3_theme"]
 [ext_resource type="PackedScene" uid="uid://da8d3k1iu6o82" path="res://Theme/modern_menu_button.tscn" id="4_mmb"]
-[ext_resource type="PackedScene" path="res://Theme/modern_slider.tscn" id="5_ms"]
-[ext_resource type="PackedScene" path="res://Theme/modern_check_button.tscn" id="6_mcb"]
 [ext_resource type="PackedScene" uid="uid://b6j27h8f0b1a2" path="res://Settings/settings_panel.tscn" id="7_sp"]
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prompts"]
 content_margin_left = 20.0
 content_margin_top = 10.0
@@ -39,7 +38,7 @@ grow_vertical = 2
 theme = ExtResource("3_theme")
 color = Color(0, 0, 0, 0.97)
 
-[node name="MarginContainer" type="MarginContainer" parent="ColorRect"]
+[node name="MarginContainer" type="MarginContainer" parent="ColorRect" unique_id=1970449240]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -49,48 +48,48 @@ grow_vertical = 2
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_bottom = 120
 
-[node name="VBoxContainer" type="VBoxContainer" parent="ColorRect/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="ColorRect/MarginContainer" unique_id=1036884465]
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 8
 theme_override_constants/separation = 20
 
-[node name="TitleLabel" type="Label" parent="ColorRect/MarginContainer/VBoxContainer"]
+[node name="TitleLabel" type="Label" parent="ColorRect/MarginContainer/VBoxContainer" unique_id=943158115]
 layout_mode = 2
-theme_override_font_sizes/font_size = 72
 theme_override_colors/font_color = Color(1, 0, 1, 1)
+theme_override_font_sizes/font_size = 72
 text = "PAUSED"
 
-[node name="HSeparator1" type="HSeparator" parent="ColorRect/MarginContainer/VBoxContainer"]
+[node name="HSeparator1" type="HSeparator" parent="ColorRect/MarginContainer/VBoxContainer" unique_id=1828510100]
 layout_mode = 2
 
-[node name="ResumeButton" parent="ColorRect/MarginContainer/VBoxContainer" instance=ExtResource("4_mmb")]
+[node name="ResumeButton" parent="ColorRect/MarginContainer/VBoxContainer" unique_id=375360339 instance=ExtResource("4_mmb")]
 layout_mode = 2
-theme_override_font_sizes/font_size = 48
 focus_neighbor_top = NodePath("../QuitButton")
 text = "Resume"
 
-[node name="RestartButton" parent="ColorRect/MarginContainer/VBoxContainer" instance=ExtResource("4_mmb")]
+[node name="RestartButton" parent="ColorRect/MarginContainer/VBoxContainer" unique_id=427252809 instance=ExtResource("4_mmb")]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
 text = "Restart"
 
-[node name="HSeparator2" type="HSeparator" parent="ColorRect/MarginContainer/VBoxContainer"]
+[node name="HSeparator2" type="HSeparator" parent="ColorRect/MarginContainer/VBoxContainer" unique_id=391256011]
 layout_mode = 2
 
-[node name="SettingsPanel" parent="ColorRect/MarginContainer/VBoxContainer" instance=ExtResource("7_sp")]
+[node name="SettingsPanel" parent="ColorRect/MarginContainer/VBoxContainer" unique_id=1015798520 node_paths=PackedStringArray("_backButton") instance=ExtResource("7_sp")]
+layout_mode = 2
+_backButton = NodePath("../ResumeButton")
+
+[node name="HSeparator3" type="HSeparator" parent="ColorRect/MarginContainer/VBoxContainer" unique_id=807860303]
 layout_mode = 2
 
-[node name="HSeparator3" type="HSeparator" parent="ColorRect/MarginContainer/VBoxContainer"]
+[node name="QuitButton" parent="ColorRect/MarginContainer/VBoxContainer" unique_id=1479110761 instance=ExtResource("4_mmb")]
 layout_mode = 2
-
-[node name="QuitButton" parent="ColorRect/MarginContainer/VBoxContainer" instance=ExtResource("4_mmb")]
-layout_mode = 2
-theme_override_font_sizes/font_size = 36
 focus_neighbor_bottom = NodePath("../ResumeButton")
+theme_override_font_sizes/font_size = 36
 text = "Main Menu"
 
-[node name="PromptMargin" type="MarginContainer" parent="ColorRect"]
+[node name="PromptMargin" type="MarginContainer" parent="ColorRect" unique_id=1178830627]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
@@ -103,15 +102,15 @@ grow_vertical = 0
 theme_override_constants/margin_right = 30
 theme_override_constants/margin_bottom = 30
 
-[node name="PanelContainer" type="PanelContainer" parent="ColorRect/PromptMargin"]
+[node name="PanelContainer" type="PanelContainer" parent="ColorRect/PromptMargin" unique_id=1956350926]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_prompts")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="ColorRect/PromptMargin/PanelContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="ColorRect/PromptMargin/PanelContainer" unique_id=340312821]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="NavIcon" type="TextureRect" parent="ColorRect/PromptMargin/PanelContainer/HBoxContainer"]
+[node name="NavIcon" type="TextureRect" parent="ColorRect/PromptMargin/PanelContainer/HBoxContainer" unique_id=1803413005]
 custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
 expand_mode = 1
@@ -119,25 +118,24 @@ stretch_mode = 5
 script = ExtResource("2_icon")
 ActionName = "Move"
 
-[node name="NavLabel" type="Label" parent="ColorRect/PromptMargin/PanelContainer/HBoxContainer"]
+[node name="NavLabel" type="Label" parent="ColorRect/PromptMargin/PanelContainer/HBoxContainer" unique_id=99289927]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Navigate"
 
-[node name="AcceptIcon" type="TextureRect" parent="ColorRect/PromptMargin/PanelContainer/HBoxContainer"]
+[node name="AcceptIcon" type="TextureRect" parent="ColorRect/PromptMargin/PanelContainer/HBoxContainer" unique_id=1652009259]
 custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 script = ExtResource("2_icon")
-ActionName = "ui_accept"
 
-[node name="AcceptLabel" type="Label" parent="ColorRect/PromptMargin/PanelContainer/HBoxContainer"]
+[node name="AcceptLabel" type="Label" parent="ColorRect/PromptMargin/PanelContainer/HBoxContainer" unique_id=102826166]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Select"
 
-[node name="CancelIcon" type="TextureRect" parent="ColorRect/PromptMargin/PanelContainer/HBoxContainer"]
+[node name="CancelIcon" type="TextureRect" parent="ColorRect/PromptMargin/PanelContainer/HBoxContainer" unique_id=903798148]
 custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
 expand_mode = 1
@@ -145,7 +143,7 @@ stretch_mode = 5
 script = ExtResource("2_icon")
 ActionName = "ui_cancel"
 
-[node name="CancelLabel" type="Label" parent="ColorRect/PromptMargin/PanelContainer/HBoxContainer"]
+[node name="CancelLabel" type="Label" parent="ColorRect/PromptMargin/PanelContainer/HBoxContainer" unique_id=1126938964]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Back"
